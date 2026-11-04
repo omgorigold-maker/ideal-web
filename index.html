@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>IDEAL — Visual Studio Archive</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=30">
+</head>
+<body>
+  <div class="app-shell sidebar-open" id="appShell">
+
+    <!-- COLLAPSIBLE FLOATING SIDEBAR OVERLAY (Floats over left edge of canvas) -->
+    <aside class="sidebar-drawer" id="sidebarDrawer" aria-label="Studio Navigation">
+      <div class="sidebar-top">
+        <div class="brand-title-row">
+          <div class="brand-left" id="brandHomeBtn" title="Click to return to 01 Studio Projects">
+            <span class="brand-dot"></span>
+            <h1 class="brand-name" id="sidebarBrandName">IDEAL</h1>
+          </div>
+          <div class="sidebar-top-actions">
+            <button type="button" class="icon-chip" id="btnCloseSidebar" title="Collapse sidebar off-screen">✕</button>
+          </div>
+        </div>
+        <p class="brand-tagline typewriter" id="sidebarTagline" hidden></p>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+
+      <!-- SCALABLE BOARD COMMAND BAR (No 800-item list in sidebar; instant ⌘K search + New Board) -->
+      <div class="sidebar-board-command" id="sidebarProjectsBlock">
+        <button type="button" class="sidebar-board-jump-btn" id="btnOpenBoardSwitcher" title="Jump to any of your 800+ boards (⌘K)">
+          <span class="board-jump-label" id="sidebarBoardJumpLabel">⌕ Jump to Board…</span>
+          <kbd class="board-jump-kbd">⌘K</kbd>
+        </button>
+        <button type="button" class="sidebar-new-board-btn" id="btnSidebarAddProject" title="Create New Project Board">+ Board</button>
+      </div>
+
+      <div class="sidebar-footer">
+        <input type="file" id="globalFileInput" multiple hidden>
+        <div class="sidebar-compact-actions">
+          <button type="button" class="quiet-action-link" id="btnSidebarUpload">+ Upload</button>
+          <span class="quiet-sep">·</span>
+          <button type="button" class="quiet-action-link" id="btnSidebarQuickNote">+ Note</button>
+          <span class="quiet-sep">·</span>
+          <button type="button" class="quiet-action-link" id="btnSidebarQuickLink">+ Link</button>
+          <span class="sync-status-line" id="syncStatusPill">
+            <span class="sync-dot"></span>
+            <span class="kicker-mono" id="syncStatusText">SAVED</span>
+          </span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- FLOATING LEFT-EDGE SIDEBAR RESTORE HANDLE (When Sidebar is Collapsed) -->
+    <button type="button" class="floating-sidebar-restore" id="btnRestoreSidebarEdge" title="Open Sidebar">
+      <span class="brand-dot"></span>
+      <span class="kicker-mono">☰</span>
+    </button>
+
+    <!-- FULL-BLEED 100VW x 100VH INFINITE CANVAS WORKSPACE -->
+    <div class="main-stage is-canvas-mode" id="mainStage">
+
+      <!-- SINGLE WHISPER-CLEAN FRAMELESS FLOATING TOP BAR -->
+      <header class="floating-hud-top" id="topSingleRow">
+        <div class="hud-top-row">
+          <!-- LEFT: Sidebar Toggle + Breadcrumb / Board Title + Inline Quiet Category Links -->
+          <div class="hud-cluster hud-cluster-left">
+            <div class="hud-pill hud-nav-pill">
+              <button type="button" class="hud-icon-btn" id="btnToggleSidebar" title="Toggle Sidebar">
+                <span>☰</span>
+                <span class="hud-code-tag" id="menuCurrentCode" hidden>01</span>
+              </button>
+              <button type="button" class="hud-icon-btn" id="btnBackToProjects" hidden title="Step Up / Back to Parent Board">←</button>
+              <div class="hud-breadcrumb-trail" id="boardBreadcrumbTrail" hidden></div>
+              <span class="kicker-mono" id="viewKicker" hidden></span>
+              <h2 class="hud-title" id="viewTitle" title="Click or double-click to rename">Studio Projects</h2>
+            </div>
+            <div class="hud-pill hud-categories-pill" id="filterActionRow"></div>
+          </div>
+
+          <!-- RIGHT: Quiet Status Dots, Search, Scale Slider, View Switcher, + Upload & Popover More Menu -->
+          <div class="hud-cluster hud-cluster-right">
+            <!-- Quiet Text Status Filter (All · ◈ Ready · ● Live · 🌐 Site) -->
+            <div class="hud-pill hud-ig-filter-pill" id="igStatusFilterBar" title="Filter by Publishing Status">
+              <button type="button" class="ig-filter-btn active" data-ig-filter="all" title="Show All Assets">All</button>
+              <button type="button" class="ig-filter-btn is-queued" data-ig-filter="queued" title="Queued for Next Post (IG Ready)">◈ Ready</button>
+              <button type="button" class="ig-filter-btn is-published" data-ig-filter="published" title="Published (IG Live)">● Live</button>
+              <button type="button" class="ig-filter-btn is-website" data-ig-filter="website" title="On Website">🌐 Site</button>
+            </div>
+
+            <!-- Minimalist Frameless Search -->
+            <div class="hud-pill hud-search-pill">
+              <span class="hud-search-icon" title="Search">⌕</span>
+              <input type="search" id="searchInput" class="hud-search-input" placeholder="Search…" aria-label="Search">
+            </div>
+
+            <!-- Minimal Scale Slider -->
+            <div class="hud-pill hud-density-pill" id="hudDensityPill" title="Thumbnail Size / Grid Density">
+              <input type="range" id="sizeSlider" class="hud-density-slider" min="150" max="520" step="10" value="300" aria-label="Thumbnail Scale">
+            </div>
+
+            <!-- Frameless View Switcher -->
+            <div class="hud-pill hud-segmented-pill" id="hudViewModeGroup" role="group" aria-label="View Mode">
+              <button type="button" class="seg-btn" id="btnViewSphere" data-mode="sphere" title="3D Sphere Macro View">◎</button>
+              <button type="button" class="seg-btn" id="btnViewGiantWall" data-mode="giant_wall" title="Giant Wall — Freeform Board (Drag &amp; Resize)">✥</button>
+              <button type="button" class="seg-btn active" id="btnViewWall" data-mode="wall" title="Clear Drawers &amp; Visual Clusters">⊞</button>
+              <button type="button" class="seg-btn" id="btnViewList" data-mode="list" title="Compact List">☰</button>
+              <button type="button" class="seg-btn" id="btnViewKanban" data-mode="kanban" title="Columns">▤</button>
+            </div>
+
+            <!-- Primary Upload + Popover Menu for Secondary Actions -->
+            <div class="hud-pill hud-actions-pill">
+              <button type="button" class="quiet-action-link" id="btnHudUpload" title="Upload Files (Original Quality)">+ Upload</button>
+              <button type="button" class="hud-icon-btn" popovertarget="hudMorePopover" id="btnHudMoreTrigger" title="More Actions &amp; Settings">⋯</button>
+            </div>
+
+            <!-- Native Popover Menu for Secondary Actions -->
+            <div id="hudMorePopover" popover class="hud-more-popover">
+              <button type="button" class="popover-menu-item" id="btnHudNote">+ Sticky Note / Checklist</button>
+              <button type="button" class="popover-menu-item" id="btnHudLink">+ Web Link / Local Path</button>
+              <button type="button" class="popover-menu-item" id="btnSectionDesign">⚙ Workspace &amp; Grid Settings</button>
+              <button type="button" class="popover-menu-item" id="btnThemeToggle">◐ Toggle Light / Dark</button>
+            </div>
+
+            <!-- Hidden legacy controls preserved for compatibility inside Section UI Drawer -->
+            <div hidden>
+              <select id="sortSelect">
+                <option value="manual">Manual</option>
+                <option value="updated">Updated</option>
+                <option value="newest">Newest</option>
+                <option value="alpha">A–Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- FLOATING POPOVER: PER-SECTION UI CUSTOMIZER -->
+      <section class="section-design-drawer" id="sectionDesignDrawer" hidden></section>
+
+      <!-- FLOATING QUICK COMPOSER BAR (+ Note / Checklist / Link) -->
+      <section class="quick-composer-bar" id="quickComposerBar" hidden></section>
+
+      <!-- MILANOTE-STYLE CANVAS ELEMENT RAIL (Drag onto board or Click to add) -->
+      <aside class="milanote-tool-rail" id="milanoteToolRail" aria-label="Board Elements">
+        <button type="button" class="mn-tool-btn" data-mn-tool="note" data-milanote-tool="note" title="Drag onto board or click to add a Note">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="7" x2="19" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="17" x2="14" y2="17"/></svg>
+          </span>
+          <span class="mn-tool-label">Note</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="link" data-milanote-tool="link" title="Drag onto board or click to add a Link">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </span>
+          <span class="mn-tool-label">Link</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="todo" data-milanote-tool="todo" title="Drag onto board or click to add a To-do list">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 6 9 9 5"/><line x1="12" y1="7" x2="19" y2="7"/><polyline points="4 16 6 18 9 14"/><line x1="12" y1="16" x2="19" y2="16"/></svg>
+          </span>
+          <span class="mn-tool-label">To-do</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="line" data-milanote-tool="line" title="Drag onto board or click to add a Line / Arrow">
+          <span class="mn-tool-card mn-tool-plain">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/></svg>
+          </span>
+          <span class="mn-tool-label">Line</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="folder" data-milanote-tool="folder" title="Drag onto board or click to create a nested Board / Clear Drawer">
+          <span class="mn-tool-card mn-tool-board-accent">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" opacity="0.55"/></svg>
+          </span>
+          <span class="mn-tool-label">Board</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="column" data-milanote-tool="column" title="Drag onto board or click to create a vertical Column container">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="7" y1="7" x2="17" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="17" x2="17" y2="17"/></svg>
+          </span>
+          <span class="mn-tool-label">Column</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" id="btnMilanoteMore" title="More board elements (Heading, Color, Sketch, Table, Comment…)">
+          <span class="mn-tool-dots">•••</span>
+        </button>
+
+        <div class="mn-tool-divider"></div>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="image" data-milanote-action="image" title="Add Image(s) to Board">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><polyline points="21 15 16 10 6 20"/></svg>
+          </span>
+          <span class="mn-tool-label">Image</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="upload" data-milanote-action="upload" title="Upload Files (Uncompressed Original Quality)">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </span>
+          <span class="mn-tool-label">Upload</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="sketch" data-milanote-tool="sketch" title="Drag onto board or click to add a Freehand Draw / Sketch pad">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          </span>
+          <span class="mn-tool-label">Draw</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn mn-trash-slot" id="milanoteTrashDropZone" title="Drag any board item here to move to Trash">
+          <span class="mn-tool-card mn-tool-plain">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </span>
+          <span class="mn-tool-label">Trash</span>
+        </button>
+
+        <!-- MILANOTE 3x3 MORE ELEMENTS POPOVER -->
+        <div class="milanote-more-popover" id="milanoteMorePopover" hidden>
+          <div class="mn-more-grid">
+            <button type="button" class="mn-more-item" data-mn-tool="sketch" data-milanote-tool="sketch">
+              <span class="mn-more-preview mn-preview-card">
+                <svg viewBox="0 0 36 24" width="32" height="22" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17c3-5 9-10 11-9s-6 7-4 8 8-4 9-3-3 4-1 5 4 0 5-1"/></svg>
+              </span>
+              <span class="mn-more-name">Sketch</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="color" data-milanote-tool="color">
+              <span class="mn-more-preview mn-preview-plain">
+                <svg viewBox="0 0 40 34" width="38" height="32" fill="none">
+                  <g transform="rotate(-7 14 15)">
+                    <rect x="5" y="3" width="17" height="21" rx="2" fill="#fff" stroke="rgba(0,0,0,0.12)"/>
+                    <rect x="5" y="3" width="17" height="15" rx="1.5" fill="#1f7a8c"/>
+                  </g>
+                  <g transform="rotate(6 26 19)">
+                    <rect x="17" y="7" width="17" height="21" rx="2" fill="#fff" stroke="rgba(0,0,0,0.14)"/>
+                    <rect x="17" y="7" width="17" height="15" rx="1.5" fill="#e84a7f"/>
+                  </g>
+                </svg>
+              </span>
+              <span class="mn-more-name">Color</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="document" data-milanote-tool="document">
+              <span class="mn-more-preview mn-preview-plain">
+                <svg viewBox="0 0 36 34" width="34" height="32" fill="none">
+                  <path d="M7 3h15l7 7v21a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#fff" stroke="rgba(0,0,0,0.14)"/>
+                  <path d="M22 3v7h7" fill="#e5e7eb"/>
+                  <text x="9" y="22" font-family="Georgia, serif" font-weight="700" font-size="9" fill="#333">T</text>
+                  <line x1="17" y1="16" x2="25" y2="16" stroke="#444" stroke-width="1.6" stroke-linecap="round"/>
+                  <line x1="17" y1="19.5" x2="25" y2="19.5" stroke="#444" stroke-width="1.6" stroke-linecap="round"/>
+                  <line x1="9" y1="25" x2="25" y2="25" stroke="#444" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="mn-more-name">Document</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="audio" data-milanote-action="upload">
+              <span class="mn-more-preview mn-preview-media">
+                <svg viewBox="0 0 42 32" width="40" height="30" fill="none">
+                  <rect x="1" y="1" width="40" height="30" rx="3" fill="#fff" stroke="rgba(0,0,0,0.12)"/>
+                  <path d="M1.5 3.5a2 2 0 0 1 2-2h35a2 2 0 0 1 2 2v20h-39v-20z" fill="#4bb543"/>
+                  <line x1="11" y1="13" x2="11" y2="15" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="15" y1="9" x2="15" y2="19" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="19" y1="11" x2="19" y2="17" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="23" y1="7" x2="23" y2="21" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="27" y1="10" x2="27" y2="18" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="31" y1="13" x2="31" y2="15" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="mn-more-name">Audio</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="map" data-milanote-tool="map">
+              <span class="mn-more-preview mn-preview-media">
+                <svg viewBox="0 0 42 32" width="40" height="30" fill="none">
+                  <rect x="1" y="1" width="40" height="30" rx="3" fill="#fff" stroke="rgba(0,0,0,0.12)"/>
+                  <clipPath id="mnMapClip"><rect x="1.5" y="1.5" width="39" height="22" rx="2.5"/></clipPath>
+                  <g clip-path="url(#mnMapClip)">
+                    <rect x="1" y="1" width="40" height="23" fill="#d9dad7"/>
+                    <polygon points="24,1 41,1 41,24 30,24" fill="#639bff"/>
+                    <polygon points="18,24 33,24 27,12" fill="#5ec269"/>
+                    <path d="M21 1 L32 24" stroke="#facc15" stroke-width="3.5"/>
+                    <circle cx="13" cy="10" r="4.2" fill="#ef4444"/>
+                    <circle cx="13" cy="10" r="1.5" fill="#fff"/>
+                  </g>
+                </svg>
+              </span>
+              <span class="mn-more-name">Map</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="video" data-milanote-action="upload">
+              <span class="mn-more-preview mn-preview-media">
+                <svg viewBox="0 0 42 32" width="40" height="30" fill="none">
+                  <rect x="1" y="1" width="40" height="30" rx="3" fill="#fff" stroke="rgba(0,0,0,0.12)"/>
+                  <clipPath id="mnVidClip"><rect x="1.5" y="1.5" width="39" height="22" rx="2.5"/></clipPath>
+                  <g clip-path="url(#mnVidClip)">
+                    <rect x="1" y="1" width="40" height="23" fill="#4cc9c0"/>
+                    <circle cx="10" cy="20" r="9" fill="#6366f1" opacity="0.65"/>
+                    <circle cx="33" cy="18" r="10" fill="#a855f7" opacity="0.65"/>
+                    <circle cx="21" cy="12.5" r="6" fill="rgba(20,20,30,0.65)"/>
+                    <polygon points="19.5,9.8 19.5,15.2 24,12.5" fill="#fff"/>
+                  </g>
+                </svg>
+              </span>
+              <span class="mn-more-name">Video</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="heading" data-milanote-tool="heading">
+              <span class="mn-more-preview mn-preview-dashed">
+                <span style="font-family:Georgia,serif;font-weight:700;font-size:16px;color:#333;">T</span>
+              </span>
+              <span class="mn-more-name">Heading</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="table" data-milanote-tool="table">
+              <span class="mn-more-preview mn-preview-plain">
+                <svg viewBox="0 0 42 30" width="40" height="28" fill="none">
+                  <rect x="1" y="1" width="40" height="27" rx="3" fill="#fff" stroke="rgba(0,0,0,0.14)"/>
+                  <path d="M1.5 3.5a2 2 0 0 1 2-2h35a2 2 0 0 1 2 2v5.5h-39v-5.5z" fill="#d4d4d8"/>
+                  <line x1="14.5" y1="1.5" x2="14.5" y2="27.5" stroke="#e4e4e7" stroke-width="1"/>
+                  <line x1="27.5" y1="1.5" x2="27.5" y2="27.5" stroke="#e4e4e7" stroke-width="1"/>
+                  <line x1="1.5" y1="15" x2="40.5" y2="15" stroke="#e4e4e7" stroke-width="1"/>
+                  <line x1="1.5" y1="21" x2="40.5" y2="21" stroke="#e4e4e7" stroke-width="1"/>
+                </svg>
+              </span>
+              <span class="mn-more-name">Table</span>
+            </button>
+            <button type="button" class="mn-more-item" data-mn-tool="comment" data-milanote-tool="comment">
+              <span class="mn-more-preview mn-preview-plain">
+                <svg viewBox="0 0 42 32" width="40" height="30" fill="none">
+                  <path d="M4 2h34a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H24l-3 4.5L18 24H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fff" stroke="rgba(0,0,0,0.14)"/>
+                  <line x1="8" y1="9" x2="34" y2="9" stroke="#6085f7" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="8" y1="13.5" x2="34" y2="13.5" stroke="#6085f7" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="8" y1="18" x2="26" y2="18" stroke="#6085f7" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="mn-more-name">Comment</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- PRIMARY FULL-BLEED CANVAS WORKSPACE -->
+      <main class="workspace" id="workspace"></main>
+
+      <!-- FLOATING MULTI-SELECT & ASSET COMPARISON ACTION PILL -->
+      <div class="compare-floating-bar" id="compareFloatingBar" hidden>
+        <div class="compare-bar-thumbs" id="compareBarThumbs"></div>
+        <span class="compare-sel-count" id="compareSelCountLabel">0 selected</span>
+        <button type="button" class="compare-trigger-btn" id="btnOpenCompareModal">
+          <span id="compareActionCount">⇄ Compare (2)</span>
+        </button>
+        <div class="compare-bar-divider"></div>
+        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Flag selected as IG Ready (Next Up)">◈ IG Ready</button>
+        <button type="button" class="compare-status-btn is-published" id="btnBatchMarkPublished" title="Mark selected as Published (IG Live)">● IG Live</button>
+        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Mark selected as Live on Website">🌐 On Site</button>
+        <button type="button" class="compare-clear-btn" id="btnClearCompareSelection" title="Clear Selection">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ASSET COMPARISON MODAL (Contextual Lightbox: Layer-Stack 1:1 & Split View)
+       ========================================================================= -->
+  <dialog class="compare-dialog" id="compareDialog" closedby="any" aria-labelledby="compareDialogTitle">
+    <div class="compare-modal-shell">
+      <!-- Floating Top Comparison HUD -->
+      <header class="compare-hud-bar">
+        <div class="compare-hud-left">
+          <span class="compare-modal-title" id="compareDialogTitle">Compare</span>
+          <!-- Mode Toggle: Layer-Stack 1:1 (Photoshop-style) vs Synchronized Split View -->
+          <div class="compare-mode-toggle" role="group" aria-label="Comparison Mode">
+            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" title="1:1 Registered Layer Stack — Press 1–9, ←/→, or Click Stage to flip instantly">
+              Stack 1:1
+            </button>
+            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" title="Synchronized N-Up Split View — Pan & Zoom all versions together">
+              Split View
+            </button>
+          </div>
+          <!-- Difference Blend Overlay Toggle (For Stack Mode) -->
+          <button type="button" class="cmp-chip-btn" id="btnCmpDiffToggle" title="Toggle 50% Onion-Skin / Difference Overlay against Layer 1">
+            ◐ Diff
+          </button>
+        </div>
+
+        <!-- Center Layer Switcher Pills (1, 2, 3...) -->
+        <div class="compare-layers-strip" id="compareLayerPills"></div>
+
+        <!-- Right: One-Click Publishing Status Toggles for Active Version + Zoom + Close -->
+        <div class="compare-hud-right">
+          <div class="compare-active-ig-group" id="compareActiveIgGroup">
+            <button type="button" class="cmp-ig-btn is-queued" id="btnCmpToggleQueued" title="Flag focused version as Queued (IG Ready / Next Up)">
+              ◈ IG Ready
+            </button>
+            <button type="button" class="cmp-ig-btn is-published" id="btnCmpTogglePublished" title="Mark focused version as Published (IG Live)">
+              ● IG Live
+            </button>
+            <button type="button" class="cmp-ig-btn is-website" id="btnCmpToggleWebsite" title="Mark focused version as On Website">
+              🌐 On Site
+            </button>
+          </div>
+
+          <div class="compare-zoom-group">
+            <button type="button" class="cmp-chip-btn" id="btnCmpZoomOut" title="Zoom Out">−</button>
+            <button type="button" class="cmp-chip-btn" id="btnCmpZoomReset" title="Reset 100% Alignment">100%</button>
+            <button type="button" class="cmp-chip-btn" id="btnCmpZoomIn" title="Zoom In">+</button>
+          </div>
+
+          <button type="button" class="cmp-close-btn" id="btnCloseCompareDialog" title="Close (Esc)">✕</button>
+        </div>
+      </header>
+
+      <!-- Main Comparison Stage (1:1 Registered Stack OR Synchronized N-Up Split Grid) -->
+      <div class="compare-stage-viewport" id="compareStage"></div>
+
+      <!-- Subtle Bottom Micro-Hint & Active Version Label -->
+      <footer class="compare-hud-footer" id="compareHudFooter"></footer>
+    </div>
+  </dialog>
+
+  <!-- =========================================================================
+       EAGLE-STYLE SPACEBAR HIGH-RES QUICK-LOOK OVERLAY
+       ========================================================================= -->
+  <dialog class="spacebar-preview-dialog" id="spacebarPreviewDialog" closedby="any" aria-labelledby="spacebarPreviewTitle">
+    <div class="spacebar-preview-shell">
+      <header class="spacebar-preview-header">
+        <div class="spacebar-preview-meta">
+          <span class="kicker-mono" id="spacebarPreviewBadge">QUICK LOOK</span>
+          <h3 class="spacebar-preview-title" id="spacebarPreviewTitle">Asset Preview</h3>
+        </div>
+        <div class="spacebar-preview-actions">
+          <button type="button" class="cmp-ig-btn is-queued" id="btnQuickLookQueued">◈ IG Ready</button>
+          <button type="button" class="cmp-ig-btn is-published" id="btnQuickLookPublished">● IG Live</button>
+          <button type="button" class="cmp-ig-btn is-website" id="btnQuickLookWebsite">🌐 On Site</button>
+          <button type="button" class="cmp-chip-btn" id="btnQuickLookPinToBoard" title="Send asset to a Studio Project or Incubator">+ To Studio</button>
+          <button type="button" class="cmp-chip-btn" id="btnQuickLookFinder" title="Reveal in Finder / Open Link">Finder ↗</button>
+          <button type="button" class="cmp-chip-btn" id="btnQuickLookInspect" title="Open Full Inspector">Inspect</button>
+          <button type="button" class="cmp-close-btn" id="btnCloseSpacebarPreview" title="Close (Space / Esc)">✕</button>
+        </div>
+      </header>
+      <div class="spacebar-preview-stage" id="spacebarPreviewStage"></div>
+      <footer class="spacebar-preview-footer" id="spacebarPreviewFooter">
+        <span>Press <kbd>Space</kbd> or <kbd>Esc</kbd> to close • <kbd>←</kbd> <kbd>→</kbd> to step through assets</span>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- ITEM INSPECTOR & EDITOR MODAL -->
+  <dialog class="studio-dialog" id="itemDialog" closedby="any" aria-labelledby="sheetTitle">
+    <div class="dialog-split">
+      <div class="dialog-media-stage" id="sheetMedia"></div>
+      <div class="dialog-inspector">
+        <div class="inspector-top">
+          <span class="kicker-mono" id="sheetFileMeta">ITEM INSPECTOR</span>
+          <button type="button" class="icon-chip" id="btnCloseSheet" title="Close (Esc)">✕</button>
+        </div>
+
+        <label class="inspector-field">
+          <span class="kicker-mono">TITLE</span>
+          <input type="text" id="sheetTitle" class="inspector-input title-size">
+        </label>
+
+        <!-- Publishing Status Quick Selector inside Inspector -->
+        <div class="inspector-field">
+          <span class="kicker-mono">PUBLISHING STATUS (INSTAGRAM / WEBSITE)</span>
+          <div class="inspector-ig-pills" id="sheetIgStatusGroup">
+            <button type="button" class="cmp-ig-btn seg-btn" data-ig-set="" id="btnSheetIgNone">WIP / None</button>
+            <button type="button" class="cmp-ig-btn seg-btn is-queued" data-ig-set="queued" id="btnSheetIgQueued">◈ IG Ready</button>
+            <button type="button" class="cmp-ig-btn seg-btn is-published" data-ig-set="published" id="btnSheetIgPublished">● IG Live</button>
+            <button type="button" class="cmp-ig-btn seg-btn is-website" data-ig-set="website" id="btnSheetIgWebsite">🌐 On Site</button>
+          </div>
+        </div>
+
+        <div class="inspector-grid-2">
+          <label class="inspector-field">
+            <span class="kicker-mono">BELONGS TO</span>
+            <select id="sheetParentSelect" class="inspector-input"></select>
+          </label>
+          <label class="inspector-field">
+            <span class="kicker-mono">CATEGORY / VERSION GROUP</span>
+            <input type="text" id="sheetSectionInput" class="inspector-input" placeholder="e.g. Final, WIP, Carousel">
+          </label>
+        </div>
+
+        <div class="inspector-grid-2">
+          <label class="inspector-field">
+            <span class="kicker-mono">CUSTOM BADGE</span>
+            <input type="text" id="sheetStatusInput" class="inspector-input" placeholder="e.g. v3 Crop">
+          </label>
+          <label class="inspector-field">
+            <span class="kicker-mono">TAGS (COMMA SEPARATED)</span>
+            <input type="text" id="sheetTagsInput" class="inspector-input" placeholder="3D, Reel, Print">
+          </label>
+        </div>
+
+        <label class="inspector-field">
+          <span class="kicker-mono">WEB URL OR LOCAL MAC PATH</span>
+          <div class="inline-input-row">
+            <input type="text" id="sheetLinkInput" class="inspector-input" placeholder="https://... or ~/Desktop/3d projects">
+            <button type="button" class="outline-btn" id="btnSheetOpenLink">Open ↗</button>
+          </div>
+        </label>
+
+        <label class="inspector-field">
+          <span class="kicker-mono">NOTES &amp; CHECKLIST (USE [ ] AND [x])</span>
+          <textarea id="sheetNotes" class="inspector-textarea typewriter" rows="6" placeholder="Write studio notes or interactive checklist lines..."></textarea>
+        </label>
+
+        <div class="inspector-download-bar" id="sheetDownloadRow"></div>
+
+        <div class="inspector-footer">
+          <button type="button" class="danger-outline-btn" id="btnSheetDelete">Delete…</button>
+          <button type="button" class="primary-block-btn" id="btnSheetSave" style="width:auto;padding:8px 20px;">Save</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- PROJECT BOARD EDITOR MODAL -->
+  <dialog class="confirm-dialog" id="projectDialog" closedby="any" aria-labelledby="projectDialogHeading">
+    <div class="confirm-box" style="max-width:520px;">
+      <div class="inspector-top">
+        <span class="kicker-mono" id="projectDialogHeading">PROJECT BOARD</span>
+        <button type="button" class="icon-chip" id="btnCloseProjectDialog">✕</button>
+      </div>
+
+      <label class="inspector-field">
+        <span class="kicker-mono">PROJECT TITLE</span>
+        <input type="text" id="projEditTitle" class="inspector-input title-size" placeholder="Project title">
+      </label>
+
+      <div class="inspector-grid-2">
+        <label class="inspector-field">
+          <span class="kicker-mono">STATUS</span>
+          <input type="text" id="projEditStatus" class="inspector-input" placeholder="🔥 In Progress">
+        </label>
+        <label class="inspector-field">
+          <span class="kicker-mono">DISCIPLINE</span>
+          <input type="text" id="projEditCategory" class="inspector-input" placeholder="3D &amp; Motion">
+        </label>
+      </div>
+
+      <label class="inspector-field">
+        <span class="kicker-mono">NOTES</span>
+        <textarea id="projEditSubtitle" class="inspector-textarea typewriter" rows="3"></textarea>
+      </label>
+
+      <label class="inspector-field">
+        <span class="kicker-mono">SECTIONS (COMMA SEPARATED)</span>
+        <input type="text" id="projEditSections" class="inspector-input" placeholder="All, Final, WIP, Notes">
+      </label>
+
+      <label class="inspector-field">
+        <span class="kicker-mono">TAGS</span>
+        <input type="text" id="projEditTags" class="inspector-input" placeholder="3D &amp; Motion, VJ">
+      </label>
+
+      <div class="confirm-actions" style="justify-content:space-between;margin-top:8px;">
+        <button type="button" class="danger-outline-btn" id="btnProjDialogDelete">Delete</button>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="outline-btn" id="btnProjDialogCancel">Cancel</button>
+          <button type="button" class="primary-block-btn" id="btnProjDialogSave" style="width:auto;padding:8px 18px;">Save</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- INSTANT ⌘K BOARD SWITCHER DIALOG (Scales to 800+ Boards) -->
+  <dialog class="modal-dialog board-switcher-dialog" id="boardSwitcherDialog" closedby="any" aria-label="Jump to Board">
+    <div class="board-switcher-box">
+      <div class="board-switcher-search-row">
+        <span class="board-switcher-icon">⌕</span>
+        <input type="search" id="boardSwitcherInput" class="board-switcher-input" placeholder="Jump to any board by title, category, or status…" autocomplete="off">
+        <button type="button" class="mini-text-btn" id="btnBoardSwitcherNew">+ New Board</button>
+        <button type="button" class="icon-chip" id="btnCloseBoardSwitcher" title="Close (Esc)">✕</button>
+      </div>
+      <div class="board-switcher-list" id="boardSwitcherList"></div>
+    </div>
+  </dialog>
+
+  <!-- EXPLICIT DELETE CONFIRMATION DIALOG -->
+  <dialog class="confirm-dialog" id="confirmDeleteDialog" closedby="any" aria-labelledby="confirmDeleteTitle">
+    <div class="confirm-box">
+      <span class="kicker-mono" style="color:#B83227;">CONFIRM DELETION</span>
+      <h3 class="confirm-title" id="confirmDeleteTitle">Move item to Trash?</h3>
+      <p class="confirm-desc typewriter" id="confirmDeleteMessage">This item will be soft-moved to vault_trash.</p>
+      <div class="confirm-actions">
+        <button type="button" class="outline-btn" id="btnCancelDelete">Cancel</button>
+        <button type="button" class="danger-solid-btn" id="btnConfirmDeleteYes">Move to Trash</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- GLOBAL DRAG & DROP OVERLAY -->
+  <div class="drop-overlay" id="globalDropOverlay" hidden>
+    <div class="drop-overlay-box">
+      <span class="kicker-mono">DROP FILES (UNCOMPRESSED ORIGINAL QUALITY)</span>
+    </div>
+  </div>
+
+  <script src="app.js?v=30"></script>
+</body>
+</html>
