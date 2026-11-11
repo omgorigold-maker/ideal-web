@@ -3,14 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="light">
   <title>IDEAL — Visual Studio Archive</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap">
+  </noscript>
+  <link rel="stylesheet" href="style.css?v=103">
+  <style>
+    html, body {
+      background-color: var(--bg);
+      color: var(--text);
+    }
+    .ideal-boot-loader {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    .ideal-boot-bar {
+      width: 140px;
+      height: 2.5px;
+      background: color-mix(in srgb, var(--text, currentColor) 14%, transparent);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ideal-boot-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0; width: 45%;
+      background: var(--accent, currentColor);
+      border-radius: 999px;
+      animation: bootSlide 1.1s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes bootSlide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(320%); }
+    }
+  </style>
+  <script>
+    (function() {
+      try {
+        var THEMES = {
+          warm_gallery: { mode: 'light', bg: '#F6F4EF', text: '#181715', surface: '#FAF8F5', accent: '#C84B31' },
+          pure_museum: { mode: 'light', bg: '#FAFAFA', text: '#111111', surface: '#FFFFFF', accent: '#D9381E' },
+          swiss_atelier: { mode: 'light', bg: '#F2F3F5', text: '#14161A', surface: '#FFFFFF', accent: '#2563EB' },
+          soft_paper: { mode: 'light', bg: '#EFECE4', text: '#1E1C18', surface: '#F6F3EC', accent: '#B84A2E' },
+          dark_studio: { mode: 'dark', bg: '#121211', text: '#F3F1EC', surface: '#1A1A18', accent: '#E06D53' },
+          tokyo_graphite: { mode: 'dark', bg: '#0E1014', text: '#ECEFF4', surface: '#161920', accent: '#38BDF8' },
+          oled_midnight: { mode: 'dark', bg: '#080808', text: '#F5F5F5', surface: '#111111', accent: '#FF6B4A' },
+          noir: { mode: 'dark', bg: '#0C0D0E', text: '#ECEBE8', surface: '#141517', accent: '#E06D53' },
+          midnight_blue: { mode: 'dark', bg: '#0B0F19', text: '#E5EBF5', surface: '#121826', accent: '#60A5FA' },
+          botanical_studio: { mode: 'dark', bg: '#0D1411', text: '#E2ECE6', surface: '#141E1A', accent: '#34D399' }
+        };
+        var raw = localStorage.getItem('ideal_vault_v5') || localStorage.getItem('ideal_vault_v1');
+        var c = null;
+        if (raw) {
+          var v = JSON.parse(raw);
+          c = v && v.customization;
+          if (c && c.activeTemplateId && Array.isArray(v.customizationTemplates)) {
+            var tpl = v.customizationTemplates.find(function(t) { return t && t.id === c.activeTemplateId; });
+            if (tpl && tpl.customization) {
+              c = Object.assign({}, tpl.customization, c);
+            }
+          }
+        }
+        var bg = '#F6F4EF', text = '#181715', surface = '#FAF8F5', accent = '#db4f33', mode = 'light';
+        if (c) {
+          if (c.customColors && c.customColors.bg) {
+            bg = c.customColors.bg;
+            text = c.customColors.text || text;
+            surface = c.customColors.surface || surface;
+            accent = c.customColors.accent || accent;
+            mode = /^#[0-3]/i.test(bg.trim()) ? 'dark' : 'light';
+          } else if (c.themePreset && THEMES[c.themePreset]) {
+            var t = THEMES[c.themePreset];
+            bg = t.bg; text = t.text; surface = t.surface; accent = t.accent; mode = t.mode;
+          }
+        }
+        var root = document.documentElement;
+        root.style.colorScheme = mode;
+        root.style.setProperty('--bg', bg);
+        root.style.setProperty('--surface', surface);
+        root.style.setProperty('--text', text);
+        root.style.setProperty('--accent', accent);
+        var meta = document.querySelector('meta[name="color-scheme"]');
+        if (meta) meta.content = mode;
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="app-shell sidebar-open" id="appShell">
@@ -32,29 +123,17 @@
 
       <nav class="sidebar-nav" id="sidebarNav"></nav>
 
-      <!-- SCALABLE BOARD COMMAND BAR (No 800-item list in sidebar; instant ⌘K search + New Board) -->
+      <!-- SCALABLE BOARD COMMAND BAR (Instant ⌘K Project Switcher + New Project Board) -->
       <div class="sidebar-board-command" id="sidebarProjectsBlock">
-        <button type="button" class="sidebar-board-jump-btn" id="btnOpenBoardSwitcher" title="Jump to any of your 800+ boards (⌘K)">
-          <span class="board-jump-label" id="sidebarBoardJumpLabel">⌕ Jump to Board…</span>
+        <button type="button" class="sidebar-board-jump-btn" id="btnOpenBoardSwitcher" title="Jump to any project board (⌘K)">
+          <span class="board-jump-label" id="sidebarBoardJumpLabel">Jump to Project</span>
           <kbd class="board-jump-kbd">⌘K</kbd>
         </button>
-        <button type="button" class="sidebar-new-board-btn" id="btnSidebarAddProject" title="Create New Project Board">+ Board</button>
+        <button type="button" class="sidebar-new-board-btn" id="btnSidebarAddProject" title="Create New Project Board">+ Project Board</button>
       </div>
 
-      <div class="sidebar-footer">
-        <input type="file" id="globalFileInput" multiple hidden>
-        <div class="sidebar-compact-actions">
-          <button type="button" class="quiet-action-link" id="btnSidebarUpload">+ Upload</button>
-          <span class="quiet-sep">·</span>
-          <button type="button" class="quiet-action-link" id="btnSidebarQuickNote">+ Note</button>
-          <span class="quiet-sep">·</span>
-          <button type="button" class="quiet-action-link" id="btnSidebarQuickLink">+ Link</button>
-          <span class="sync-status-line" id="syncStatusPill">
-            <span class="sync-dot"></span>
-            <span class="kicker-mono" id="syncStatusText">SAVED</span>
-          </span>
-        </div>
-      </div>
+      <input type="file" id="globalFileInput" multiple hidden>
+      <input type="file" id="globalFolderInput" webkitdirectory directory multiple hidden>
     </aside>
 
     <!-- FLOATING LEFT-EDGE SIDEBAR RESTORE HANDLE (When Sidebar is Collapsed) -->
@@ -107,11 +186,13 @@
 
             <!-- Frameless View Switcher -->
             <div class="hud-pill hud-segmented-pill" id="hudViewModeGroup" role="group" aria-label="View Mode">
-              <button type="button" class="seg-btn" id="btnViewSphere" data-mode="sphere" title="3D Sphere Macro View">◎</button>
-              <button type="button" class="seg-btn" id="btnViewGiantWall" data-mode="giant_wall" title="Giant Wall — Freeform Board (Drag &amp; Resize)">✥</button>
-              <button type="button" class="seg-btn active" id="btnViewWall" data-mode="wall" title="Clear Drawers &amp; Visual Clusters">⊞</button>
+              <button type="button" class="seg-btn" id="btnViewSphere" data-mode="sphere" title="3D Sphere Macro View" hidden>◎</button>
+              <button type="button" class="seg-btn active" id="btnViewGiantWall" data-mode="giant_wall" title="Giant Wall — Freeform Board (Drag &amp; Resize)">✥</button>
+              <button type="button" class="seg-btn" id="btnViewWall" data-mode="wall" title="Clear Drawers &amp; Visual Clusters">⊞</button>
               <button type="button" class="seg-btn" id="btnViewList" data-mode="list" title="Compact List">☰</button>
               <button type="button" class="seg-btn" id="btnViewKanban" data-mode="kanban" title="Columns">▤</button>
+              <button type="button" class="seg-btn mf-view-btn" id="btnViewMfVertical" data-mode="vertical" title="Vertical Columns View" hidden>▤ Vertical</button>
+              <button type="button" class="seg-btn mf-view-btn" id="btnViewMfHorizontal" data-mode="horizontal" title="Horizontal Rows View" hidden>☰ Horizontal</button>
             </div>
 
             <!-- Primary Upload + Popover Menu for Secondary Actions -->
@@ -140,6 +221,43 @@
           </div>
         </div>
       </header>
+      <script>
+        (function() {
+          try {
+            var h = window.location.hash || '';
+            var spaceTitles = {
+              'projects': 'Studio Projects',
+              'incubator': 'Incubator & Sparks',
+              'lightbox': 'The Lightbox',
+              'gdrive_assets': 'Assets & Vaults',
+              'tool_dock': 'Tools & Web Lab',
+              'gmail': 'Studio Mail',
+              'residencies': 'Residencies & Open Calls',
+              'customize': 'Customize Studio'
+            };
+            var targetId = null;
+            if (h.indexOf('#space/') === 0) {
+              targetId = decodeURIComponent(h.slice(7));
+            } else if (!h) {
+              var navRaw = sessionStorage.getItem('ideal_nav_state_v1') || localStorage.getItem('ideal_nav_state_v1');
+              if (navRaw) {
+                var nav = JSON.parse(navRaw);
+                if (nav && nav.viewType === 'space') targetId = nav.activeSpaceId;
+              }
+            }
+            if (targetId && spaceTitles[targetId]) {
+              var vt = document.getElementById('viewTitle');
+              if (vt) vt.textContent = spaceTitles[targetId];
+              if (targetId === 'lightbox' || targetId === 'gdrive_assets' || targetId === 'tool_dock' || targetId === 'gmail' || targetId === 'customize') {
+                var ig = document.getElementById('igStatusFilterBar');
+                if (ig) ig.hidden = true;
+                var rail = document.getElementById('milanoteToolRail');
+                if (rail) rail.hidden = true;
+              }
+            }
+          } catch(e) {}
+        })();
+      </script>
 
       <!-- FLOATING POPOVER: PER-SECTION UI CUSTOMIZER -->
       <section class="section-design-drawer" id="sectionDesignDrawer" hidden></section>
@@ -177,11 +295,11 @@
           <span class="mn-tool-label">Line</span>
         </button>
 
-        <button type="button" class="mn-tool-btn" data-mn-tool="folder" data-milanote-tool="folder" title="Drag onto board or click to create a nested Board / Clear Drawer">
+        <button type="button" class="mn-tool-btn" data-mn-tool="folder" data-milanote-tool="folder" title="Drag onto board or click to create a see-through Folder container">
           <span class="mn-tool-card mn-tool-board-accent">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" opacity="0.55"/></svg>
           </span>
-          <span class="mn-tool-label">Board</span>
+          <span class="mn-tool-label">Folder</span>
         </button>
 
         <button type="button" class="mn-tool-btn" data-mn-tool="column" data-milanote-tool="column" title="Drag onto board or click to create a vertical Column container">
@@ -189,6 +307,13 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="7" y1="7" x2="17" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="17" x2="17" y2="17"/></svg>
           </span>
           <span class="mn-tool-label">Column</span>
+        </button>
+
+        <button type="button" class="mn-tool-btn" data-mn-tool="sphere" data-milanote-tool="sphere" title="Drag onto board or click to add an Enclosing Sphere container">
+          <span class="mn-tool-card">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="3.5" ry="9"/></svg>
+          </span>
+          <span class="mn-tool-label">Sphere</span>
         </button>
 
         <button type="button" class="mn-tool-btn" id="btnMilanoteMore" title="More board elements (Heading, Color, Sketch, Table, Comment…)">
@@ -345,80 +470,146 @@
       </aside>
 
       <!-- PRIMARY FULL-BLEED CANVAS WORKSPACE -->
-      <main class="workspace" id="workspace"></main>
+      <main class="workspace" id="workspace">
+        <div class="ideal-boot-loader" id="bootLoader">
+          <div class="ideal-boot-bar"></div>
+        </div>
+      </main>
 
       <!-- FLOATING MULTI-SELECT & ASSET COMPARISON ACTION PILL -->
       <div class="compare-floating-bar" id="compareFloatingBar" hidden>
         <div class="compare-bar-thumbs" id="compareBarThumbs"></div>
         <span class="compare-sel-count" id="compareSelCountLabel">0 selected</span>
+        <button type="button" class="compare-status-btn lb-only-bar-btn" id="btnBatchSelectAll" title="Select all visible assets (⌘A)" hidden>Select All</button>
         <button type="button" class="compare-trigger-btn" id="btnOpenCompareModal">
           <span id="compareActionCount">⇄ Compare (2)</span>
         </button>
         <div class="compare-bar-divider"></div>
-        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Flag selected as IG Ready (Next Up)">◈ IG Ready</button>
-        <button type="button" class="compare-status-btn is-published" id="btnBatchMarkPublished" title="Mark selected as Published (IG Live)">● IG Live</button>
-        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Mark selected as Live on Website">🌐 On Site</button>
-        <button type="button" class="compare-clear-btn" id="btnClearCompareSelection" title="Clear Selection">✕</button>
+        <button type="button" class="compare-status-btn is-keep" id="btnBatchMarkKeep" title="Mark selected as Keep (★ Selected)">★ Keep</button>
+        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Route selected to Portfolio">Portfolio</button>
+        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Route selected to Instagram">IG</button>
+        <button type="button" class="compare-status-btn is-published" id="btnBatchMarkPublished" title="Mark selected as Published (IG Live)" hidden>● IG Live</button>
+        <button type="button" class="compare-status-btn lb-only-bar-btn" id="btnBatchMoveProject" aria-haspopup="menu" aria-expanded="false" commandfor="lbBatchMovePopover" command="toggle-popover" title="Move selected files to another project" hidden>Move to… <span aria-hidden="true">▾</span></button>
+        <div id="lbBatchMovePopover" popover="auto" class="lb-move-popover">
+          <div id="lbBatchMoveInner" focusgroup="menu nomemory" aria-labelledby="btnBatchMoveProject"></div>
+        </div>
+        <button type="button" class="compare-status-btn is-danger lb-only-bar-btn" id="btnBatchTrashSelected" title="Move selected files to Trash (Delete)" hidden>Trash…</button>
+        <button type="button" class="compare-clear-btn" id="btnClearCompareSelection" aria-label="Clear selection" title="Clear Selection (Esc)">✕</button>
       </div>
     </div>
   </div>
 
   <!-- =========================================================================
-       ASSET COMPARISON MODAL (Contextual Lightbox: Layer-Stack 1:1 & Split View)
+       THE LIGHTBOX — ADVANCED ASSET COMPARISON ENGINE
+       (Side-by-Side Sync, Photoshop Layer Stack, Neon Difference Map, Safe Zones)
        ========================================================================= -->
   <dialog class="compare-dialog" id="compareDialog" closedby="any" aria-labelledby="compareDialogTitle">
     <div class="compare-modal-shell">
-      <!-- Floating Top Comparison HUD -->
-      <header class="compare-hud-bar">
+      <!-- Single Ultra-Minimal Studio Bar -->
+      <header class="compare-hud-bar" id="compareHudToolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Comparison controls" aria-controls="compareStage">
+        <h2 class="cmp-sr-only" id="compareDialogTitle">Compare</h2>
+
         <div class="compare-hud-left">
-          <span class="compare-modal-title" id="compareDialogTitle">Compare</span>
-          <!-- Mode Toggle: Layer-Stack 1:1 (Photoshop-style) vs Synchronized Split View -->
-          <div class="compare-mode-toggle" role="group" aria-label="Comparison Mode">
-            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" title="1:1 Registered Layer Stack — Press 1–9, ←/→, or Click Stage to flip instantly">
-              Stack 1:1
+          <div class="compare-mode-toggle" role="group" aria-label="Comparison mode">
+            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" aria-pressed="true" autofocus title="Layer Stack (S)">
+              Stack
             </button>
-            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" title="Synchronized N-Up Split View — Pan & Zoom all versions together">
-              Split View
+            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" aria-pressed="false" title="Side-by-Side (S)">
+              Split
             </button>
           </div>
-          <!-- Difference Blend Overlay Toggle (For Stack Mode) -->
-          <button type="button" class="cmp-chip-btn" id="btnCmpDiffToggle" title="Toggle 50% Onion-Skin / Difference Overlay against Layer 1">
-            ◐ Diff
-          </button>
+
+          <!-- Contextual Stack-Only Controls (Hidden in Split Mode) -->
+          <div class="cmp-stack-inline-controls" id="cmpStackInlineControls" role="group" aria-label="Stack layers">
+            <div class="compare-layers-strip" id="compareLayerPills"></div>
+            <button type="button" class="cmp-ghost-pill" id="btnCmpDiffToggle" aria-pressed="false" title="Pixel Difference Map (D)">
+              ◐ Diff
+            </button>
+          </div>
         </div>
 
-        <!-- Center Layer Switcher Pills (1, 2, 3...) -->
-        <div class="compare-layers-strip" id="compareLayerPills"></div>
-
-        <!-- Right: One-Click Publishing Status Toggles for Active Version + Zoom + Close -->
         <div class="compare-hud-right">
-          <div class="compare-active-ig-group" id="compareActiveIgGroup">
-            <button type="button" class="cmp-ig-btn is-queued" id="btnCmpToggleQueued" title="Flag focused version as Queued (IG Ready / Next Up)">
-              ◈ IG Ready
-            </button>
-            <button type="button" class="cmp-ig-btn is-published" id="btnCmpTogglePublished" title="Mark focused version as Published (IG Live)">
-              ● IG Live
-            </button>
-            <button type="button" class="cmp-ig-btn is-website" id="btnCmpToggleWebsite" title="Mark focused version as On Website">
-              🌐 On Site
-            </button>
+          <!-- Contextual Stack-Only Curation (Hidden in Split Mode where each pane has quiet hover actions) -->
+          <div class="compare-active-ig-group" id="compareActiveIgGroup" role="group" aria-label="Curate active layer">
+            <button type="button" class="cmp-ig-btn is-keep" id="btnCmpToggleKeep" aria-pressed="false" title="Mark as Keep">★ Keep</button>
+            <button type="button" class="cmp-ig-btn is-website" id="btnCmpToggleWebsite" aria-pressed="false" title="Send to Portfolio">Portfolio</button>
+            <button type="button" class="cmp-ig-btn is-queued" id="btnCmpToggleQueued" aria-pressed="false" title="Send to Instagram">IG</button>
+            <button type="button" class="cmp-ig-btn is-published" id="btnCmpTogglePublished" aria-pressed="false" hidden>IG Live</button>
+            <button type="button" class="cmp-ig-btn is-danger" id="btnCmpDeleteActive" aria-label="Move active asset to Trash" title="Move active asset to Trash (Delete)">Trash…</button>
           </div>
 
-          <div class="compare-zoom-group">
-            <button type="button" class="cmp-chip-btn" id="btnCmpZoomOut" title="Zoom Out">−</button>
-            <button type="button" class="cmp-chip-btn" id="btnCmpZoomReset" title="Reset 100% Alignment">100%</button>
-            <button type="button" class="cmp-chip-btn" id="btnCmpZoomIn" title="Zoom In">+</button>
-          </div>
+          <!-- Appears ONLY when zoomed != 100% -->
+          <button type="button" class="cmp-zoom-pill" id="btnCmpZoomReset" title="Reset zoom to 100%" hidden>100%</button>
 
-          <button type="button" class="cmp-close-btn" id="btnCloseCompareDialog" title="Close (Esc)">✕</button>
+          <!-- Clean Popover Trigger for Safe Zones, Diff Tuning, File Info & Zoom -->
+          <button type="button" class="cmp-ghost-pill" id="btnCmpOptionsTrigger" popovertarget="cmpOptionsPopover" title="Safe zones, file info &amp; view options">
+            ⊞ View
+          </button>
+
+          <button type="button" class="cmp-close-btn" id="btnCloseCompareDialog" aria-label="Close comparison" title="Close (Esc)">✕</button>
         </div>
       </header>
 
-      <!-- Main Comparison Stage (1:1 Registered Stack OR Synchronized N-Up Split Grid) -->
+      <!-- On-Demand View & Safe-Zone Popover (Native Popover API + Anchor Positioning) -->
+      <div id="cmpOptionsPopover" popover="auto" class="cmp-options-popover" aria-label="View options and safe zones">
+        <div class="cmp-pop-section">
+          <span class="cmp-pop-label">Safe Zone Overlay</span>
+          <div class="cmp-pop-grid" id="cmpOverlayGroup" role="group" aria-label="Safe zone overlays">
+            <button type="button" class="cmp-overlay-btn active" data-cmp-overlay="none" aria-pressed="true">None</button>
+            <button type="button" class="cmp-overlay-btn" data-cmp-overlay="ig-grid" aria-pressed="false">IG 4:5</button>
+            <button type="button" class="cmp-overlay-btn" data-cmp-overlay="ig-story" aria-pressed="false">Story 9:16</button>
+            <button type="button" class="cmp-overlay-btn" data-cmp-overlay="cargo-grid" aria-pressed="false">Cargo 12-Col</button>
+          </div>
+        </div>
+
+        <div class="cmp-pop-section" id="cmpDiffSubbar" hidden>
+          <span class="cmp-pop-label">Difference Map</span>
+          <div class="cmp-pop-row">
+            <button type="button" class="cmp-diff-color-btn active" data-diff-color="pink" id="btnCmpDiffPink" aria-pressed="true">Pink</button>
+            <button type="button" class="cmp-diff-color-btn" data-diff-color="green" id="btnCmpDiffGreen" aria-pressed="false">Green</button>
+            <button type="button" class="cmp-diff-color-btn" data-diff-color="classic" id="btnCmpDiffClassic" aria-pressed="false">RGB</button>
+          </div>
+          <label class="cmp-diff-gain-label" id="cmpDiffGainWrap">
+            <span>Sensitivity</span>
+            <input type="range" id="cmpDiffGainSlider" min="1" max="12" step="1" value="4">
+          </label>
+        </div>
+
+        <div class="cmp-pop-section cmp-pop-footer-row">
+          <button type="button" class="cmp-pop-toggle-btn" id="btnCmpSpecsToggle" aria-pressed="false" title="Show resolution, ratio, size &amp; lossless download (I)">
+            ⓘ File Info &amp; Download
+          </button>
+          <div class="cmp-pop-zoom-stepper" role="group" aria-label="Zoom controls">
+            <button type="button" class="cmp-zoom-step-btn" id="btnCmpZoomOut" aria-label="Zoom out" title="Zoom out">−</button>
+            <button type="button" class="cmp-zoom-step-btn" id="btnCmpZoomResetStep" title="Reset 100%">1:1</button>
+            <button type="button" class="cmp-zoom-step-btn" id="btnCmpZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="compareLayersBar" hidden></div>
+
+      <!-- Pure Studio Stage -->
       <div class="compare-stage-viewport" id="compareStage"></div>
 
-      <!-- Subtle Bottom Micro-Hint & Active Version Label -->
-      <footer class="compare-hud-footer" id="compareHudFooter"></footer>
+      <!-- Floating Minimalist Video Sync Capsule (Only visible when comparing videos) -->
+      <div class="compare-video-sync-bar" id="compareVideoSyncBar" hidden>
+        <button type="button" class="cmp-sync-play-btn" id="btnCmpVideoPlayPause" aria-label="Play or pause all videos in sync" title="Play / Pause">⏸</button>
+        <button type="button" class="cmp-sync-step-btn" id="btnCmpVideoPrevFrame" aria-label="Previous frame" title="Step back 1 frame">‹</button>
+        <button type="button" class="cmp-sync-step-btn" id="btnCmpVideoNextFrame" aria-label="Next frame" title="Step forward 1 frame">›</button>
+        <input type="range" class="cmp-sync-scrubber" id="cmpVideoScrubber" min="0" max="1000" step="1" value="0" aria-label="Synchronized timeline">
+        <span class="cmp-sync-timecode" id="cmpVideoTimecode">0:00</span>
+        <select class="cmp-sync-speed" id="cmpVideoSpeedSelect" aria-label="Playback speed" title="Playback speed">
+          <option value="0.25">0.25×</option>
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.5">1.5×</option>
+        </select>
+        <button type="button" class="cmp-sync-loop-btn active" id="btnCmpVideoLoop" aria-pressed="true" aria-label="Loop playback" title="Loop playback">↻</button>
+      </div>
+
+      <!-- Hidden legacy footer container kept for DOM compatibility -->
+      <footer class="compare-hud-footer" id="compareHudFooter" hidden></footer>
     </div>
   </dialog>
 
@@ -569,16 +760,125 @@
     </div>
   </dialog>
 
-  <!-- INSTANT ⌘K BOARD SWITCHER DIALOG (Scales to 800+ Boards) -->
-  <dialog class="modal-dialog board-switcher-dialog" id="boardSwitcherDialog" closedby="any" aria-label="Jump to Board">
+  <!-- TOOL DOCK & R&D LAB EDITOR MODAL -->
+  <dialog class="confirm-dialog" id="toolDockDialog" closedby="any" aria-labelledby="toolDockDialogHeading">
+    <div class="confirm-box" style="max-width:540px;">
+      <div class="inspector-top">
+        <span class="kicker-mono" id="toolDockDialogHeading">LAUNCHPAD TOOL</span>
+        <button type="button" class="icon-chip" id="btnCloseToolDockDialog" title="Close (Esc)">✕</button>
+      </div>
+
+      <!-- Mode Switcher (Active Launchpad Tool vs R&D Lab Card vs Useful Link) -->
+      <div class="td-modal-mode-bar" id="tdModalModeBar" role="group" aria-label="Item Type" hidden>
+        <button type="button" class="td-mode-pill active" id="btnTdModeLaunchpad" data-td-mode="launchpad">✦ Launchpad Tool</button>
+        <button type="button" class="td-mode-pill" id="btnTdModeRd" data-td-mode="rd">◈ R&amp;D / Wishlist</button>
+        <button type="button" class="td-mode-pill" id="btnTdModeLink" data-td-mode="link">↗ Useful Link</button>
+      </div>
+
+      <label class="inspector-field">
+        <span class="kicker-mono" id="tdTitleLabel">TOOL NAME</span>
+        <input type="text" id="tdEditTitle" class="inspector-input title-size" placeholder="e.g. ComfyUI Local Nodes or OctaneRender">
+      </label>
+
+      <label class="inspector-field">
+        <span class="kicker-mono">WEB URL OR LOCAL MAC PATH</span>
+        <div class="inline-input-row">
+          <input type="text" id="tdEditUrl" class="inspector-input" placeholder="https://... or ~/Desktop/3d projects 2026">
+          <button type="button" class="outline-btn" id="btnTdTestUrl" title="Test opening this link or Finder folder">Open ↗</button>
+        </div>
+      </label>
+
+      <!-- Useful Link Description Field (Shown in Useful Link Mode) -->
+      <div id="tdLinkDescBlock" class="td-modal-section" hidden>
+        <label class="inspector-field">
+          <span class="kicker-mono">SHORT DESCRIPTION</span>
+          <input type="text" id="tdEditDesc" class="inspector-input" placeholder="What is this link used for? (e.g. PBR textures &amp; HDRI archive)">
+        </label>
+      </div>
+
+      <div class="inspector-grid-2" id="tdClusterSubRow">
+        <label class="inspector-field">
+          <span class="kicker-mono" id="tdClusterLabel">CLUSTER / GROUP</span>
+          <select id="tdEditClusterSelect" class="inspector-input" style="cursor:pointer;"></select>
+          <input type="text" id="tdEditCluster" class="inspector-input" placeholder="Type custom cluster name…" hidden style="margin-top:6px;">
+          <datalist id="tdClusterDatalist"></datalist>
+        </label>
+        <label class="inspector-field">
+          <span class="kicker-mono" id="tdSubLabel">SUBTITLE / BADGE</span>
+          <input type="text" id="tdEditSub" class="inspector-input" placeholder="e.g. LOCAL GPU or €24/mo">
+        </label>
+      </div>
+
+      <!-- Launchpad Tool & Staple Visual Settings (Icon Monogram & Accent Color) -->
+      <div id="tdLaunchpadVisualBlock" class="td-modal-section">
+        <div class="inspector-grid-2">
+          <label class="inspector-field">
+            <span class="kicker-mono">ICON / MONOGRAM</span>
+            <div class="td-icon-input-preview-row">
+              <span class="td-live-icon-preview" id="tdLiveIconPreview">✦</span>
+              <input type="text" id="tdEditIcon" class="inspector-input" maxlength="4" placeholder="✦, ↗, or Aa">
+            </div>
+          </label>
+          <div class="inspector-field">
+            <span class="kicker-mono" id="tdColorLabel">ACCENT COLOR</span>
+            <div class="td-color-picker-row">
+              <input type="color" id="tdEditColor" class="td-color-input" value="#181715" title="Choose custom color">
+              <div class="td-color-swatches" id="tdColorSwatches"></div>
+            </div>
+          </div>
+        </div>
+        <div class="td-icon-presets" id="tdIconPresets" aria-label="Quick Icon Presets"></div>
+        <label class="td-staple-toggle-row" id="tdStapleToggleRow" for="tdEditIsStaple">
+          <input type="checkbox" id="tdEditIsStaple">
+          <span>★ Pin to Top Staples Bar (Commonly Used Quick Access)</span>
+        </label>
+      </div>
+
+      <!-- R&D Lane Selector (Shown when in R&D Mode) -->
+      <div id="tdRdLaneBlock" class="td-modal-section" hidden>
+        <label class="inspector-field">
+          <span class="kicker-mono">R&amp;D LAB COLUMN / LANE</span>
+          <select id="tdEditLane" class="inspector-input">
+            <option value="explore">01 / To Test &amp; Explore</option>
+            <option value="subs">02 / Subscriptions &amp; Buy List</option>
+            <option value="build">03 / To Build &amp; Implement</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="inspector-field" id="tdNotesBlock">
+        <span class="kicker-mono" id="tdNotesLabel">NOTES &amp; SPECS</span>
+        <textarea id="tdEditNotes" class="inspector-textarea typewriter" rows="3" placeholder="Notes, workflow reminders, pros/cons, or pricing details..."></textarea>
+      </label>
+
+      <div class="confirm-actions" style="justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="danger-outline-btn" id="btnTdDialogDelete">Delete…</button>
+          <button type="button" class="outline-btn" id="btnTdDialogTransfer" hidden>↑ Promote to Launchpad</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="outline-btn" id="btnTdDialogCancel">Cancel</button>
+          <button type="button" class="primary-block-btn" id="btnTdDialogSave" style="width:auto;padding:8px 18px;">Save</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- INSTANT ⌘K PROJECT BOARD SWITCHER DIALOG -->
+  <dialog class="modal-dialog board-switcher-dialog" id="boardSwitcherDialog" closedby="any" aria-label="Jump to Project">
     <div class="board-switcher-box">
       <div class="board-switcher-search-row">
-        <span class="board-switcher-icon">⌕</span>
-        <input type="search" id="boardSwitcherInput" class="board-switcher-input" placeholder="Jump to any board by title, category, or status…" autocomplete="off">
-        <button type="button" class="mini-text-btn" id="btnBoardSwitcherNew">+ New Board</button>
-        <button type="button" class="icon-chip" id="btnCloseBoardSwitcher" title="Close (Esc)">✕</button>
+        <span class="board-switcher-icon" aria-hidden="true">⌕</span>
+        <label for="boardSwitcherInput" class="visually-hidden">Search project boards</label>
+        <input type="search" id="boardSwitcherInput" class="board-switcher-input" placeholder="Search project boards…" autocomplete="off" autofocus>
+        <button type="button" class="bs-new-board-btn" id="btnBoardSwitcherNew">+ Project Board</button>
+        <button type="button" class="bs-close-btn" id="btnCloseBoardSwitcher" title="Close (Esc)" aria-label="Close">✕</button>
       </div>
-      <div class="board-switcher-list" id="boardSwitcherList"></div>
+      <div class="board-switcher-list" id="boardSwitcherList" role="listbox" aria-label="Project Boards"></div>
+      <div class="board-switcher-footer">
+        <span class="bs-footer-hints"><kbd>↑</kbd><kbd>↓</kbd> Navigate <span class="bs-dot">·</span> <kbd>↵</kbd> Open <span class="bs-dot">·</span> <kbd>Esc</kbd> Close</span>
+        <span class="bs-footer-count" id="boardSwitcherFooterCount"></span>
+      </div>
     </div>
   </dialog>
 
@@ -589,9 +889,226 @@
       <h3 class="confirm-title" id="confirmDeleteTitle">Move item to Trash?</h3>
       <p class="confirm-desc typewriter" id="confirmDeleteMessage">This item will be soft-moved to vault_trash.</p>
       <div class="confirm-actions">
-        <button type="button" class="outline-btn" id="btnCancelDelete">Cancel</button>
+        <button type="button" class="outline-btn" id="btnCancelDelete" autofocus>Cancel</button>
         <button type="button" class="danger-solid-btn" id="btnConfirmDeleteYes">Move to Trash</button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- UNSAVED CUSTOMIZATIONS LEAVE CONFIRMATION DIALOG -->
+  <dialog class="confirm-dialog" id="unsavedCustDialog" closedby="any" aria-labelledby="unsavedCustTitle" style="max-width:460px;">
+    <div class="confirm-box">
+      <span class="kicker-mono" id="unsavedCustKicker" style="color:var(--accent);">UNSAVED TEMPLATE EDITS</span>
+      <h3 class="confirm-title" id="unsavedCustTitle">Leave without saving changes?</h3>
+      <p class="confirm-desc typewriter" id="unsavedCustMessage">You have unsaved changes to this template. Would you like to save your changes, discard them, or keep editing?</p>
+      <div class="confirm-actions" style="flex-wrap:wrap;justify-content:flex-end;gap:8px;">
+        <button type="button" class="outline-btn" id="btnUnsavedKeepEditing" autofocus>Keep Editing</button>
+        <button type="button" class="danger-outline-btn" id="btnUnsavedDiscardLeave">No (Discard &amp; Leave)</button>
+        <button type="button" class="primary-block-btn" id="btnUnsavedSaveLeave" style="width:auto;padding:7px 14px;">Save Changes &amp; Leave</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- SAVE AS DESIGN PRESET DIALOG -->
+  <dialog class="confirm-dialog" id="saveTemplateDialog" closedby="any" aria-labelledby="saveTemplateTitle" style="max-width:440px;">
+    <div class="confirm-box">
+      <span class="kicker-mono" style="color:var(--accent);">NEW STUDIO PRESET</span>
+      <h3 class="confirm-title" id="saveTemplateTitle">Save as New Preset</h3>
+      <p class="confirm-desc typewriter">Save your current design changes as a new preset in your collection (your existing presets will not be overwritten).</p>
+      <div class="inspector-field" style="margin-top:4px;">
+        <label class="kicker-mono" for="saveTplNameInput">NEW PRESET NAME</label>
+        <input type="text" class="inspector-input" id="saveTplNameInput" placeholder="e.g. Studio Preset 2" autocomplete="off">
+      </div>
+      <label class="chk-row" style="margin-top:6px;padding:8px 10px;border:1px solid var(--border);border-radius:5px;background:var(--surface-pill);cursor:pointer;">
+        <input type="checkbox" id="saveTplSetDefaultChk">
+        <span><strong>★ Set as Default Preset</strong> (used across the site by default)</span>
+      </label>
+      <div class="confirm-actions" style="margin-top:8px;">
+        <button type="button" class="outline-btn" id="btnCancelSaveTemplate">Cancel</button>
+        <button type="button" class="primary-btn" id="btnConfirmSaveTemplate">Save New Preset</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- TURN BATCH INTO PROJECT DIALOG (Creative Studio) -->
+  <dialog class="confirm-dialog" id="batchProjectDialog" closedby="any" aria-labelledby="batchProjectTitle" style="max-width:440px;">
+    <div class="confirm-box">
+      <span class="kicker-mono" style="color:var(--accent);">CREATIVE STUDIO · NEW PROJECT</span>
+      <h3 class="confirm-title" id="batchProjectTitle">Turn Batch into Project</h3>
+      <p class="confirm-desc typewriter" id="batchProjectDesc">Bundle the selected items into their own dedicated Studio Project Board.</p>
+      <div class="inspector-field" style="margin-top:8px;">
+        <label class="kicker-mono" for="batchProjectNameInput">PROJECT TITLE</label>
+        <input type="text" class="inspector-input" id="batchProjectNameInput" placeholder="e.g. 3D Character Series" autocomplete="off">
+      </div>
+      <div class="inspector-field" style="margin-top:8px;">
+        <label class="kicker-mono" for="batchProjectCategorySelect">CATEGORY / DISCIPLINE</label>
+        <select class="inspector-input" id="batchProjectCategorySelect">
+          <option value="3D & Motion">3D &amp; Motion</option>
+          <option value="Visual Identity">Visual Identity</option>
+          <option value="Editorial & Print">Editorial &amp; Print</option>
+          <option value="Installation">Installation</option>
+          <option value="Concept Lab">Concept Lab</option>
+        </select>
+      </div>
+      <div class="confirm-actions" style="margin-top:14px;">
+        <button type="button" class="outline-btn" id="btnCancelBatchProject">Cancel</button>
+        <button type="button" class="primary-btn" id="btnConfirmBatchProject">✨ Create Project Board</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ENCLOSING FOLDER CARD PREVIEW PICKER DIALOG -->
+  <dialog class="modal-dialog preview-picker-dialog" id="enclosingPreviewPickerDialog" closedby="any" aria-label="Pick Card Preview Images">
+    <div class="preview-picker-box">
+      <div class="preview-picker-header">
+        <div class="preview-picker-title-wrap">
+          <h3 class="preview-picker-title" id="previewPickerHeading">Pick 4 Preview Images</h3>
+          <span class="preview-picker-subtitle" id="previewPickerSub">Click images below to set your 4 card previews</span>
+        </div>
+        <div class="preview-picker-header-actions">
+          <span class="preview-picker-counter" id="previewPickerCounter">0 / 4 Selected</span>
+          <button type="button" class="bs-close-btn" id="btnClosePreviewPicker" title="Close (Esc)" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="preview-picker-grid" id="previewPickerGrid"></div>
+      <div class="preview-picker-footer">
+        <button type="button" class="btn-picker-secondary" id="btnResetPreviewPicker">Reset to Default</button>
+        <div style="margin-left:auto;display:inline-flex;gap:8px;">
+          <button type="button" class="btn-picker-secondary" id="btnCancelPreviewPicker">Cancel</button>
+          <button type="button" class="btn-picker-primary" id="btnSavePreviewPicker">Done</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- OPPORTUNITY INTAKE & SMART EXTRACTION PREVIEW MODAL -->
+  <dialog class="confirm-dialog mf-intake-dialog" id="mfIntakePreviewDialog" closedby="any" aria-labelledby="mfIntakeDialogHeading">
+    <div class="confirm-box mf-intake-modal-box">
+      <div class="inspector-top">
+        <div class="mf-intake-modal-kicker-wrap">
+          <span class="kicker-mono" id="mfIntakeDialogHeading" style="color:var(--accent);">OPPORTUNITY INTAKE &bull; SMART EXTRACTION</span>
+          <span class="mf-intake-confidence-pill" id="mfIntakeConfidencePill">High Confidence</span>
+        </div>
+        <button type="button" class="icon-chip" id="btnCloseMfIntakeDialog" title="Close (Esc)">✕</button>
+      </div>
+
+      <div class="mf-intake-modal-grid">
+        <!-- Left Column: Extracted Core Fields -->
+        <div class="mf-intake-form-col">
+          <label class="inspector-field">
+            <span class="kicker-mono">OPPORTUNITY TITLE</span>
+            <input type="text" id="mfIntakeTitleInput" class="inspector-input title-size" placeholder="Residency name, open call, role, or project">
+          </label>
+
+          <div class="inspector-grid-2">
+            <label class="inspector-field">
+              <span class="kicker-mono">ORGANIZATION / STUDIO / INSTITUTION</span>
+              <input type="text" id="mfIntakeOrgInput" class="inspector-input" placeholder="e.g. CTM FESTIVAL, ZEITGUISED">
+            </label>
+            <label class="inspector-field">
+              <span class="kicker-mono">DESTINATION PIPELINE</span>
+              <select id="mfIntakeDestSelect" class="inspector-input mf-intake-select">
+                <option value="residencies:spotted">Residencies &amp; Awards &rarr; Spotted</option>
+                <option value="work_apps:spotted">Work Applications &rarr; Spotted</option>
+                <option value="dream_clients:spotted">Clients I Want to Work With &rarr; Spotted</option>
+                <option value="opportunity_pool:residencies">Opportunity Pool &rarr; Residencies &amp; Calls</option>
+                <option value="opportunity_pool:work_apps">Opportunity Pool &rarr; Work &amp; Studios</option>
+                <option value="opportunity_pool:dream_clients">Opportunity Pool &rarr; Potential Clients</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="inspector-grid-2">
+            <label class="inspector-field">
+              <span class="kicker-mono">CATEGORY / DISCIPLINE</span>
+              <input type="text" id="mfIntakeCategoryInput" class="inspector-input" placeholder="e.g. Residencies, Creative Direction">
+            </label>
+            <label class="inspector-field">
+              <span class="kicker-mono">DEADLINE</span>
+              <div class="mf-intake-deadline-wrap">
+                <input type="text" id="mfIntakeDeadlineInput" class="inspector-input" placeholder="e.g. Jan 15, 2027 or Rolling">
+                <span class="mf-intake-days-tag" id="mfIntakeDaysBadge">Rolling</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="inspector-grid-2">
+            <label class="inspector-field">
+              <span class="kicker-mono">OFFER / STIPEND</span>
+              <input type="text" id="mfIntakeOfferInput" class="inspector-input" placeholder="e.g. €2,000/mo + studio">
+            </label>
+            <label class="inspector-field">
+              <span class="kicker-mono">APPLICATION FEE</span>
+              <input type="text" id="mfIntakeFeeInput" class="inspector-input" placeholder="e.g. Free or €25">
+            </label>
+          </div>
+
+          <div class="inspector-grid-2">
+            <label class="inspector-field">
+              <span class="kicker-mono">SOURCE LINK</span>
+              <input type="text" id="mfIntakeLinkInput" class="inspector-input" placeholder="https://...">
+            </label>
+            <label class="inspector-field">
+              <span class="kicker-mono">CONTACT EMAIL</span>
+              <input type="text" id="mfIntakeContactInput" class="inspector-input" placeholder="contact@organization.com">
+            </label>
+          </div>
+
+          <label class="inspector-field">
+            <span class="kicker-mono">NEXT STEP ACTION</span>
+            <input type="text" id="mfIntakeNextStepInput" class="inspector-input" placeholder="e.g. Prepare Portfolio PDF & CV before Jan 15">
+          </label>
+
+          <label class="inspector-field">
+            <span class="kicker-mono">NOTES &amp; SUMMARY</span>
+            <textarea id="mfIntakeNotesInput" class="inspector-textarea typewriter" rows="3" placeholder="Summary notes, eligibility criteria, jury details..."></textarea>
+          </label>
+        </div>
+
+        <!-- Right Column: Media Preview & Application Requirements -->
+        <div class="mf-intake-side-col">
+          <div class="mf-intake-side-box" id="mfIntakeMediaBox">
+            <span class="kicker-mono">SOURCE MEDIA &amp; FLYER</span>
+            <div class="mf-intake-media-preview" id="mfIntakeMediaPreview">
+              <span class="typewriter" style="font-size:11px;color:var(--text-faint);">No image attached</span>
+            </div>
+            <div class="mf-intake-media-meta" id="mfIntakeMediaMeta"></div>
+          </div>
+
+          <div class="mf-intake-side-box">
+            <div class="mf-intake-reqs-head">
+              <span class="kicker-mono">APPLICATION REQUIREMENTS</span>
+              <button type="button" class="mf-intake-small-add-btn" id="btnMfIntakeAddReq">+ Add Item</button>
+            </div>
+            <div class="mf-intake-reqs-list" id="mfIntakeReqsList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="confirm-actions mf-intake-modal-actions">
+        <button type="button" class="outline-btn" id="btnCancelMfIntake">Discard</button>
+        <button type="button" class="primary-block-btn" id="btnConfirmMfIntake" style="width:auto;padding:9px 24px;">
+          ✓ Confirm &amp; Slot into Pipeline
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- THE LIGHTBOX — SHARED CARD CONTEXT MENU POPOVER & POLITE STATUS -->
+  <div id="lbContextPointAnchor" class="lb-context-point-anchor" aria-hidden="true"></div>
+  <div id="lbSharedCardMenu" popover="auto" class="lb-card-menu-popover">
+    <div id="lbSharedCardMenuInner" focusgroup="menu nomemory" aria-label="Asset actions"></div>
+  </div>
+  <p class="cmp-sr-only" id="lbPoliteAnnouncer" role="status" aria-live="polite"></p>
+
+  <!-- THE LIGHTBOX — EXACT DUPLICATE DETECTION & VISIBLE PROOF DIALOG -->
+  <dialog class="confirm-dialog dup-proof-dialog lb-dup-dialog" id="lightboxDuplicateDialog" closedby="any" aria-labelledby="lbDupDialogTitle">
+    <div class="confirm-box dup-proof-shell lb-dup-box">
+      <div class="inspector-top dup-proof-header">
+        <h2 class="dup-proof-modal-title" id="lbDupDialogTitle">Exact Duplicate Detected</h2>
+        <button type="button" class="cmp-close-btn" id="btnCloseDuplicateDialog" aria-label="Close duplicate dialog" title="Close (Esc)">✕</button>
+      </div>
+      <div id="lightboxDuplicateBody"></div>
     </div>
   </dialog>
 
@@ -602,6 +1119,11 @@
     </div>
   </div>
 
-  <script src="app.js?v=30"></script>
+  <script type="module">
+    if (!Object.hasOwn(HTMLElement.prototype, "popover")) {
+      import("https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js");
+    }
+  </script>
+  <script src="app.js?v=103"></script>
 </body>
 </html>
