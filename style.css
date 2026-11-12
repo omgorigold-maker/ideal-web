@@ -11024,10 +11024,11 @@ body[data-hover-motion="zoom"] .studio-card:hover .card-stage > video {
 
 .gdrive-file-card.gdrive-enclosing-card .gdrive-file-info-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .gdrive-file-card.gdrive-enclosing-card .gdrive-file-title {

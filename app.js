@@ -268,7 +268,7 @@ function uid(prefix = '') {
 
     if (apiPath === '/api/gdrive-assets') {
       const r = await readGhJson(CLOUD_REPO, 'gdrive_index.json');
-      if (r.ok && r.data && Array.isArray(r.data.batches) && r.data.batches.length > 0) return jsonResp(r.data);
+      if (r.ok && r.data && Array.isArray(r.data.batches) && r.data.batches.length > 0 && Array.isArray(r.data.enclosingFolders) && r.data.enclosingFolders.length > 0) return jsonResp(r.data);
       if (typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
         return jsonResp(window._IDEAL_GDRIVE_SEED);
       }
@@ -3626,9 +3626,9 @@ async function fetchGDriveAssets(forceRefresh = false) {
   try {
     const res = await fetch(`/api/gdrive-assets?force=${forceRefresh ? '1' : '0'}&_t=${now}`);
     if (res.ok) {
-      const data = await res.json();
+      let data = await res.json();
       if (data && Array.isArray(data.batches)) {
-        if (data.batches.length === 0 && (!state.gdriveBatches || state.gdriveBatches.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+        if ((data.batches.length === 0 || !Array.isArray(data.enclosingFolders) || data.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
           data = window._IDEAL_GDRIVE_SEED;
         }
         if (data.batches.length === 0 && state.gdriveBatches && state.gdriveBatches.length > 0) {
@@ -4028,7 +4028,7 @@ async function syncFromServerOnBoot() {
     if (cachedAssets) {
       try { parsed = JSON.parse(cachedAssets); } catch (e) {}
     }
-    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
       parsed = window._IDEAL_GDRIVE_SEED;
     }
     if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
@@ -7404,6 +7404,20 @@ function matchesGDriveFormatFilter(extStr, fmt) {
   return true;
 }
 
+function getGDriveAssetThumbSrc(fileOrEx) {
+  if (!fileOrEx) return '';
+  const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
+  if (isCloudWeb && (fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl)) {
+    return fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl;
+  }
+  return fileOrEx.thumbUrl || fileOrEx.fallbackThumbUrl || fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl || '';
+}
+
+function getGDriveAssetFallbackSrc(fileOrEx) {
+  if (!fileOrEx) return '';
+  return fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl || fileOrEx.fallbackThumbUrl || (fileOrEx.thumbUrl ? `${fileOrEx.thumbUrl}&fallback=1` : '');
+}
+
 function getEnclosingFolderSection(folderName) {
   const customMap = vault?.assetSections || vault?.customization?.assetSections || {};
   if (customMap[folderName]) {
@@ -7461,7 +7475,7 @@ function renderGDriveAssetsView(ws, spaceObj) {
     if (cachedAssets) {
       try { parsed = JSON.parse(cachedAssets); } catch (e) {}
     }
-    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
       parsed = window._IDEAL_GDRIVE_SEED;
     }
     if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
@@ -7651,8 +7665,8 @@ function renderGDriveRootEnclosingView(ws, spaceObj) {
         ext: extUpper,
         cid: ex.cid,
         kind: ['MP4', 'MOV', 'WEBM'].includes(extUpper) ? 'video' : 'image',
-        thumbSrc: ex.thumbUrl,
-        fallbackSrc: ex.fallbackThumbUrl,
+        thumbSrc: getGDriveAssetThumbSrc(ex),
+        fallbackSrc: getGDriveAssetFallbackSrc(ex),
         driveEmbedUrl: ex.driveEmbedUrl,
         driveDownloadUrl: ex.driveDownloadUrl,
         localPath: ex.localPath,
@@ -8091,8 +8105,8 @@ function renderGDriveEnclosingFolderView(ws, encObj, spaceObj) {
         ext,
         cid: ex.cid,
         kind: ['MP4', 'MOV', 'WEBM'].includes(ext) ? 'video' : 'image',
-        thumbSrc: ex.thumbUrl || ex.fallbackThumbUrl || '',
-        fallbackSrc: ex.fallbackThumbUrl || `${ex.thumbUrl}&fallback=1`,
+        thumbSrc: getGDriveAssetThumbSrc(ex),
+        fallbackSrc: getGDriveAssetFallbackSrc(ex),
         driveEmbedUrl: ex.driveEmbedUrl,
         driveDownloadUrl: ex.driveDownloadUrl,
         localPath: ex.localPath,
@@ -8477,8 +8491,8 @@ function renderGDriveEnclosingFolderView(ws, encObj, spaceObj) {
           ext,
           cid: file.cid,
           kind: ['MP4', 'MOV', 'WEBM'].includes(ext) ? 'video' : 'image',
-          thumbSrc: file.thumbUrl || file.fallbackThumbUrl || '',
-          fallbackSrc: file.fallbackThumbUrl || `${file.thumbUrl}&fallback=1`,
+          thumbSrc: getGDriveAssetThumbSrc(file),
+          fallbackSrc: getGDriveAssetFallbackSrc(file),
           driveEmbedUrl: file.driveEmbedUrl,
           driveDownloadUrl: file.driveDownloadUrl,
           localPath: file.localPath,
@@ -8722,8 +8736,8 @@ function renderGDriveFolderDrillDown(ws, batch, spaceObj) {
       ext,
       cid: ex.cid,
       kind: ['MP4', 'MOV', 'WEBM'].includes(ext) ? 'video' : 'image',
-      thumbSrc: ex.thumbUrl,
-      fallbackSrc: ex.fallbackThumbUrl || `${ex.thumbUrl}&fallback=1`,
+      thumbSrc: getGDriveAssetThumbSrc(ex),
+      fallbackSrc: getGDriveAssetFallbackSrc(ex),
       cloudThumbUrl: ex.cloudThumbUrl,
       driveHighResUrl: ex.driveHighResUrl,
       driveDownloadUrl: ex.driveDownloadUrl,
@@ -9672,8 +9686,8 @@ function buildGDriveEnclosingCardEl(enc, idx) {
       ext: extUpper,
       cid: ex.cid,
       kind: ['MP4', 'MOV', 'WEBM'].includes(extUpper) ? 'video' : 'image',
-      thumbSrc: ex.thumbUrl,
-      fallbackSrc: ex.fallbackThumbUrl,
+      thumbSrc: getGDriveAssetThumbSrc(ex),
+      fallbackSrc: getGDriveAssetFallbackSrc(ex),
       driveEmbedUrl: ex.driveEmbedUrl,
       driveDownloadUrl: ex.driveDownloadUrl,
       localPath,
@@ -9797,8 +9811,8 @@ function openEnclosingPreviewPicker(enc) {
 
   gridEl.innerHTML = candidates.map(cand => {
     const key = getKey(cand);
-    const thumb = cand.thumbUrl || cand.fallbackThumbUrl || '';
-    const fallback = cand.fallbackThumbUrl || `${thumb}&fallback=1`;
+    const thumb = getGDriveAssetThumbSrc(cand);
+    const fallback = getGDriveAssetFallbackSrc(cand);
     return `
       <div class="preview-picker-item" data-key="${escapeHtml(key)}" title="${escapeHtml(cand.name || '')}">
         <img src="${escapeHtml(thumb)}" data-fallback="${escapeHtml(fallback)}" alt="${escapeHtml(cand.name || '')}" loading="lazy">
@@ -9908,8 +9922,8 @@ function buildGDriveBatchCardEl(batch, idx) {
   }
 
   const tilesHtml = visibleSix.map((ex, tIdx) => {
-    const primarySrc = ex.thumbUrl || ex.fallbackThumbUrl || '';
-    const fallbackSrc = ex.fallbackThumbUrl || `${ex.thumbUrl}&fallback=1`;
+    const primarySrc = getGDriveAssetThumbSrc(ex);
+    const fallbackSrc = getGDriveAssetFallbackSrc(ex);
     const extBadge = (ex.ext || '').replace('.', '').toUpperCase() || 'FILE';
     const isLcpImg = idx === 0 && tIdx === 0;
     const priorityAttr = isLcpImg ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"';
@@ -9974,8 +9988,8 @@ function buildGDriveBatchCardEl(batch, idx) {
       ext: extUpper,
       cid: ex.cid,
       kind: ['MP4', 'MOV', 'WEBM'].includes(extUpper) ? 'video' : 'image',
-      thumbSrc: ex.thumbUrl,
-      fallbackSrc: ex.fallbackThumbUrl,
+      thumbSrc: getGDriveAssetThumbSrc(ex),
+      fallbackSrc: getGDriveAssetFallbackSrc(ex),
       driveEmbedUrl: ex.driveEmbedUrl,
       driveDownloadUrl: ex.driveDownloadUrl,
       localPath,

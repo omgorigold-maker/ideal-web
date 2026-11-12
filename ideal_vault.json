@@ -61,7 +61,16 @@
       "Color Palettes": "vaults",
       "Color Palettes & Swatches": "vaults"
     },
-    "enclosingOrder": [],
+    "enclosingOrder": [
+      "MOCKUPS",
+      "TEXTURES",
+      "ELEMENTS",
+      "FONTS",
+      "TEMPLATES",
+      "Logos",
+      "Color Palettes",
+      "References"
+    ],
     "enclosingPreviews": {
       "MOCKUPS": [
         {
@@ -968,13 +977,14 @@
       "heading": "The Lightbox",
       "categories": [
         "All Assets",
+        "Stacked Piles",
         "★ Keep Selected",
         "Portfolio Staging",
         "Instagram Board"
       ],
       "ui": {
         "layoutMode": "wall",
-        "cardSize": 180,
+        "cardSize": 200,
         "aspectRatio": "16 / 10.5",
         "imageFit": "contain",
         "sortOrder": "manual",
@@ -14999,17 +15009,18 @@
   "lightboxCleanV104": true,
   "lightboxProjects": [
     {
-      "id": "lbproj_1794486696331_xp31",
-      "title": "The Fly Everything",
-      "createdAt": 1794486696331,
-      "updatedAt": 1794486696331
-    },
-    {
       "id": "lbproj_character_lookdev",
       "title": "Character Lookdev",
       "createdAt": 1794486129177,
       "updatedAt": 1794486129177
+    },
+    {
+      "id": "lbproj_1794486696331_xp31",
+      "title": "The Fly Everything",
+      "createdAt": 1794486696331,
+      "updatedAt": 1794486696331
     }
   ],
-  "lightboxCleanV105": true
+  "lightboxCleanV105": true,
+  "lightboxCleanV107": true
 }
