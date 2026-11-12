@@ -5598,9 +5598,10 @@ function renderHeaderAndToolbar() {
         const isDashboardActive = !state.activeGDriveEnclosingFolder || state.activeCategory === 'All';
         titleEl.classList.toggle('active', isDashboardActive);
       } else if (type === 'space' && obj.id === 'lightbox') {
-        titleEl.textContent = 'The Lightbox';
+        const lbTitle = getSpaceTopBarTitle('lightbox');
+        titleEl.textContent = lbTitle;
         titleEl.style.cursor = 'default';
-        titleEl.title = 'The Lightbox';
+        titleEl.title = lbTitle;
         titleEl.classList.remove('active');
       } else {
         const topTitle = (type === 'space') ? getSpaceTopBarTitle(obj.id) : obj.title;
