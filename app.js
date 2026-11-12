@@ -3117,19 +3117,55 @@ function normalizeToolDockData(v) {
   td.tools = td.launchpad;
   td.rdItems = td.rdLab;
 
+function getTrashedClusterNamesSet(v = vault) {
+  const trashed = new Set();
+  (v?.toolDock?.trash || []).forEach(t => {
+    if (t && t.trashType === 'cluster' && t.name) {
+      trashed.add(String(t.name).trim().toLowerCase());
+    }
+  });
+  return trashed;
+}
+
   // Ensure space categories include any custom clusters present in non-staple launchpad tools
   const tdSpace = Array.isArray(v.spaces) ? v.spaces.find(s => s.id === 'tool_dock') : null;
   if (tdSpace) {
+    const trashed = getTrashedClusterNamesSet(v);
     const defaultTdCats = ['All', 'AI Pipelines', '3D & Render', 'Typography & Foundries', 'Motion & VJ', 'Admin & Utils'];
-    tdSpace.categories = Array.isArray(tdSpace.categories) && tdSpace.categories.length > 0
-      ? tdSpace.categories
-      : [...defaultTdCats];
-    const activeNonStapleClusters = new Set(td.launchpad.filter(t => !t.stapleOnly && t.cluster).map(t => t.cluster));
+    if (!Array.isArray(tdSpace.categories) || tdSpace.categories.length === 0) {
+      tdSpace.categories = defaultTdCats.filter(c => c === 'All' || !trashed.has(c.toLowerCase()));
+    } else {
+      tdSpace.categories = tdSpace.categories.filter(c => c === 'All' || c.startsWith('All ') || !trashed.has(String(c).trim().toLowerCase()));
+    }
+    const activeNonStapleClusters = new Set(
+      td.launchpad
+        .filter(t => !t.stapleOnly && t.cluster && !trashed.has(String(t.cluster).trim().toLowerCase()))
+        .map(t => t.cluster)
+    );
     tdSpace.categories = tdSpace.categories.filter(c => (c !== 'My Websites' && c !== 'Utilities') || activeNonStapleClusters.has(c));
     td.launchpad.forEach(t => {
-      if (t.stapleOnly) return;
-      if (t.cluster && !tdSpace.categories.includes(t.cluster)) {
+      if (t.stapleOnly || !t.cluster) return;
+      if (trashed.has(String(t.cluster).trim().toLowerCase())) return;
+      if (!tdSpace.categories.some(c => c.toLowerCase() === t.cluster.toLowerCase())) {
         tdSpace.categories.push(t.cluster);
+      }
+    });
+
+    const activeClusters = tdSpace.categories.filter(c => c !== 'All' && !c.startsWith('All '));
+    const validFallback = activeClusters[0] || 'Active Launchpad';
+    (td.launchpad || []).forEach(t => {
+      if (t.cluster && trashed.has(String(t.cluster).trim().toLowerCase())) {
+        t.cluster = validFallback;
+      }
+    });
+    (td.rdLab || []).forEach(r => {
+      if (r.targetCluster && trashed.has(String(r.targetCluster).trim().toLowerCase())) {
+        r.targetCluster = validFallback;
+      }
+    });
+    (td.usefulLinks || []).forEach(l => {
+      if (l.cluster && trashed.has(String(l.cluster).trim().toLowerCase())) {
+        l.cluster = validFallback;
       }
     });
   }
@@ -16467,40 +16503,44 @@ function getToolDockClusters(spaceObj) {
   normalizeToolDockData(vault);
   const td = vault.toolDock;
   const sp = spaceObj || vault.spaces.find(s => s.id === 'tool_dock');
-  const rawCats = (sp && Array.isArray(sp.categories)) ? sp.categories : ['All', 'AI Pipelines', '3D & Render', 'Typography & Foundries', 'Motion & VJ', 'Admin & Utils'];
+  const trashed = getTrashedClusterNamesSet(vault);
+
+  // Clean sp.categories of any trashed clusters
+  if (sp && Array.isArray(sp.categories)) {
+    sp.categories = sp.categories.filter(c => c === 'All' || c.startsWith('All ') || !trashed.has(String(c).trim().toLowerCase()));
+  }
+
+  const rawCats = (sp && Array.isArray(sp.categories) && sp.categories.length > 0)
+    ? sp.categories
+    : ['All'];
   const firstCat = rawCats[0] || 'All';
   const list = [];
   rawCats.forEach((c, idx) => {
     if (idx === 0 && (c === 'All' || c.startsWith('All '))) return;
-    if (c && !list.includes(c)) list.push(c);
+    if (c && !trashed.has(String(c).trim().toLowerCase()) && !list.some(existing => existing.toLowerCase() === c.toLowerCase())) {
+      list.push(c);
+    }
   });
+
+  // Only add clusters from Launchpad tools that aren't trashed
   (td.launchpad || []).forEach(t => {
-    if (t.stapleOnly) return;
-    if (t.cluster && !list.includes(t.cluster)) {
-      list.push(t.cluster);
-      if (sp && Array.isArray(sp.categories) && !sp.categories.includes(t.cluster)) {
-        sp.categories.push(t.cluster);
+    if (t.stapleOnly || !t.cluster) return;
+    const cName = t.cluster.trim();
+    if (!cName || trashed.has(cName.toLowerCase())) return;
+    if (!list.some(existing => existing.toLowerCase() === cName.toLowerCase())) {
+      list.push(cName);
+      if (sp && Array.isArray(sp.categories) && !sp.categories.some(existing => existing.toLowerCase() === cName.toLowerCase())) {
+        sp.categories.push(cName);
       }
     }
   });
-  (td.rdLab || []).forEach(r => {
-    if (r.targetCluster && !list.includes(r.targetCluster)) {
-      list.push(r.targetCluster);
-      if (sp && Array.isArray(sp.categories) && !sp.categories.includes(r.targetCluster)) {
-        sp.categories.push(r.targetCluster);
-      }
-    }
-  });
-  (td.usefulLinks || []).forEach(l => {
-    if (l.cluster && !list.includes(l.cluster)) {
-      list.push(l.cluster);
-      if (sp && Array.isArray(sp.categories) && !sp.categories.includes(l.cluster)) {
-        sp.categories.push(l.cluster);
-      }
-    }
-  });
+
   if (list.length === 0) {
-    list.push('AI Pipelines', '3D & Render', 'Typography & Foundries', 'Motion & VJ', 'Admin & Utils');
+    const fallback = 'Active Launchpad';
+    list.push(fallback);
+    if (sp && Array.isArray(sp.categories)) {
+      sp.categories = ['All', fallback];
+    }
   }
   return { firstCat, clusterNames: list };
 }
@@ -20092,56 +20132,60 @@ async function executeConfirmedDelete() {
       state.activeProjectId = null;
     }
   } else if (pd.kind === 'tool_cluster') {
-    const clusterName = pd.id;
+    const clusterName = String(pd.id || '').trim();
+    const clusterLower = clusterName.toLowerCase();
     const sp = vault.spaces?.find(s => s.id === 'tool_dock');
     const existingCats = Array.isArray(sp?.categories) ? sp.categories : [];
-    const remainingCats = existingCats.filter(c => c && c !== 'All' && !c.startsWith('All ') && c !== clusterName);
+    const remainingCats = existingCats.filter(c => c && c !== 'All' && !c.startsWith('All ') && String(c).trim().toLowerCase() !== clusterLower);
     const fallbackCluster = pd.meta?.fallbackCluster || remainingCats[0] || 'Active Launchpad';
 
     if (vault.toolDock) {
+      const matchCluster = (name) => String(name || '').trim().toLowerCase() === clusterLower;
       (vault.toolDock.launchpad || []).forEach(t => {
-        if (t.cluster === clusterName || t.category === clusterName) {
+        if (matchCluster(t.cluster) || matchCluster(t.category)) {
           t.cluster = fallbackCluster;
-          if (t.category === clusterName) t.category = fallbackCluster;
+          if (matchCluster(t.category)) t.category = fallbackCluster;
         }
       });
       (vault.toolDock.rdLab || []).forEach(r => {
-        if (r.targetCluster === clusterName || r.category === clusterName) {
+        if (matchCluster(r.targetCluster) || matchCluster(r.category)) {
           r.targetCluster = fallbackCluster;
-          if (r.category === clusterName) r.category = fallbackCluster;
+          if (matchCluster(r.category)) r.category = fallbackCluster;
         }
       });
       (vault.toolDock.usefulLinks || []).forEach(l => {
-        if (l.cluster === clusterName || l.category === clusterName) {
+        if (matchCluster(l.cluster) || matchCluster(l.category)) {
           l.cluster = fallbackCluster;
-          if (l.category === clusterName) l.category = fallbackCluster;
+          if (matchCluster(l.category)) l.category = fallbackCluster;
         }
       });
       if (Array.isArray(vault.toolDock.tools)) {
         vault.toolDock.tools.forEach(t => {
-          if (t.cluster === clusterName || t.category === clusterName) {
+          if (matchCluster(t.cluster) || matchCluster(t.category)) {
             t.cluster = fallbackCluster;
-            if (t.category === clusterName) t.category = fallbackCluster;
+            if (matchCluster(t.category)) t.category = fallbackCluster;
           }
         });
       }
       if (Array.isArray(vault.toolDock.categories)) {
-        vault.toolDock.categories = vault.toolDock.categories.filter(c => c !== clusterName);
+        vault.toolDock.categories = vault.toolDock.categories.filter(c => !matchCluster(c));
       }
       vault.toolDock.trash = Array.isArray(vault.toolDock.trash) ? vault.toolDock.trash : [];
-      vault.toolDock.trash.push({
-        trashType: 'cluster',
-        name: clusterName,
-        deletedAt: new Date().toISOString()
-      });
+      if (!vault.toolDock.trash.some(t => t && t.trashType === 'cluster' && String(t.name || '').trim().toLowerCase() === clusterLower)) {
+        vault.toolDock.trash.push({
+          trashType: 'cluster',
+          name: clusterName,
+          deletedAt: new Date().toISOString()
+        });
+      }
     }
     if (sp && Array.isArray(sp.categories)) {
-      sp.categories = sp.categories.filter(c => c !== clusterName);
+      sp.categories = sp.categories.filter(c => String(c).trim().toLowerCase() !== clusterLower);
       if (sp.categories.length === 0 || (sp.categories.length === 1 && sp.categories[0] === 'All')) {
         sp.categories = ['All', fallbackCluster];
       }
     }
-    if (state.activeCategory === clusterName) {
+    if (state.activeCategory && state.activeCategory.trim().toLowerCase() === clusterLower) {
       state.activeCategory = (sp && sp.categories && sp.categories[0]) || 'All';
     }
   } else if (pd.kind === 'tool_launchpad') {
