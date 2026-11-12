@@ -14147,10 +14147,6 @@ progress.lb-progress-el::-moz-progress-bar {
   border-color: #fde68a;
   color: #b45309;
 }
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #047857;
-}
 
 .lb-action-pill.is-compare[aria-pressed="true"] {
   background: #eff6ff;
