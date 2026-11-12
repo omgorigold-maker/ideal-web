@@ -23449,12 +23449,22 @@ function getLightboxDisplayUrl(it) {
   const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
   const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
   if (liveBlob) return liveBlob;
-  if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
+
+  // On local server, if local file path exists, use our fast QuickLook raster thumbnail API:
+  if (!isStaticWeb && vIt.localPath && vIt.localPath.startsWith('/')) {
+    return `/api/local-media-thumb?path=${encodeURIComponent(vIt.localPath)}`;
+  }
+
+  // Only trust staticThumbUrl if it does not point to missing phantom lb_ asset_thumbs
+  if (vIt.staticThumbUrl && !vIt.staticThumbUrl.startsWith('asset_thumbs/lb_')) {
+    return vIt.staticThumbUrl;
+  }
+
   const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
   const ext = (nameProbe.split('.').pop() || '').toLowerCase();
   if (/\.(heic|heif|tif|tiff)$/i.test(nameProbe) && !isStaticWeb) {
     if (vIt.localPath && vIt.localPath.startsWith('/')) {
-      return `/api/heic-preview?path=${encodeURIComponent(vIt.localPath)}`;
+      return `/api/local-media-thumb?path=${encodeURIComponent(vIt.localPath)}`;
     }
     const rawUrl = String(vIt.url || it.url || '');
     if (rawUrl && !rawUrl.startsWith('local-handle://') && !rawUrl.startsWith('blob:')) {
@@ -23463,11 +23473,9 @@ function getLightboxDisplayUrl(it) {
   }
   const src = getLightboxMediaSrc(vIt);
   if (isStaticWeb && src.startsWith('/api/')) {
-    if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
     return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
   }
   if (!src) {
-    if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
     return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
   }
   return src;
@@ -24155,7 +24163,7 @@ function renderCompareModal() {
       const dispUrl = getLightboxDisplayUrl(a);
       const vidSrc = getLightboxMediaSrc(a);
       const mediaHtml = a.kind === 'video'
-        ? `<video src="${escapeHtml(vidSrc)}" ${autoPlayAttr} preload="auto" loop muted playsinline crossorigin="anonymous"></video>`
+        ? `<video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" ${autoPlayAttr} preload="auto" loop muted playsinline crossorigin="anonymous"></video>`
         : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(a.title)}" draggable="false" crossorigin="anonymous" data-pin-nopin="true">`;
       return `<div class="${cls}" data-layer-idx="${idx}">${mediaHtml}</div>`;
     }).join('');
@@ -24182,7 +24190,7 @@ function renderCompareModal() {
       const dispUrl = getLightboxDisplayUrl(a);
       const vidSrc = getLightboxMediaSrc(a);
       const mediaHtml = a.kind === 'video'
-        ? `<video src="${escapeHtml(vidSrc)}" ${autoPlayAttr} preload="auto" loop muted playsinline></video>`
+        ? `<video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" ${autoPlayAttr} preload="auto" loop muted playsinline></video>`
         : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(a.title)}" draggable="false" data-pin-nopin="true">`;
       return `
         <div class="cmp-split-cell" data-cell-idx="${idx}">
@@ -25188,7 +25196,7 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
       const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
       const showVideoDirectly = Boolean(vidSrc && (!isStaticWeb || vidSrc.startsWith('blob:')));
       mediaHtml = `
-        <video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
+        <video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onmouseover="try{this.play();}catch(e){}" onmouseout="try{this.pause();this.currentTime=0;}catch(e){}" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
         <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: ${showVideoDirectly ? 'none' : 'block'};" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
       `;
     } else {
