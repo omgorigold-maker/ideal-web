@@ -4028,7 +4028,9 @@ async function syncFromServerOnBoot() {
     if (cachedAssets) {
       try { parsed = JSON.parse(cachedAssets); } catch (e) {}
     }
-    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    const hasSeedThumbs = typeof window !== 'undefined' && !!window._IDEAL_GDRIVE_SEED?.batches?.[0]?.examples?.[0]?.staticThumbUrl;
+    const parsedHasThumbs = !!parsed?.batches?.[0]?.examples?.[0]?.staticThumbUrl;
+    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0 || (hasSeedThumbs && !parsedHasThumbs)) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
       parsed = window._IDEAL_GDRIVE_SEED;
     }
     if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
@@ -7560,7 +7562,9 @@ function renderGDriveAssetsView(ws, spaceObj) {
     if (cachedAssets) {
       try { parsed = JSON.parse(cachedAssets); } catch (e) {}
     }
-    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    const hasSeedThumbs = typeof window !== 'undefined' && !!window._IDEAL_GDRIVE_SEED?.batches?.[0]?.examples?.[0]?.staticThumbUrl;
+    const parsedHasThumbs = !!parsed?.batches?.[0]?.examples?.[0]?.staticThumbUrl;
+    if ((!parsed || !Array.isArray(parsed.batches) || parsed.batches.length === 0 || !Array.isArray(parsed.enclosingFolders) || parsed.enclosingFolders.length === 0 || (hasSeedThumbs && !parsedHasThumbs)) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
       parsed = window._IDEAL_GDRIVE_SEED;
     }
     if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
@@ -20421,6 +20425,12 @@ async function executeConfirmedDelete() {
         items: JSON.parse(JSON.stringify(lbItems)),
         deletedAt: new Date().toISOString()
       });
+      pushLightboxUndo({
+        type: 'remove_project',
+        desc: `Removed project "${lbProj.title}" from Lightbox`,
+        project: JSON.parse(JSON.stringify(lbProj)),
+        items: JSON.parse(JSON.stringify(lbItems))
+      });
     }
     const removedIds = new Set(lbItems.map(x => x.id));
     for (const pi of lbItems) {
@@ -20439,6 +20449,11 @@ async function executeConfirmedDelete() {
     if (it) {
       vault.lightboxTrash = Array.isArray(vault.lightboxTrash) ? vault.lightboxTrash : [];
       vault.lightboxTrash.push({ item: JSON.parse(JSON.stringify(it)), deletedAt: new Date().toISOString() });
+      pushLightboxUndo({
+        type: 'remove_items',
+        desc: `Removed "${it.title || 'asset'}" from Lightbox`,
+        items: [JSON.parse(JSON.stringify(it))]
+      });
       cleanupRemovedLightboxItemResources(it);
     }
     vault.items = (vault.items || []).filter(i => i.id !== pd.id);
@@ -20449,6 +20464,11 @@ async function executeConfirmedDelete() {
     if (removedItems.length > 0) {
       vault.lightboxTrash = Array.isArray(vault.lightboxTrash) ? vault.lightboxTrash : [];
       vault.lightboxTrash.push({ items: JSON.parse(JSON.stringify(removedItems)), deletedAt: new Date().toISOString() });
+      pushLightboxUndo({
+        type: 'remove_items',
+        desc: `Removed ${removedItems.length} items from Lightbox`,
+        items: JSON.parse(JSON.stringify(removedItems))
+      });
       for (const it of removedItems) {
         cleanupRemovedLightboxItemResources(it);
       }
@@ -21315,6 +21335,16 @@ function initEvents() {
     if (document.querySelector('[popover]:popover-open')) return;
 
     const sel = state.selectedCompareAssets || [];
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undoLightboxAction();
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && ((e.shiftKey && e.key.toLowerCase() === 'z') || e.key.toLowerCase() === 'y')) {
+      e.preventDefault();
+      redoLightboxAction();
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
       e.preventDefault();
       document.getElementById('btnBatchSelectAll')?.click();
@@ -22475,6 +22505,245 @@ async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
   }
 }
 
+// ==========================================
+// LIGHTBOX UNDO / REDO HISTORY ENGINE
+// ==========================================
+if (!state.lightboxUndoStack) state.lightboxUndoStack = [];
+if (!state.lightboxRedoStack) state.lightboxRedoStack = [];
+
+function pushLightboxUndo(action) {
+  if (!action || !action.type) return;
+  state.lightboxUndoStack.push(action);
+  if (state.lightboxUndoStack.length > 60) state.lightboxUndoStack.shift();
+  state.lightboxRedoStack = [];
+  updateLightboxUndoRedoButtons();
+}
+
+function updateLightboxUndoRedoButtons() {
+  const btnUndo = document.getElementById('btnLbUndo');
+  const btnRedo = document.getElementById('btnLbRedo');
+  const canUndo = (state.lightboxUndoStack || []).length > 0;
+  const canRedo = (state.lightboxRedoStack || []).length > 0;
+  if (btnUndo) {
+    btnUndo.disabled = !canUndo;
+    btnUndo.classList.toggle('is-disabled', !canUndo);
+  }
+  if (btnRedo) {
+    btnRedo.disabled = !canRedo;
+    btnRedo.classList.toggle('is-disabled', !canRedo);
+  }
+}
+
+function undoLightboxAction() {
+  if (!state.lightboxUndoStack || state.lightboxUndoStack.length === 0) {
+    showStatusToast('Nothing to undo in Lightbox.');
+    return;
+  }
+  const action = state.lightboxUndoStack.pop();
+  if (!action) return;
+
+  if (action.type === 'remove_items') {
+    const restored = action.items || [];
+    const restoredIds = new Set(restored.map(i => i.id));
+    if (Array.isArray(vault.lightboxTrash)) {
+      vault.lightboxTrash = vault.lightboxTrash.filter(t => {
+        if (t.item && restoredIds.has(t.item.id)) return false;
+        if (t.items && t.items.some(i => restoredIds.has(i.id))) return false;
+        return true;
+      });
+    }
+    const existingIds = new Set((vault.items || []).map(i => i.id));
+    restored.forEach(it => {
+      if (!existingIds.has(it.id)) {
+        vault.items.unshift(it);
+      }
+    });
+    saveVault('UNDO REMOVE FROM LIGHTBOX');
+  } else if (action.type === 'remove_project') {
+    const proj = action.project;
+    const items = action.items || [];
+    if (proj) {
+      vault.lightboxProjects = vault.lightboxProjects || [];
+      if (!vault.lightboxProjects.some(p => p.id === proj.id)) {
+        vault.lightboxProjects.push(proj);
+      }
+    }
+    const existingIds = new Set((vault.items || []).map(i => i.id));
+    items.forEach(it => {
+      if (!existingIds.has(it.id)) {
+        vault.items.unshift(it);
+      }
+    });
+    saveVault('UNDO REMOVE PROJECT');
+  } else if (action.type === 'toggle_keep') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it.lightboxKeep = Boolean(action.prevVal);
+      (state.selectedCompareAssets || []).forEach(a => {
+        if (a.id === it.id || a.vaultItemId === it.id) a.lightboxKeep = it.lightboxKeep;
+      });
+    }
+    saveVault('UNDO KEEP');
+  } else if (action.type === 'batch_keep') {
+    (action.items || []).forEach(entry => {
+      const it = (vault.items || []).find(i => i.id === entry.id);
+      if (it) {
+        it.lightboxKeep = Boolean(entry.prevVal);
+        (state.selectedCompareAssets || []).forEach(a => {
+          if (a.id === it.id || a.vaultItemId === it.id) a.lightboxKeep = it.lightboxKeep;
+        });
+      }
+    });
+    saveVault('UNDO BATCH KEEP');
+  } else if (action.type === 'route_change') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it.igStatus = action.prevIgStatus || '';
+      it.lightboxRoute = action.prevRoute || '';
+      setItemIgStatus(it.id, it.igStatus);
+    }
+    saveVault('UNDO ROUTE');
+  } else if (action.type === 'move_project') {
+    const ids = new Set(action.itemIds || []);
+    (vault.items || []).forEach(it => {
+      if (ids.has(it.id)) {
+        if (action.prevProjId && action.prevProjId !== 'unsorted' && action.prevProjId !== 'all') {
+          it.lightboxProjectId = action.prevProjId;
+        } else {
+          delete it.lightboxProjectId;
+        }
+      }
+    });
+    saveVault('UNDO MOVE');
+  }
+
+  state.lightboxRedoStack.push(action);
+  updateLightboxUndoRedoButtons();
+  showStatusToast(`↶ Undone: ${action.desc || 'Action'}`);
+  renderWorkspace();
+  renderCompareFloatingBar();
+}
+
+function redoLightboxAction() {
+  if (!state.lightboxRedoStack || state.lightboxRedoStack.length === 0) {
+    showStatusToast('Nothing to redo in Lightbox.');
+    return;
+  }
+  const action = state.lightboxRedoStack.pop();
+  if (!action) return;
+
+  if (action.type === 'remove_items') {
+    const rmIds = new Set((action.items || []).map(i => i.id));
+    vault.items = (vault.items || []).filter(i => !rmIds.has(i.id));
+    saveVault('REDO REMOVE FROM LIGHTBOX');
+  } else if (action.type === 'remove_project') {
+    const projId = action.project?.id;
+    const rmIds = new Set((action.items || []).map(i => i.id));
+    vault.lightboxProjects = (vault.lightboxProjects || []).filter(p => p.id !== projId);
+    vault.items = (vault.items || []).filter(i => !rmIds.has(i.id));
+    saveVault('REDO REMOVE PROJECT');
+  } else if (action.type === 'toggle_keep') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it.lightboxKeep = Boolean(action.nextVal);
+      (state.selectedCompareAssets || []).forEach(a => {
+        if (a.id === it.id || a.vaultItemId === it.id) a.lightboxKeep = it.lightboxKeep;
+      });
+    }
+    saveVault('REDO KEEP');
+  } else if (action.type === 'batch_keep') {
+    (action.items || []).forEach(entry => {
+      const it = (vault.items || []).find(i => i.id === entry.id);
+      if (it) {
+        it.lightboxKeep = Boolean(entry.nextVal);
+        (state.selectedCompareAssets || []).forEach(a => {
+          if (a.id === it.id || a.vaultItemId === it.id) a.lightboxKeep = it.lightboxKeep;
+        });
+      }
+    });
+    saveVault('REDO BATCH KEEP');
+  } else if (action.type === 'route_change') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it.igStatus = action.nextIgStatus || '';
+      it.lightboxRoute = action.nextRoute || '';
+      setItemIgStatus(it.id, it.igStatus);
+    }
+    saveVault('REDO ROUTE');
+  } else if (action.type === 'move_project') {
+    const ids = new Set(action.itemIds || []);
+    (vault.items || []).forEach(it => {
+      if (ids.has(it.id)) {
+        if (action.nextProjId && action.nextProjId !== 'unsorted' && action.nextProjId !== 'all') {
+          it.lightboxProjectId = action.nextProjId;
+        } else {
+          delete it.lightboxProjectId;
+        }
+      }
+    });
+    saveVault('REDO MOVE');
+  }
+
+  state.lightboxUndoStack.push(action);
+  updateLightboxUndoRedoButtons();
+  showStatusToast(`↷ Redone: ${action.desc || 'Action'}`);
+  renderWorkspace();
+  renderCompareFloatingBar();
+}
+
+async function autoResolveLightboxLocalMedia() {
+  if (state._resolvingLightboxLocalMedia) return;
+  const unresolvedItems = (vault.items || []).filter(it =>
+    it && it.parentType === 'space' && it.parentId === 'lightbox' &&
+    (!it.localPath || String(it.url || '').startsWith('local-handle://'))
+  );
+  if (!unresolvedItems.length) return;
+  state._resolvingLightboxLocalMedia = true;
+  try {
+    const res = await fetch('/api/lightbox/resolve-local', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entries: unresolvedItems.map(it => ({
+          id: it.id,
+          name: it.originalFileName || it.title,
+          relativePath: it.relativePath || it.title,
+          size: it.fileSize || 0,
+          lastModified: it.lastModified || 0
+        }))
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ok && data.resolved) {
+        let changed = false;
+        unresolvedItems.forEach(it => {
+          const r = data.resolved[it.id];
+          if (!r) return;
+          if (r.localPath && it.localPath !== r.localPath) {
+            it.localPath = r.localPath;
+            changed = true;
+          }
+          if (r.streamUrl && (it.url !== r.streamUrl || String(it.url || '').startsWith('local-handle://'))) {
+            it.url = r.streamUrl;
+            lightboxNeedsPermissionIds.delete(it.id);
+            changed = true;
+          }
+        });
+        if (changed) {
+          saveVault('AUTO RESOLVED LOCAL PATHS');
+          if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+            renderWorkspace();
+          }
+        }
+      }
+    }
+  } catch (_) {}
+  finally {
+    state._resolvingLightboxLocalMedia = false;
+  }
+}
+
 async function revealLightboxItemInFinder(it) {
   if (!it) return;
   const targetPath = it.localPath || (String(it.url || '').startsWith('/api/local-media')
@@ -23114,11 +23383,19 @@ function batchSetSelectedIgStatus(targetStatus) {
 function toggleItemLightboxKeep(itemId) {
   const it = vault.items.find(i => i.id === itemId);
   if (!it) return;
+  const prevVal = Boolean(it.lightboxKeep);
   it.lightboxKeep = !it.lightboxKeep;
   (state.selectedCompareAssets || []).forEach(a => {
     if (a.id === itemId || a.vaultItemId === itemId) {
       a.lightboxKeep = Boolean(it.lightboxKeep);
     }
+  });
+  pushLightboxUndo({
+    type: 'toggle_keep',
+    desc: it.lightboxKeep ? `Kept "${it.title || 'asset'}"` : `Unkept "${it.title || 'asset'}"`,
+    itemId: it.id,
+    prevVal,
+    nextVal: it.lightboxKeep
   });
   saveVault(it.lightboxKeep ? '★ MARKED KEEP' : 'UNMARKED KEEP');
   renderAll();
@@ -23131,16 +23408,24 @@ function toggleItemLightboxKeep(itemId) {
 function batchSetSelectedKeepStatus(keepBool = true) {
   const sel = state.selectedCompareAssets || [];
   let changed = 0;
+  const prevStates = [];
   sel.forEach(a => {
     const itemId = a.vaultItemId || a.id;
     const it = vault.items.find(i => i.id === itemId);
-    if (it) {
+    if (it && Boolean(it.lightboxKeep) !== Boolean(keepBool)) {
+      prevStates.push({ id: it.id, prevVal: Boolean(it.lightboxKeep) });
       it.lightboxKeep = Boolean(keepBool);
       a.lightboxKeep = Boolean(keepBool);
       changed++;
     }
   });
   if (changed > 0) {
+    pushLightboxUndo({
+      type: 'batch_keep',
+      desc: keepBool ? `Kept ${changed} items` : `Unkept ${changed} items`,
+      items: prevStates,
+      nextVal: keepBool
+    });
     saveVault(`★ MARKED ${changed} ASSETS TO KEEP`);
     renderAll();
   }
@@ -24951,22 +25236,17 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
     ? `style="aspect-ratio: ${w} / ${h}; max-height: 540px;"`
     : `style="aspect-ratio: 1; max-height: 540px;"`;
 
+  const cardExt = (it.originalFileName || it.title || it.url || '').split('.').pop().toUpperCase() || (mediaKind === 'video' ? 'VIDEO' : 'IMAGE');
   let mediaHtml = '';
   if (dispUrl) {
     if (mediaKind === 'video') {
-      mediaHtml = `<video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1"></video>`;
+      mediaHtml = `<video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.outerHTML = '<img src=\x22' + getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox') + '\x22 alt=\x22${escapeHtml(titleText).replace(/'/g, "\\'")}\x22 class=\x22lb-studio-media ${fitMode}\x22>'; }"></video>`;
     } else {
-      mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}">`;
+      mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">`;
     }
   } else {
-    const ext = (it.originalFileName || it.title || '').split('.').pop().toUpperCase() || (mediaKind === 'video' ? 'VIDEO' : 'IMAGE');
-    mediaHtml = `
-      <div class="lb-studio-placeholder-stage">
-        <span class="lb-placeholder-icon" aria-hidden="true">${mediaKind === 'video' ? '🎬' : '🖼'}</span>
-        <span class="lb-placeholder-ext">${escapeHtml(ext)}</span>
-        <span class="lb-placeholder-dim">${escapeHtml(subLabel)}</span>
-      </div>
-    `;
+    const fallbackSvg = getClientAssetSpecimenSvg(titleText, cardExt, 'Lightbox');
+    mediaHtml = `<img src="${fallbackSvg}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}">`;
   }
 
   return `
@@ -25543,6 +25823,7 @@ function bindLightboxViewportDropdown(triggerBtn, popoverEl, { alignEnd = true }
 }
 
 function renderLightboxView(ws, spaceObj) {
+  autoResolveLightboxLocalMedia();
   const allProjectItems = getLightboxAssetsForActiveProject();
   scanMissingLightboxDimensions(allProjectItems);
 

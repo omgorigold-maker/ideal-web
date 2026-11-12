@@ -954,7 +954,13 @@
       "heading": "Assets & Vaults",
       "categories": [
         "All",
-        "ASSETS"
+        "MOCKUPS",
+        "TEXTURES",
+        "ELEMENTS",
+        "FONTS",
+        "TEMPLATES",
+        "References",
+        "Logos"
       ],
       "ui": {
         "layoutMode": "eagle",
