@@ -3879,7 +3879,7 @@ async function syncFromServerOnBoot() {
           serverVault.defaultTemplateId = localSaved.defaultTemplateId;
         }
 
-        // Restore custom space titles and codes
+        // Restore custom space titles (sidebar - disconnected from top bar headings)
         try {
           const rawTitles = localStorage.getItem('ideal_custom_space_titles');
           if (rawTitles) {
@@ -3888,7 +3888,20 @@ async function syncFromServerOnBoot() {
             (serverVault.spaces || []).forEach(ss => {
               if (ss && parsedTitles[ss.id]) {
                 ss.title = parsedTitles[ss.id];
-                ss.heading = parsedTitles[ss.id];
+              }
+            });
+          }
+        } catch (e) {}
+
+        // Restore custom top bar titles (disconnected from sidebar)
+        try {
+          const rawTopBarTitles = localStorage.getItem('ideal_custom_topbar_titles');
+          if (rawTopBarTitles) {
+            const parsedTbTitles = JSON.parse(rawTopBarTitles);
+            serverVault.customTopBarTitles = { ...(serverVault.customTopBarTitles || {}), ...parsedTbTitles };
+            (serverVault.spaces || []).forEach(ss => {
+              if (ss && parsedTbTitles[ss.id]) {
+                ss.heading = parsedTbTitles[ss.id];
               }
             });
           }
