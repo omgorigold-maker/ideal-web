@@ -5447,6 +5447,11 @@ function renderHeaderAndToolbar() {
         titleEl.title = 'Click to return to Assets & Vaults Dashboard';
         const isDashboardActive = !state.activeGDriveEnclosingFolder || state.activeCategory === 'All';
         titleEl.classList.toggle('active', isDashboardActive);
+      } else if (type === 'space' && obj.id === 'lightbox') {
+        titleEl.textContent = 'The Lightbox';
+        titleEl.style.cursor = '';
+        titleEl.title = 'The Lightbox';
+        titleEl.classList.remove('active');
       } else {
         titleEl.textContent = obj.title;
         titleEl.style.cursor = '';
@@ -5765,25 +5770,32 @@ function renderFilterActionRow() {
           }
         });
       } else if (obj.id === 'tool_dock') {
+        const remainingCats = (obj.categories || []).filter(c => c !== 'All' && !c.startsWith('All ') && c !== catName);
+        const fallbackCluster = remainingCats[0] || 'Active Launchpad';
         (vault.toolDock?.launchpad || []).forEach(t => {
           if (t.cluster === catName || t.category === catName) {
-            t.cluster = 'Untagged';
-            if (t.category === catName) t.category = 'Untagged';
+            t.cluster = fallbackCluster;
+            if (t.category === catName) t.category = fallbackCluster;
             retaggedCount++;
           }
         });
         (vault.toolDock?.rdLab || []).forEach(r => {
-          if (r.targetCluster === catName) {
-            r.targetCluster = 'Untagged';
+          if (r.targetCluster === catName || r.category === catName) {
+            r.targetCluster = fallbackCluster;
+            if (r.category === catName) r.category = fallbackCluster;
             retaggedCount++;
           }
         });
         (vault.toolDock?.usefulLinks || []).forEach(l => {
-          if (l.cluster === catName) {
-            l.cluster = 'Untagged';
+          if (l.cluster === catName || l.category === catName) {
+            l.cluster = fallbackCluster;
+            if (l.category === catName) l.category = fallbackCluster;
             retaggedCount++;
           }
         });
+        if (Array.isArray(vault.toolDock?.categories)) {
+          vault.toolDock.categories = vault.toolDock.categories.filter(c => c !== catName);
+        }
       } else if (['residencies', 'work_apps', 'dream_clients', 'opportunity_pool'].includes(obj.id)) {
         (vault.pitchEngine?.cards || []).forEach(c => {
           if ((c.spaceId || 'residencies') === obj.id && (c.category === catName || c.type === catName)) {
@@ -16564,7 +16576,7 @@ function renderToolDockAndRdLab(ws, spaceObj) {
       `;
     }).join('');
 
-    const canDeleteEmptyCluster = tools.length === 0 && !state.searchQuery && clusterNames.length > 1;
+    const canDeleteCluster = !state.searchQuery && clusterNames.length > 1;
 
     return `
       <div class="tool-cluster-drawer" draggable="true" data-cluster-drawer="${escapeHtml(clusterName)}">
@@ -16573,7 +16585,7 @@ function renderToolDockAndRdLab(ws, spaceObj) {
           <div class="tool-cluster-header-right">
             <span class="sidebar-count-pill">${tools.length}</span>
             <button type="button" class="btn-add-cluster-tool" data-add-cluster="${escapeHtml(clusterName)}" title="Add tool to ${escapeHtml(clusterName)}">+</button>
-            ${canDeleteEmptyCluster ? `<button type="button" class="btn-add-cluster-tool" data-del-cluster="${escapeHtml(clusterName)}" title="Remove empty cluster">×</button>` : ''}
+            ${canDeleteCluster ? `<button type="button" class="btn-add-cluster-tool is-del-cluster" data-del-cluster="${escapeHtml(clusterName)}" data-tool-count="${tools.length}" title="Delete cluster ${escapeHtml(clusterName)}">×</button>` : ''}
           </div>
         </div>
         <div class="tool-icon-grid">${tilesHtml}</div>
@@ -16939,7 +16951,11 @@ function renderToolDockAndRdLab(ws, spaceObj) {
       e.stopPropagation();
       const clusterToRemove = btn.dataset.delCluster;
       if (!clusterToRemove) return;
-      requestDelete('tool_cluster', clusterToRemove, clusterToRemove);
+      const toolCount = Number(btn.dataset.toolCount) || 0;
+      const { clusterNames } = getToolDockClusters(spaceObj);
+      const remainingCats = clusterNames.filter(c => c !== clusterToRemove);
+      const fallbackCluster = remainingCats[0] || 'Active Launchpad';
+      requestDelete('tool_cluster', clusterToRemove, clusterToRemove, { toolCount, fallbackCluster });
     });
   });
 
@@ -19908,8 +19924,8 @@ function saveProjectModal() {
 /* --------------------------------------------------------------------------
    EXPLICIT DELETE CONFIRMATION (Soft-Moves to Trash on Server)
    -------------------------------------------------------------------------- */
-function requestDelete(kind, id, title) {
-  state.pendingDelete = { kind, id, title };
+function requestDelete(kind, id, title, meta = null) {
+  state.pendingDelete = { kind, id, title, meta };
   const dlg = document.getElementById('confirmDeleteDialog');
   const titleEl = document.getElementById('confirmDeleteTitle');
   const msgEl = document.getElementById('confirmDeleteMessage');
@@ -19934,7 +19950,11 @@ function requestDelete(kind, id, title) {
     } else if (kind === 'cust_template') {
       msgEl.textContent = 'Are you sure you want to delete this preset?';
     } else if (kind === 'tool_cluster') {
-      msgEl.textContent = 'Are you sure you want to delete this empty cluster?';
+      const count = meta?.toolCount || 0;
+      const fallback = meta?.fallbackCluster || 'another cluster';
+      msgEl.textContent = count > 0
+        ? `Delete cluster "${title}"? Its ${count} tool${count === 1 ? '' : 's'} will safely move to "${fallback}".`
+        : `Are you sure you want to delete the empty cluster "${title}"?`;
     } else if (kind === 'tool_launchpad') {
       msgEl.textContent = 'This tool will be moved to Tool Dock trash. Nothing is ever permanently deleted without your confirmation.';
     } else if (kind === 'tool_rd') {
@@ -20076,18 +20096,38 @@ async function executeConfirmedDelete() {
     const sp = vault.spaces?.find(s => s.id === 'tool_dock');
     const existingCats = Array.isArray(sp?.categories) ? sp.categories : [];
     const remainingCats = existingCats.filter(c => c && c !== 'All' && !c.startsWith('All ') && c !== clusterName);
-    const fallbackCluster = remainingCats[0] || 'AI Pipelines';
+    const fallbackCluster = pd.meta?.fallbackCluster || remainingCats[0] || 'Active Launchpad';
 
     if (vault.toolDock) {
       (vault.toolDock.launchpad || []).forEach(t => {
-        if (t.cluster === clusterName) t.cluster = fallbackCluster;
+        if (t.cluster === clusterName || t.category === clusterName) {
+          t.cluster = fallbackCluster;
+          if (t.category === clusterName) t.category = fallbackCluster;
+        }
       });
       (vault.toolDock.rdLab || []).forEach(r => {
-        if (r.targetCluster === clusterName) r.targetCluster = fallbackCluster;
+        if (r.targetCluster === clusterName || r.category === clusterName) {
+          r.targetCluster = fallbackCluster;
+          if (r.category === clusterName) r.category = fallbackCluster;
+        }
       });
       (vault.toolDock.usefulLinks || []).forEach(l => {
-        if (l.cluster === clusterName) l.cluster = fallbackCluster;
+        if (l.cluster === clusterName || l.category === clusterName) {
+          l.cluster = fallbackCluster;
+          if (l.category === clusterName) l.category = fallbackCluster;
+        }
       });
+      if (Array.isArray(vault.toolDock.tools)) {
+        vault.toolDock.tools.forEach(t => {
+          if (t.cluster === clusterName || t.category === clusterName) {
+            t.cluster = fallbackCluster;
+            if (t.category === clusterName) t.category = fallbackCluster;
+          }
+        });
+      }
+      if (Array.isArray(vault.toolDock.categories)) {
+        vault.toolDock.categories = vault.toolDock.categories.filter(c => c !== clusterName);
+      }
       vault.toolDock.trash = Array.isArray(vault.toolDock.trash) ? vault.toolDock.trash : [];
       vault.toolDock.trash.push({
         trashType: 'cluster',

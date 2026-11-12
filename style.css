@@ -6392,6 +6392,12 @@ dialog.mf-intake-dialog {
   background: var(--surface-pill);
 }
 
+.btn-add-cluster-tool.is-del-cluster:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .tool-icon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--tool-tile-min, 96px), 1fr));
