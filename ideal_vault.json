@@ -67,8 +67,9 @@
       "ELEMENTS",
       "FONTS",
       "TEMPLATES",
-      "References",
-      "Logos"
+      "Logos",
+      "Color Palettes",
+      "References"
     ],
     "enclosingPreviews": {
       "MOCKUPS": [
@@ -953,14 +954,7 @@
       "heading": "Assets & Vaults",
       "categories": [
         "All",
-        "MOCKUPS",
-        "TEXTURES",
-        "ELEMENTS",
-        "FONTS",
-        "TEMPLATES",
-        "References",
-        "Logos",
-        "Color Palettes"
+        "ASSETS"
       ],
       "ui": {
         "layoutMode": "eagle",
@@ -978,9 +972,9 @@
       "id": "lightbox",
       "code": "05",
       "world": "II. Lab & Assets",
-      "title": "The Lightbox — Curation, Comparison & Routing Hub",
+      "title": "The Lightbox",
       "kicker": "II. LAB & ASSETS / 05",
-      "heading": "The Lightbox — Curation, Comparison & Routing Hub",
+      "heading": "The Lightbox",
       "categories": [
         "All Assets",
         "Stacked Piles",
@@ -13462,7 +13456,7 @@
   "customSpaceTitles": {
     "tool_dock": "Tool Dock & R&D Lab",
     "gdrive_assets": "Assets & Vaults",
-    "lightbox": "The Lightbox — Curation, Comparison & Routing Hub"
+    "lightbox": "The Lightbox"
   },
   "assetSections": {
     "Logos": "vaults",
