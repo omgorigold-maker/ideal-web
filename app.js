@@ -24814,8 +24814,9 @@ function renderLightboxView(ws, spaceObj) {
   const mediaKindFilter = state.lightboxMediaKind || 'all';
   const activeRatio = state.lightboxRatioFilter || 'all';
   const activeProjId = state.lightboxProjectId || 'all';
+  const lbProjects = getLightboxProjects(vault);
   const activeProjObj = (activeProjId !== 'all' && activeProjId !== 'unsorted')
-    ? vault.projects.find(p => p.id === activeProjId)
+    ? lbProjects.find(p => p.id === activeProjId)
     : null;
   const fitMode = state.lightboxFitMode || 'contain';
 
@@ -24899,11 +24900,11 @@ function renderLightboxView(ws, spaceObj) {
       emptyStateHtml = `
         <div class="lb-bright-empty-state">
           <div class="lb-empty-icon" aria-hidden="true">✦</div>
-          <h3>Drop files or folders here to start curating</h3>
-          <p>Drag and drop renders, photos, videos, or nested project folders anywhere onto this page — originals stay untouched at full resolution.</p>
+          <h3>Choose local files or folders to start curating</h3>
+          <p>Instantly browse high-res 3D renders, animation passes, and video iterations directly from your Mac without uploading or file duplication.</p>
           <div class="lb-empty-actions">
-            <button type="button" class="lb-tool-btn is-primary" id="btnLbEmptyAddFiles">+ Upload Files</button>
-            <button type="button" class="lb-tool-btn" id="btnLbEmptyAddFolder">+ Upload Folder</button>
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbEmptyAddFiles">+ Choose Local Files</button>
+            <button type="button" class="lb-tool-btn" id="btnLbEmptyAddFolder">+ Choose Local Folder</button>
           </div>
         </div>
       `;
@@ -24922,8 +24923,8 @@ function renderLightboxView(ws, spaceObj) {
       const emptyCopyBySubpage = {
         'Stacked Piles': {
           icon: '⧉',
-          title: 'No multi-pass render stacks yet',
-          desc: 'Files sharing a shot name with suffixes like _v1, _v2, _beauty, _clay, or _zdepth automatically stack into a single comparison pile.'
+          title: 'No multi-version stacks yet',
+          desc: 'Files sharing a base name with suffixes like _clay, _lighting, _final, _v1, or _v2 automatically stack into a comparison group.'
         },
         '★ Keep Selected': {
           icon: '★',
@@ -24933,12 +24934,12 @@ function renderLightboxView(ws, spaceObj) {
         'Portfolio Staging': {
           icon: '⊞',
           title: 'Nothing staged for Portfolio yet',
-          desc: 'Click Portfolio on any asset (or inside Compare) to preview it on a clean 12-column case-study layout before exporting.'
+          desc: 'Click Portfolio on any asset (or inside Compare) to preview it on a clean 12-column editorial layout before exporting.'
         },
         'Instagram Board': {
           icon: '◈',
           title: 'Nothing staged for Instagram yet',
-          desc: 'Click IG on any photo or video to test how it flows in your 3-column profile grid and 9:16 Reels queue.'
+          desc: 'Click Instagram on any photo or video to test how it flows in your 3-column profile grid and 9:16 Reels queue.'
         }
       };
       const meta = emptyCopyBySubpage[activeFilter] || { icon: '✦', title: 'No assets in this view', desc: 'Switch back to All to browse your workspace.' };
@@ -24984,11 +24985,10 @@ function renderLightboxView(ws, spaceObj) {
   }
 
   // Compute all Lightbox-eligible counts per project + Unsorted
-  const isEligibleLbAsset = (it) => Boolean(it && it.url && !['audio', 'note', 'checklist', 'todo', 'link', 'folder'].includes(it.kind));
   const allVaultLbAssets = (vault.items || []).filter(it =>
-    isEligibleLbAsset(it) && (it.parentType === 'project' || (it.parentType === 'space' && (it.parentId === 'lightbox' || it.parentId === 'incubator')))
+    it && it.url && it.parentType === 'space' && it.parentId === 'lightbox' && !['audio', 'note', 'checklist', 'todo', 'link', 'folder'].includes(it.kind)
   );
-  const unsortedLbAssets = allVaultLbAssets.filter(it => it.parentType === 'space' && (it.parentId === 'lightbox' || it.parentId === 'incubator') && !it.lightboxProjectId);
+  const unsortedLbAssets = allVaultLbAssets.filter(it => !it.lightboxProjectId);
   const showUnsortedOption = unsortedLbAssets.length > 0 || activeProjId === 'unsorted';
   const hasSelectionNow = Array.isArray(state.selectedCompareAssets) && state.selectedCompareAssets.length > 0;
 
@@ -25004,7 +25004,7 @@ function renderLightboxView(ws, spaceObj) {
   const hasActiveViewFilter = activeFilterTokens.length > 0;
   const filterButtonLabel = hasActiveViewFilter ? `Filter · ${activeFilterTokens.join(' · ')}` : 'Filter';
 
-  // Inline contextual mode controls (replaces .lb-subview-bar with zero extra horizontal bars)
+  // Inline contextual mode controls
   let inlineModeControlsHtml = '';
   if (filteredItems.length > 0) {
     if (activeFilter === 'Portfolio Staging') {
@@ -25024,9 +25024,9 @@ function renderLightboxView(ws, spaceObj) {
         </div>
       `;
     } else if (activeFilter === 'Stacked Piles' && activePiles.length > 0) {
-      const allExpanded = activePiles.every(p => state.lightboxExpandedStacks && state.lightboxExpandedStacks[p.stackKey]);
+      const allCollapsed = activePiles.every(p => state.lightboxCollapsedStacks && state.lightboxCollapsedStacks[p.stackKey]);
       inlineModeControlsHtml = `
-        <button type="button" class="lb-tool-btn is-ghost" id="btnLbToggleAllStacks">${allExpanded ? 'Collapse All' : 'Unfold All'}</button>
+        <button type="button" class="lb-tool-btn is-ghost" id="btnLbToggleAllStacks">${allCollapsed ? 'Unfold All' : 'Collapse All'}</button>
       `;
     } else if (activeFilter === '★ Keep Selected') {
       inlineModeControlsHtml = `
@@ -25046,15 +25046,15 @@ function renderLightboxView(ws, spaceObj) {
     showUnsortedOption
       ? `<button type="button" role="menuitemradio" aria-checked="${activeProjId === 'unsorted' ? 'true' : 'false'}" data-lb-proj-select="unsorted"><span>Unsorted</span><span class="hint" aria-hidden="true">${unsortedLbAssets.length}</span></button>`
       : '',
-    ...(vault.projects || []).map(p => {
-      const pCount = allVaultLbAssets.filter(i => (i.parentType === 'project' && i.parentId === p.id) || (i.parentType === 'space' && i.parentId === 'lightbox' && i.lightboxProjectId === p.id)).length;
+    ...lbProjects.map(p => {
+      const pCount = allVaultLbAssets.filter(i => i.lightboxProjectId === p.id).length;
       return `<button type="button" role="menuitemradio" aria-checked="${activeProjId === p.id ? 'true' : 'false'}" data-lb-proj-select="${escapeHtml(p.id)}"><span>${escapeHtml(p.title)}</span><span class="hint" aria-hidden="true">${pCount}</span></button>`;
     })
   ].filter(Boolean).join('');
 
   const dragDockTargetsHtml = [
     `<button type="button" class="lb-drag-dock-pill" data-lb-proj-pill="unsorted">Unsorted</button>`,
-    ...(vault.projects || []).map(p => `<button type="button" class="lb-drag-dock-pill" data-lb-proj-pill="${escapeHtml(p.id)}">${escapeHtml(p.title)}</button>`)
+    ...lbProjects.map(p => `<button type="button" class="lb-drag-dock-pill" data-lb-proj-pill="${escapeHtml(p.id)}">${escapeHtml(p.title)}</button>`)
   ].join('');
 
   let leftHeadHtml = '';
@@ -25077,6 +25077,7 @@ function renderLightboxView(ws, spaceObj) {
   } else {
     leftHeadHtml = `
       <button type="button" class="lb-scope-heading-btn" id="btnLbProjectMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbProjectMenuPopover" command="toggle-popover" title="Switch project or create a new project">
+        <span class="lb-scope-heading-icon" aria-hidden="true">📁</span>
         <span class="lb-scope-heading-text">${escapeHtml(currentScopeTitle)}</span>
         <span class="lb-scope-heading-count">${filteredItems.length}</span>
         <span class="lb-scope-heading-chev" aria-hidden="true">▾</span>
@@ -25094,13 +25095,12 @@ function renderLightboxView(ws, spaceObj) {
         </div>
       </div>
       ${activeProjObj ? `
-        <button type="button" class="lb-scope-more-btn" id="btnLbActiveProjMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbActiveProjMenuPopover" command="toggle-popover" aria-label="Options for ${escapeHtml(activeProjObj.title)}" title="Project options (Rename, Open Board, Move to Trash)">⋯</button>
+        <button type="button" class="lb-scope-more-btn" id="btnLbActiveProjMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbActiveProjMenuPopover" command="toggle-popover" aria-label="Options for ${escapeHtml(activeProjObj.title)}" title="Project options (Rename, Remove from Lightbox)">⋯</button>
         <div id="lbActiveProjMenuPopover" popover="auto" class="lb-card-menu-popover">
           <div focusgroup="menu nomemory" id="lbActiveProjMenuInner" aria-labelledby="btnLbActiveProjMenuTrigger">
             <button type="button" id="btnLbRenameActiveProj"><span class="lb-menu-icon" aria-hidden="true">✎</span><span>Rename Project…</span></button>
-            <button type="button" id="btnLbOpenProjBoard"><span class="lb-menu-icon" aria-hidden="true">↗</span><span>Open Studio Board</span></button>
             <hr>
-            <button type="button" class="is-danger-item" id="btnLbTrashActiveProj"><span class="lb-menu-icon" aria-hidden="true">🗑</span><span>Move Project to Trash…</span></button>
+            <button type="button" class="is-danger-item" id="btnLbTrashActiveProj"><span class="lb-menu-icon" aria-hidden="true">✕</span><span>Remove Project from Lightbox…</span></button>
           </div>
         </div>
       ` : ''}
@@ -25180,21 +25180,8 @@ function renderLightboxView(ws, spaceObj) {
             </button>
           ` : ''}
 
-          <button type="button" class="lb-tool-btn is-primary" id="btnLbAddMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbAddMenuPopover" command="toggle-popover" title="Upload files or folders">
-            + Add
-          </button>
-          <div id="lbAddMenuPopover" popover="auto" class="lb-card-menu-popover is-align-end">
-            <div focusgroup="menu nomemory" id="lbAddMenuInner" aria-labelledby="btnLbAddMenuTrigger">
-              <button type="button" id="btnLbUploadFiles">
-                <span class="lb-menu-icon" aria-hidden="true">＋</span>
-                <span>Upload Files…</span>
-              </button>
-              <button type="button" id="btnLbUploadFolder">
-                <span class="lb-menu-icon" aria-hidden="true">📁</span>
-                <span>Upload Folder…</span>
-              </button>
-            </div>
-          </div>
+          <button type="button" class="lb-tool-btn is-primary" id="btnLbChooseFiles" title="Link local image or video files without uploading">+ Choose Files</button>
+          <button type="button" class="lb-tool-btn" id="btnLbChooseFolder" title="Link an entire local folder without uploading">+ Choose Folder</button>
         </div>
       </div>
 
@@ -25204,20 +25191,21 @@ function renderLightboxView(ws, spaceObj) {
         <div class="lb-drag-dock-pills">${dragDockTargetsHtml}</div>
       </div>
 
-      <!-- Live Upload Progress Banner (Visible only during active file/folder upload) -->
-      <div class="lb-upload-progress-banner" id="lbUploadProgressBanner" hidden>
-        <span class="lb-upload-progress-label" id="lbUploadProgressLabel">Uploading original files…</span>
-        <progress class="lb-progress-el" id="lbUploadProgressBarEl" aria-labelledby="lbUploadProgressLabel"></progress>
-        <span class="lb-upload-progress-meta" id="lbUploadProgressMeta"></span>
-      </div>
+      ${lightboxNeedsPermissionIds.size > 0 ? `
+        <div class="lb-reconnect-banner" id="lbReconnectBanner">
+          <div class="lb-reconnect-banner-left">
+            <span class="lb-reconnect-icon" aria-hidden="true">⚠️</span>
+            <span>${lightboxNeedsPermissionIds.size} local file(s) need browser permission to display after reload.</span>
+          </div>
+          <button type="button" class="lb-tool-btn is-primary" id="btnLbReconnectAll">↻ Reconnect Local Files</button>
+        </div>
+      ` : ''}
 
       <div class="lb-workspace-content" id="lbIngestionDropzone">
         ${mainContentHtml}
       </div>
     </div>
   `;
-
-  syncLightboxLiveProgressDom();
 
   // Bind Accessible Command Menus & Filter Popover
   bindLightboxCommandMenu(
@@ -25231,12 +25219,6 @@ function renderLightboxView(ws, spaceObj) {
     ws.querySelector('#lbActiveProjMenuPopover'),
     ws.querySelector('#lbActiveProjMenuInner'),
     { alignEnd: false }
-  );
-  bindLightboxCommandMenu(
-    ws.querySelector('#btnLbAddMenuTrigger'),
-    ws.querySelector('#lbAddMenuPopover'),
-    ws.querySelector('#lbAddMenuInner'),
-    { alignEnd: true }
   );
   bindLightboxCommandMenu(
     ws.querySelector('#btnLbSelectsRouteTrigger'),
@@ -25305,9 +25287,20 @@ function renderLightboxView(ws, spaceObj) {
     }
   };
 
+  // Bind Direct Zero-Upload Local File & Folder Choosers + Reconnect Buttons
+  ws.querySelector('#btnLbChooseFiles')?.addEventListener('click', () => chooseLightboxLocalFiles());
+  ws.querySelector('#btnLbChooseFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
+  ws.querySelector('#btnLbEmptyAddFiles')?.addEventListener('click', () => chooseLightboxLocalFiles());
+  ws.querySelector('#btnLbEmptyAddFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
+  ws.querySelector('#btnLbReconnectAll')?.addEventListener('click', () => hydrateLightboxLocalHandles(true));
+  ws.querySelectorAll('[data-lb-reconnect]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hydrateLightboxLocalHandles(true);
+    });
+  });
+
   // Bind Empty State & Filter Reset Buttons
-  ws.querySelector('#btnLbEmptyAddFiles')?.addEventListener('click', () => document.getElementById('globalFileInput')?.click());
-  ws.querySelector('#btnLbEmptyAddFolder')?.addEventListener('click', () => document.getElementById('globalFolderInput')?.click());
   ws.querySelector('#btnLbResetActiveFilters')?.addEventListener('click', () => resetAllLbViewFilters(false));
   ws.querySelector('#btnLbQuickClearFilter')?.addEventListener('click', () => resetAllLbViewFilters(false));
   ws.querySelector('#btnLbPopoverResetFilters')?.addEventListener('click', () => resetAllLbViewFilters(false));
@@ -25361,7 +25354,7 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Inline + Project Creation (Zero blocking window.prompt)
+  // Inline Project Creation
   ws.querySelector('#btnLbNewProjectWorkspace')?.addEventListener('click', (e) => {
     projMenuPop?._closeMenu?.(e.detail !== 0);
     state.lightboxCreatingProject = true;
@@ -25387,20 +25380,11 @@ function renderLightboxView(ws, spaceObj) {
     const rawName = ws.querySelector('#lbInlineNewProjInput')?.value || '';
     const cleanTitle = rawName.trim();
     if (!cleanTitle) return;
-    const newId = 'proj_' + Date.now();
-    const nextCode = '#' + String((vault.projects?.length || 0) + 1).padStart(2, '0');
-    vault.projects.unshift({
+    vault.lightboxProjects = vault.lightboxProjects || [];
+    const newId = 'lbproj_' + Date.now();
+    vault.lightboxProjects.unshift({
       id: newId,
-      code: nextCode,
       title: cleanTitle,
-      subtitle: 'Lightbox & Studio Workspace',
-      category: '3D & Motion',
-      lifecycleState: 'active',
-      sections: ['All', 'Renders', 'Passes', 'Selects'],
-      tags: ['3D & Motion', 'Lightbox'],
-      ui: { layoutMode: 'giant_wall', cardSize: 300, aspectRatio: '16 / 10.5', imageFit: 'cover', sortOrder: 'manual' },
-      boardX: 288,
-      boardY: 120,
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
@@ -25412,12 +25396,12 @@ function renderLightboxView(ws, spaceObj) {
       moveLightboxItemsToDestination(pendingMove, newId);
       return;
     }
-    saveVault('NEW PROJECT CREATED');
+    saveVault('NEW LIGHTBOX PROJECT CREATED');
     announceLightboxPolite(`Created project ${cleanTitle}`);
-    renderAll();
+    renderWorkspace();
   });
 
-  // Active Project Contextual Menu Actions: Inline Rename, Open Board, Trash Project (with confirmation)
+  // Active Project Contextual Menu Actions: Inline Rename & Remove Project
   const activeProjMenuPop = ws.querySelector('#lbActiveProjMenuPopover');
   ws.querySelector('#btnLbRenameActiveProj')?.addEventListener('click', (e) => {
     activeProjMenuPop?._closeMenu?.(e.detail !== 0);
@@ -25450,20 +25434,15 @@ function renderLightboxView(ws, spaceObj) {
     if (nextTitle && nextTitle !== activeProjObj.title) {
       activeProjObj.title = nextTitle;
       activeProjObj.updatedAt = Date.now();
-      saveVault('PROJECT RENAMED');
+      saveVault('LIGHTBOX PROJECT RENAMED');
       announceLightboxPolite(`Renamed project to ${nextTitle}`);
     }
-    renderAll();
-  });
-  ws.querySelector('#btnLbOpenProjBoard')?.addEventListener('click', (e) => {
-    activeProjMenuPop?._closeMenu?.(e.detail !== 0);
-    if (!activeProjObj) return;
-    navigateTo('project', activeProjObj.id);
+    renderWorkspace();
   });
   ws.querySelector('#btnLbTrashActiveProj')?.addEventListener('click', (e) => {
     activeProjMenuPop?._closeMenu?.(e.detail !== 0);
     if (!activeProjObj) return;
-    requestDelete('project', activeProjObj.id, activeProjObj.title);
+    requestDelete('lb_project', activeProjObj.id, activeProjObj.title);
   });
 
   // Bind Filter Popover Controls (Media Kind, Framing, Exact Aspect Ratios)
@@ -25488,22 +25467,11 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Bind + Add Menu Upload Items
-  const addMenuPop = ws.querySelector('#lbAddMenuPopover');
-  ws.querySelector('#btnLbUploadFiles')?.addEventListener('click', (e) => {
-    addMenuPop?._closeMenu?.(e.detail !== 0);
-    document.getElementById('globalFileInput')?.click();
-  });
-  ws.querySelector('#btnLbUploadFolder')?.addEventListener('click', (e) => {
-    addMenuPop?._closeMenu?.(e.detail !== 0);
-    document.getElementById('globalFolderInput')?.click();
-  });
-
   // Bind Stacked Piles Subpage Unfold/Collapse All
   ws.querySelector('#btnLbToggleAllStacks')?.addEventListener('click', () => {
-    state.lightboxExpandedStacks = state.lightboxExpandedStacks || {};
-    const allExpanded = activePiles.every(p => state.lightboxExpandedStacks[p.stackKey]);
-    activePiles.forEach(p => { state.lightboxExpandedStacks[p.stackKey] = !allExpanded; });
+    state.lightboxCollapsedStacks = state.lightboxCollapsedStacks || {};
+    const allCollapsed = activePiles.every(p => state.lightboxCollapsedStacks[p.stackKey]);
+    activePiles.forEach(p => { state.lightboxCollapsedStacks[p.stackKey] = !allCollapsed; });
     renderWorkspace();
   });
 
@@ -25517,7 +25485,7 @@ function renderLightboxView(ws, spaceObj) {
       it.lightboxRoute = 'portfolio';
     });
     saveVault(`STAGED ${filteredItems.length} SELECTS TO PORTFOLIO`);
-    renderAll();
+    renderWorkspace();
   });
 
   ws.querySelector('#btnLbRouteAllKeptIg')?.addEventListener('click', (e) => {
@@ -25528,7 +25496,7 @@ function renderLightboxView(ws, spaceObj) {
       it.lightboxRoute = 'instagram';
     });
     saveVault(`STAGED ${filteredItems.length} SELECTS TO INSTAGRAM`);
-    renderAll();
+    renderWorkspace();
   });
 
   // Bind Portfolio Staging Layout Controls (Full/Half Span & Reorder)
@@ -25767,7 +25735,7 @@ function renderLightboxView(ws, spaceObj) {
       const { stacks } = buildLightboxStacks(allProjectItems);
       const found = stacks.find(s => s.stackKey === btn.dataset.lbTrashPile);
       if (!found || !found.items.length) return;
-      requestDelete('batch_items', found.items.map(i => i.id), `${found.items.length} passes in stack "${found.displayStem}"`);
+      requestDelete('lb_batch_items', found.items.map(i => i.id), `${found.items.length} versions in "${found.displayStem}"`);
     });
   });
 
@@ -25795,7 +25763,7 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Primary card action (stretched button or overlay check button) opens asset in Comparison Engine
+  // Primary card action opens asset in Comparison Engine
   ws.querySelectorAll('[data-lb-open-compare]').forEach(triggerEl => {
     triggerEl.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -25823,13 +25791,13 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Bind Render Pile Expand / Collapse & Compare Pile (Stack vs Split)
+  // Bind Render Stack Expand / Collapse & Compare Pile (Stack vs Split)
   ws.querySelectorAll('[data-lb-toggle-pile]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const key = btn.dataset.lbTogglePile;
-      state.lightboxExpandedStacks = state.lightboxExpandedStacks || {};
-      state.lightboxExpandedStacks[key] = !state.lightboxExpandedStacks[key];
+      state.lightboxCollapsedStacks = state.lightboxCollapsedStacks || {};
+      state.lightboxCollapsedStacks[key] = !state.lightboxCollapsedStacks[key];
       renderWorkspace();
     });
   });
@@ -25857,6 +25825,7 @@ function renderLightboxView(ws, spaceObj) {
       openCompareDialog();
     });
   });
+
 
   // Bind Compare Ratio Bucket
   ws.querySelectorAll('[data-lb-compare-bucket]').forEach(btn => {
@@ -27270,6 +27239,7 @@ function bootIdealApp() {
   state.custDirty = false;
   initEvents();
   applyCustomizationToDOM();
+  hydrateLightboxLocalHandles(false);
   renderAll();
   syncFromServerOnBoot();
 }
