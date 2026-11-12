@@ -22018,119 +22018,19 @@ function ensureLightboxCleanWorkspace(v = vault) {
   v.items = Array.isArray(v.items) ? v.items : [];
   v.lightboxProjects = Array.isArray(v.lightboxProjects) ? v.lightboxProjects : [];
 
-  const now = Date.now();
-  let charProj = v.lightboxProjects.find(p => p && p.id === 'lbproj_character_lookdev');
-  if (!charProj) {
-    charProj = {
-      id: 'lbproj_character_lookdev',
-      title: 'Character Lookdev',
-      createdAt: now,
-      updatedAt: now
-    };
-    v.lightboxProjects.unshift(charProj);
-  } else {
-    v.lightboxProjects = [charProj, ...v.lightboxProjects.filter(p => p && p.id !== 'lbproj_character_lookdev')];
-  }
-
-  const charPasses = [
-    {
-      id: 'itm_lb_char_01_clay',
-      title: 'Character Bust — 01 Clay',
-      originalFileName: 'Character_Bust_01_Clay.png',
-      url: 'vault_media/character_lookdev_01_clay.png',
-      kind: 'image',
-      naturalW: 896,
-      naturalH: 1200,
-      fileSize: 1368649,
-      aspectRatioKey: '3:4',
-      aspectRatioLabel: '3:4',
-      isOddRatio: false,
-      stackStem: 'Character Bust',
-      stackVersionLabel: '01 Clay',
-      lightboxKeep: false,
-      igStatus: '',
-      lightboxRoute: '',
-      parentType: 'space',
-      parentId: 'lightbox',
-      lightboxProjectId: 'lbproj_character_lookdev',
-      createdAt: now - 3000
-    },
-    {
-      id: 'itm_lb_char_02_light',
-      title: 'Character Bust — 02 Base Light',
-      originalFileName: 'Character_Bust_02_BaseLight.png',
-      url: 'vault_media/character_lookdev_02_lighting.png',
-      kind: 'image',
-      naturalW: 896,
-      naturalH: 1200,
-      fileSize: 1337245,
-      aspectRatioKey: '3:4',
-      aspectRatioLabel: '3:4',
-      isOddRatio: false,
-      stackStem: 'Character Bust',
-      stackVersionLabel: '02 Base Light',
-      lightboxKeep: false,
-      igStatus: '',
-      lightboxRoute: '',
-      parentType: 'space',
-      parentId: 'lightbox',
-      lightboxProjectId: 'lbproj_character_lookdev',
-      createdAt: now - 2000
-    },
-    {
-      id: 'itm_lb_char_03_final',
-      title: 'Character Bust — 03 Final',
-      originalFileName: 'Character_Bust_03_FinalRender.png',
-      url: 'vault_media/character_lookdev_03_final.png',
-      kind: 'image',
-      naturalW: 896,
-      naturalH: 1200,
-      fileSize: 1545096,
-      aspectRatioKey: '3:4',
-      aspectRatioLabel: '3:4',
-      isOddRatio: false,
-      stackStem: 'Character Bust',
-      stackVersionLabel: '03 Final',
-      lightboxKeep: true,
-      igStatus: '',
-      lightboxRoute: '',
-      parentType: 'space',
-      parentId: 'lightbox',
-      lightboxProjectId: 'lbproj_character_lookdev',
-      createdAt: now - 1000
-    }
-  ];
-
-  charPasses.forEach(cp => {
-    const existing = v.items.find(i => i && i.id === cp.id);
-    if (!existing) {
-      v.items.unshift(cp);
-    } else {
-      existing.url = cp.url;
-      existing.lightboxProjectId = cp.lightboxProjectId;
-      existing.naturalW = cp.naturalW;
-      existing.naturalH = cp.naturalH;
-      existing.aspectRatioKey = cp.aspectRatioKey;
-      existing.aspectRatioLabel = cp.aspectRatioLabel;
-      existing.stackStem = cp.stackStem;
-      existing.stackVersionLabel = cp.stackVersionLabel;
-    }
-  });
-
-  if (!v.lightboxCleanV107) {
-    v.lightboxCleanV107 = true;
-    const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
-    if (st) {
-      st.selectedCompareAssets = [];
-      st.lightboxProjectId = 'lbproj_character_lookdev';
-    }
-  }
+  // Remove stale dummy character passes so the user's workspace contains strictly their own real files
+  v.items = v.items.filter(i => !i?.id?.startsWith('itm_lb_char_'));
+  v.lightboxProjects = v.lightboxProjects.filter(p => p && p.id !== 'lbproj_character_lookdev');
 
   const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
   if (st) {
-    const curProj = st.lightboxProjectId || 'all';
-    if (curProj !== 'all' && curProj !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === curProj)) {
-      st.lightboxProjectId = 'lbproj_character_lookdev';
+    // If state.lightboxProjectId was set to the dummy project or invalid, default to 'all' so all files show immediately
+    if (!st.lightboxProjectId || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId !== 'all' && st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
+      st.lightboxProjectId = 'all';
+    }
+    // Also ensure filter is 'All Assets' so nothing is hidden by default
+    if (st.lightboxFilter === '★ Keep Selected' && !v.items.some(i => i.parentType === 'space' && i.parentId === 'lightbox' && i.lightboxKeep)) {
+      st.lightboxFilter = 'All Assets';
     }
   }
 }
@@ -23515,8 +23415,12 @@ function getLightboxMediaSrc(it) {
 function getLightboxDisplayUrl(it) {
   if (!it) return '';
   const vIt = (vault.items || []).find(x => x && x.id === (it.vaultItemId || it.id)) || it;
-  const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.url || it.url || '');
-  if (/\.(heic|heif|tif|tiff)$/i.test(nameProbe)) {
+  const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
+  const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
+  if (liveBlob) return liveBlob;
+  const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
+  const ext = (nameProbe.split('.').pop() || '').toLowerCase();
+  if (/\.(heic|heif|tif|tiff)$/i.test(nameProbe) && !isStaticWeb) {
     if (vIt.localPath && vIt.localPath.startsWith('/')) {
       return `/api/heic-preview?path=${encodeURIComponent(vIt.localPath)}`;
     }
@@ -23525,7 +23429,14 @@ function getLightboxDisplayUrl(it) {
       return `/api/heic-preview?url=${encodeURIComponent(rawUrl)}`;
     }
   }
-  return getLightboxMediaSrc(vIt);
+  const src = getLightboxMediaSrc(vIt);
+  if (isStaticWeb && src.startsWith('/api/')) {
+    return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
+  }
+  if (!src) {
+    return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
+  }
+  return src;
 }
 
 function getLightboxMasterMediaKind(it) {
@@ -25240,7 +25151,10 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
   let mediaHtml = '';
   if (dispUrl) {
     if (mediaKind === 'video') {
-      mediaHtml = `<video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.outerHTML = '<img src=\x22' + getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox') + '\x22 alt=\x22${escapeHtml(titleText).replace(/'/g, "\\'")}\x22 class=\x22lb-studio-media ${fitMode}\x22>'; }"></video>`;
+      mediaHtml = `
+        <video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
+        <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: none;" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
+      `;
     } else {
       mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">`;
     }
