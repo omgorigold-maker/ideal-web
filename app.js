@@ -100,19 +100,28 @@ function uid(prefix = '') {
   const nativeFetch = window.fetch.bind(window);
   let lastVaultSha = null;
   let writeQueue = Promise.resolve();
+  let cloudPromptDismissed = false;
 
   function ensureCloudTokenInteractive() {
     let tk = getCloudToken();
     if (tk) return tk;
+    if (cloudPromptDismissed) return '';
     try {
       const entered = window.prompt('IDEAL Private Studio Vault — Paste your Pairing Link or Cloud Key to unlock your private data:');
+      if (!entered) {
+        cloudPromptDismissed = true;
+        return '';
+      }
       const parsed = parseCandidateKey(entered);
       if (parsed) {
         localStorage.setItem('ideal_cloud_gh_token', parsed);
         localStorage.setItem('vault_cloud_gh_token', parsed);
         return parsed;
       }
-    } catch (e) {}
+      cloudPromptDismissed = true;
+    } catch (e) {
+      cloudPromptDismissed = true;
+    }
     return '';
   }
 
@@ -259,7 +268,10 @@ function uid(prefix = '') {
 
     if (apiPath === '/api/gdrive-assets') {
       const r = await readGhJson(CLOUD_REPO, 'gdrive_index.json');
-      if (r.ok && r.data) return jsonResp(r.data);
+      if (r.ok && r.data && Array.isArray(r.data.batches) && r.data.batches.length > 0) return jsonResp(r.data);
+      if (typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+        return jsonResp(window._IDEAL_GDRIVE_SEED);
+      }
       return jsonResp({ ok: true, batches: [], totalFiles: 0, totalBatches: 0 });
     }
 
@@ -3608,6 +3620,9 @@ async function fetchGDriveAssets(forceRefresh = false) {
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.batches)) {
+        if (data.batches.length === 0 && (!state.gdriveBatches || state.gdriveBatches.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+          data = window._IDEAL_GDRIVE_SEED;
+        }
         if (data.batches.length === 0 && state.gdriveBatches && state.gdriveBatches.length > 0) {
           console.warn('[Assets] 0 batches returned; holding previous asset configuration intact.');
           state.gdriveStats.loading = false;
@@ -3698,6 +3713,25 @@ async function fetchGDriveAssets(forceRefresh = false) {
     }
   } catch (e) {
     console.warn('Google Drive index fetch error:', e);
+  }
+  if ((!state.gdriveBatches || state.gdriveBatches.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    const seed = window._IDEAL_GDRIVE_SEED;
+    state.gdriveBatches = seed.batches || [];
+    state.gdriveEnclosingFolders = seed.enclosingFolders || [];
+    state.gdriveCategoryLinks = seed.categoryLinks || {};
+    state.gdriveStats = {
+      totalBatches: seed.totalBatches || state.gdriveBatches.length,
+      totalFiles: seed.totalFiles || 0,
+      driveRoot: seed.driveRoot || '',
+      loading: false,
+      loaded: true,
+      lastSyncTs: Date.now()
+    };
+    renderSidebar();
+    if (state.viewType === 'space' && state.activeSpaceId === 'gdrive_assets') {
+      renderFilterActionRow();
+      renderWorkspace();
+    }
   }
   state.gdriveStats.loading = false;
 }
@@ -8832,8 +8866,9 @@ function renderEagleAssetBrowser(ws, driveBatches, spaceObj) {
         const hay = `${ex.name || ''} ${ext} ${b.title || ''} ${b.relPath || ''}`.toLowerCase();
         if (!hay.includes(searchQ)) return;
       }
-      const primarySrc = ex.thumbUrl || ex.fallbackThumbUrl || '';
-      const fallbackSrc = ex.fallbackThumbUrl || `${ex.thumbUrl}&fallback=1`;
+      const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
+      const primarySrc = (isCloudWeb && (ex.cloudThumbUrl || ex.lh3ThumbUrl)) ? (ex.cloudThumbUrl || ex.lh3ThumbUrl) : (ex.thumbUrl || ex.fallbackThumbUrl || ex.cloudThumbUrl || ex.lh3ThumbUrl || '');
+      const fallbackSrc = ex.cloudThumbUrl || ex.lh3ThumbUrl || ex.fallbackThumbUrl || `${ex.thumbUrl || ''}&fallback=1`;
       allFiles.push({
         id: fileId,
         vaultItemId: null,
@@ -9487,9 +9522,10 @@ function buildGDriveEnclosingCardEl(enc, idx) {
     : (enc.examples || []);
   const visibleFour = rawExList.slice(0, 4);
 
+  const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
   const tilesHtml = visibleFour.map((ex, tIdx) => {
-    const primarySrc = ex.thumbUrl || ex.fallbackThumbUrl || '';
-    const fallbackSrc = ex.fallbackThumbUrl || `${ex.thumbUrl}&fallback=1`;
+    const primarySrc = (isCloudWeb && (ex.cloudThumbUrl || ex.lh3ThumbUrl)) ? (ex.cloudThumbUrl || ex.lh3ThumbUrl) : (ex.thumbUrl || ex.fallbackThumbUrl || ex.cloudThumbUrl || ex.lh3ThumbUrl || '');
+    const fallbackSrc = ex.cloudThumbUrl || ex.lh3ThumbUrl || ex.fallbackThumbUrl || `${ex.thumbUrl || ''}&fallback=1`;
     const extBadge = (ex.ext || '').replace('.', '').toUpperCase() || 'FILE';
     const isLcpImg = idx === 0 && tIdx === 0;
     const priorityAttr = isLcpImg ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"';
