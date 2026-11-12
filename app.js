@@ -18927,23 +18927,12 @@ function renderCustomizeView(ws) {
           <!-- Individual Space Top Bar Headings (Disconnected from Sidebar) -->
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
-              <div class="kicker-mono" style="margin-bottom:4px;color:var(--accent);">★ THE LIGHTBOX TOP BAR TITLE</div>
-              <p style="font-size:11px;color:var(--text-mid);margin:0 0 8px 0;line-height:1.4;">
-                Top bar heading displayed on The Lightbox page. Click-editing is locked on the page; customize its title right here:
-              </p>
-              <div style="display:flex;gap:6px;">
-                <input type="text" id="custTopBarTitle_lightbox" class="form-input" style="flex:1;font-size:12px;padding:6px 10px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);" value="${escapeHtml(getSpaceTopBarTitle('lightbox'))}">
-                <button type="button" class="outline-btn" id="btnResetLbTopBarTitle" title="Reset to standard hub title" style="padding:6px 10px;font-size:11px;">Default</button>
-              </div>
-            </div>
-
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
               <div class="kicker-mono" style="margin-bottom:4px;">DISCONNECTED TOP BAR SPACE TITLES</div>
               <p style="font-size:11px;color:var(--text-mid);margin:0 0 10px 0;line-height:1.4;">
                 Top bar headings are completely independent from sidebar titles. Editing a title here or in the sidebar will not overwrite each other.
               </p>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                ${vault.spaces.filter(s => s.id !== 'lightbox' && s.id !== 'customize').map(sp => `
+                ${vault.spaces.filter(s => s.id !== 'customize').map(sp => `
                   <div style="display:flex;flex-direction:column;gap:3px;">
                     <span class="kicker-mono" style="font-size:9.5px;color:var(--text-faint);">${escapeHtml(sp.code)} • SIDEBAR: "${escapeHtml(sp.title)}"</span>
                     <input type="text" class="form-input cust-space-topbar-input" data-space-id="${escapeHtml(sp.id)}" style="font-size:11.5px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);" value="${escapeHtml(getSpaceTopBarTitle(sp.id))}" placeholder="${escapeHtml(sp.title)}">
@@ -19337,24 +19326,7 @@ function renderCustomizeView(ws) {
     });
   });
 
-  // Lightbox Top Bar Title Input
-  const lbTopInput = ws.querySelector('#custTopBarTitle_lightbox');
-  lbTopInput?.addEventListener('input', (e) => {
-    setSpaceTopBarTitle('lightbox', e.target.value);
-    renderHeaderAndToolbar();
-    updateCustomizerDirtyState();
-  });
-
-  ws.querySelector('#btnResetLbTopBarTitle')?.addEventListener('click', () => {
-    const defTitle = 'The Lightbox — Curation, Comparison & Routing Hub';
-    setSpaceTopBarTitle('lightbox', defTitle);
-    if (lbTopInput) lbTopInput.value = defTitle;
-    renderHeaderAndToolbar();
-    updateCustomizerDirtyState();
-    showStatusToast('✓ Reset Lightbox top bar title to default');
-  });
-
-  // Other Spaces Top Bar Title Inputs
+  // Space Top Bar Title Inputs (All spaces including 05 The Lightbox in numerical order)
   ws.querySelectorAll('.cust-space-topbar-input').forEach(input => {
     input.addEventListener('input', (e) => {
       const spId = input.dataset.spaceId;
