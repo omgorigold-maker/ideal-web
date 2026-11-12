@@ -21577,8 +21577,10 @@ function initMenuFocusgroupFallbackOnElement(groupEl) {
 }
 
 const LB_LOCAL_MEDIA_EXT_RE = /\.(png|jpe?g|webp|gif|svg|avif|bmp|heic|heif|tif|tiff|mp4|mov|webm|m4v)$/i;
-const LB_HANDLES_DB_NAME = 'ideal_lightbox_handles_v1';
+const LB_HANDLES_DB_NAME = 'ideal_lightbox_handles_v2';
 const LB_HANDLES_STORE = 'handles';
+const LB_PREVIEWS_STORE = 'previews';
+const LB_DIRS_STORE = 'dirs';
 const lightboxLiveObjectUrls = new Map();
 const lightboxStoredHandles = new Map();
 const lightboxNeedsPermissionIds = new Set();
@@ -21597,87 +21599,107 @@ function ensureLightboxCleanWorkspace(v = vault) {
   v.items = Array.isArray(v.items) ? v.items : [];
   v.lightboxProjects = Array.isArray(v.lightboxProjects) ? v.lightboxProjects : [];
 
-  if (!v.lightboxCleanV105) {
-    const now = Date.now();
-    v.lightboxCleanV105 = true;
-    v.lightboxProjects = [
-      {
-        id: 'lbproj_character_lookdev',
-        title: 'Character Lookdev',
-        createdAt: now,
-        updatedAt: now
-      }
-    ];
-    // Remove only stale Lightbox-scoped items; leave all other Ideal spaces & projects 100% untouched
-    v.items = v.items.filter(it => !(it && it.parentType === 'space' && it.parentId === 'lightbox'));
-    v.items.unshift(
-      {
-        id: 'itm_lb_char_01_clay',
-        title: 'Character Bust — 01 Clay',
-        originalFileName: 'Character_Bust_01_Clay.png',
-        url: 'vault_media/character_lookdev_01_clay.png',
-        kind: 'image',
-        naturalW: 896,
-        naturalH: 1200,
-        fileSize: 1368649,
-        aspectRatioKey: '3:4',
-        aspectRatioLabel: '3:4',
-        isOddRatio: false,
-        stackStem: 'Character Bust',
-        stackVersionLabel: '01 Clay',
-        lightboxKeep: false,
-        igStatus: '',
-        lightboxRoute: '',
-        parentType: 'space',
-        parentId: 'lightbox',
-        lightboxProjectId: 'lbproj_character_lookdev',
-        createdAt: now - 3000
-      },
-      {
-        id: 'itm_lb_char_02_light',
-        title: 'Character Bust — 02 Base Light',
-        originalFileName: 'Character_Bust_02_BaseLight.png',
-        url: 'vault_media/character_lookdev_02_lighting.png',
-        kind: 'image',
-        naturalW: 896,
-        naturalH: 1200,
-        fileSize: 1337245,
-        aspectRatioKey: '3:4',
-        aspectRatioLabel: '3:4',
-        isOddRatio: false,
-        stackStem: 'Character Bust',
-        stackVersionLabel: '02 Base Light',
-        lightboxKeep: false,
-        igStatus: '',
-        lightboxRoute: '',
-        parentType: 'space',
-        parentId: 'lightbox',
-        lightboxProjectId: 'lbproj_character_lookdev',
-        createdAt: now - 2000
-      },
-      {
-        id: 'itm_lb_char_03_final',
-        title: 'Character Bust — 03 Final',
-        originalFileName: 'Character_Bust_03_FinalRender.png',
-        url: 'vault_media/character_lookdev_03_final.png',
-        kind: 'image',
-        naturalW: 896,
-        naturalH: 1200,
-        fileSize: 1545096,
-        aspectRatioKey: '3:4',
-        aspectRatioLabel: '3:4',
-        isOddRatio: false,
-        stackStem: 'Character Bust',
-        stackVersionLabel: '03 Final',
-        lightboxKeep: true,
-        igStatus: '',
-        lightboxRoute: '',
-        parentType: 'space',
-        parentId: 'lightbox',
-        lightboxProjectId: 'lbproj_character_lookdev',
-        createdAt: now - 1000
-      }
-    );
+  const now = Date.now();
+  let charProj = v.lightboxProjects.find(p => p && p.id === 'lbproj_character_lookdev');
+  if (!charProj) {
+    charProj = {
+      id: 'lbproj_character_lookdev',
+      title: 'Character Lookdev',
+      createdAt: now,
+      updatedAt: now
+    };
+    v.lightboxProjects.unshift(charProj);
+  } else {
+    v.lightboxProjects = [charProj, ...v.lightboxProjects.filter(p => p && p.id !== 'lbproj_character_lookdev')];
+  }
+
+  const charPasses = [
+    {
+      id: 'itm_lb_char_01_clay',
+      title: 'Character Bust — 01 Clay',
+      originalFileName: 'Character_Bust_01_Clay.png',
+      url: 'vault_media/character_lookdev_01_clay.png',
+      kind: 'image',
+      naturalW: 896,
+      naturalH: 1200,
+      fileSize: 1368649,
+      aspectRatioKey: '3:4',
+      aspectRatioLabel: '3:4',
+      isOddRatio: false,
+      stackStem: 'Character Bust',
+      stackVersionLabel: '01 Clay',
+      lightboxKeep: false,
+      igStatus: '',
+      lightboxRoute: '',
+      parentType: 'space',
+      parentId: 'lightbox',
+      lightboxProjectId: 'lbproj_character_lookdev',
+      createdAt: now - 3000
+    },
+    {
+      id: 'itm_lb_char_02_light',
+      title: 'Character Bust — 02 Base Light',
+      originalFileName: 'Character_Bust_02_BaseLight.png',
+      url: 'vault_media/character_lookdev_02_lighting.png',
+      kind: 'image',
+      naturalW: 896,
+      naturalH: 1200,
+      fileSize: 1337245,
+      aspectRatioKey: '3:4',
+      aspectRatioLabel: '3:4',
+      isOddRatio: false,
+      stackStem: 'Character Bust',
+      stackVersionLabel: '02 Base Light',
+      lightboxKeep: false,
+      igStatus: '',
+      lightboxRoute: '',
+      parentType: 'space',
+      parentId: 'lightbox',
+      lightboxProjectId: 'lbproj_character_lookdev',
+      createdAt: now - 2000
+    },
+    {
+      id: 'itm_lb_char_03_final',
+      title: 'Character Bust — 03 Final',
+      originalFileName: 'Character_Bust_03_FinalRender.png',
+      url: 'vault_media/character_lookdev_03_final.png',
+      kind: 'image',
+      naturalW: 896,
+      naturalH: 1200,
+      fileSize: 1545096,
+      aspectRatioKey: '3:4',
+      aspectRatioLabel: '3:4',
+      isOddRatio: false,
+      stackStem: 'Character Bust',
+      stackVersionLabel: '03 Final',
+      lightboxKeep: true,
+      igStatus: '',
+      lightboxRoute: '',
+      parentType: 'space',
+      parentId: 'lightbox',
+      lightboxProjectId: 'lbproj_character_lookdev',
+      createdAt: now - 1000
+    }
+  ];
+
+  charPasses.forEach(cp => {
+    const existing = v.items.find(i => i && i.id === cp.id);
+    if (!existing) {
+      v.items.unshift(cp);
+    } else {
+      existing.url = cp.url;
+      existing.lightboxProjectId = cp.lightboxProjectId;
+      existing.naturalW = cp.naturalW;
+      existing.naturalH = cp.naturalH;
+      existing.aspectRatioKey = cp.aspectRatioKey;
+      existing.aspectRatioLabel = cp.aspectRatioLabel;
+      existing.stackStem = cp.stackStem;
+      existing.stackVersionLabel = cp.stackVersionLabel;
+    }
+  });
+
+  if (!v.lightboxCleanV107) {
+    v.lightboxCleanV107 = true;
     const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
     if (st) {
       st.selectedCompareAssets = [];
@@ -21689,7 +21711,7 @@ function ensureLightboxCleanWorkspace(v = vault) {
   if (st) {
     const curProj = st.lightboxProjectId || 'all';
     if (curProj !== 'all' && curProj !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === curProj)) {
-      st.lightboxProjectId = v.lightboxProjects[0]?.id || 'all';
+      st.lightboxProjectId = 'lbproj_character_lookdev';
     }
   }
 }
@@ -21702,11 +21724,17 @@ function openLbHandlesDb() {
       return;
     }
     try {
-      const req = indexedDB.open(LB_HANDLES_DB_NAME, 1);
+      const req = indexedDB.open(LB_HANDLES_DB_NAME, 2);
       req.onupgradeneeded = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains(LB_HANDLES_STORE)) {
           db.createObjectStore(LB_HANDLES_STORE);
+        }
+        if (!db.objectStoreNames.contains(LB_PREVIEWS_STORE)) {
+          db.createObjectStore(LB_PREVIEWS_STORE);
+        }
+        if (!db.objectStoreNames.contains(LB_DIRS_STORE)) {
+          db.createObjectStore(LB_DIRS_STORE);
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -21743,8 +21771,9 @@ async function deleteLbFileHandle(itemId) {
   if (!db) return;
   return new Promise((resolve) => {
     try {
-      const tx = db.transaction(LB_HANDLES_STORE, 'readwrite');
+      const tx = db.transaction([LB_HANDLES_STORE, LB_PREVIEWS_STORE], 'readwrite');
       tx.objectStore(LB_HANDLES_STORE).delete(itemId);
+      tx.objectStore(LB_PREVIEWS_STORE).delete(itemId);
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     } catch (_) {
@@ -21778,6 +21807,141 @@ async function getAllLbFileHandles() {
   });
 }
 
+async function saveLbPreviewBlob(itemId, blob) {
+  if (!itemId || !blob) return;
+  const db = await openLbHandlesDb();
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_PREVIEWS_STORE, 'readwrite');
+      tx.objectStore(LB_PREVIEWS_STORE).put(blob, itemId);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function getAllLbPreviewBlobs() {
+  const map = new Map();
+  const db = await openLbHandlesDb();
+  if (!db) return map;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_PREVIEWS_STORE, 'readonly');
+      const store = tx.objectStore(LB_PREVIEWS_STORE);
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (cursor) {
+          map.set(String(cursor.key), cursor.value);
+          cursor.continue();
+        } else {
+          resolve(map);
+        }
+      };
+      req.onerror = () => resolve(map);
+    } catch (_) {
+      resolve(map);
+    }
+  });
+}
+
+async function saveLbDirHandle(projId, dirHandle) {
+  if (!projId || !dirHandle) return;
+  const db = await openLbHandlesDb();
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_DIRS_STORE, 'readwrite');
+      tx.objectStore(LB_DIRS_STORE).put(dirHandle, projId);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function getLbDirHandle(projId) {
+  if (!projId) return null;
+  const db = await openLbHandlesDb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_DIRS_STORE, 'readonly');
+      const req = tx.objectStore(LB_DIRS_STORE).get(projId);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    } catch (_) {
+      resolve(null);
+    }
+  });
+}
+
+async function createQuickImagePreviewBlob(file, maxSide = 720) {
+  if (!file) return null;
+  const mime = String(file.type || '');
+  if (!mime.startsWith('image/')) return null;
+  if (mime.includes('svg')) return file;
+  try {
+    let bitmap = null;
+    if (typeof createImageBitmap === 'function') {
+      try {
+        bitmap = await createImageBitmap(file);
+      } catch (_) {}
+    }
+    let w = 0, h = 0;
+    let sourceElement = bitmap;
+    if (!bitmap) {
+      const tmpUrl = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = tmpUrl;
+      });
+      URL.revokeObjectURL(tmpUrl);
+      w = img.naturalWidth || img.width;
+      h = img.naturalHeight || img.height;
+      sourceElement = img;
+    } else {
+      w = bitmap.width;
+      h = bitmap.height;
+    }
+    if (!w || !h) return null;
+
+    let targetW = w;
+    let targetH = h;
+    if (Math.max(w, h) > maxSide) {
+      if (w >= h) {
+        targetW = maxSide;
+        targetH = Math.round((h * maxSide) / w);
+      } else {
+        targetH = maxSide;
+        targetW = Math.round((w * maxSide) / h);
+      }
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(sourceElement, 0, 0, targetW, targetH);
+    if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/webp', 0.82);
+    });
+  } catch (_) {
+    return null;
+  }
+}
+
 function cleanupRemovedLightboxItemResources(it) {
   if (!it) return;
   const objUrl = lightboxLiveObjectUrls.get(it.id);
@@ -21797,11 +21961,93 @@ function cleanupRemovedLightboxItemResources(it) {
   }
 }
 
+async function reconnectActiveLightboxFolder() {
+  const activeProjId = state.lightboxProjectId;
+  let dirHandle = activeProjId ? await getLbDirHandle(activeProjId) : null;
+  if (dirHandle) {
+    try {
+      const perm = await dirHandle.requestPermission({ mode: 'read' });
+      if (perm === 'granted') {
+        const entries = await collectFilesFromDirectoryHandle(dirHandle, dirHandle.name, '', []);
+        let updatedCount = 0;
+        const currentLbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox' && (!activeProjId || activeProjId === 'all' || i.lightboxProjectId === activeProjId));
+        for (const entry of entries) {
+          const matched = currentLbItems.find(i => (i.relativePath && i.relativePath === entry.relativePath) || i.originalFileName === entry.file.name);
+          if (matched) {
+            const blobUrl = URL.createObjectURL(entry.file);
+            lightboxLiveObjectUrls.set(matched.id, blobUrl);
+            lightboxNeedsPermissionIds.delete(matched.id);
+            if (entry.handle) saveLbFileHandle(matched.id, entry.handle);
+            createQuickImagePreviewBlob(entry.file).then(b => { if (b) saveLbPreviewBlob(matched.id, b); });
+            updatedCount++;
+          }
+        }
+        if (updatedCount > 0) {
+          showStatusToast(`✓ Reconnected ${updatedCount} local file(s) from "${dirHandle.name}".`);
+          renderWorkspace();
+          renderCompareFloatingBar();
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (typeof window.showDirectoryPicker === 'function') {
+    try {
+      const newDir = await window.showDirectoryPicker({ mode: 'read' });
+      if (newDir) {
+        if (activeProjId && activeProjId !== 'all') {
+          saveLbDirHandle(activeProjId, newDir);
+        }
+        const entries = await collectFilesFromDirectoryHandle(newDir, newDir.name, '', []);
+        let updatedCount = 0;
+        const currentLbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
+        for (const entry of entries) {
+          const matched = currentLbItems.find(i => (i.relativePath && (i.relativePath === entry.relativePath || i.relativePath.endsWith('/' + entry.file.name))) || i.originalFileName === entry.file.name);
+          if (matched) {
+            const blobUrl = URL.createObjectURL(entry.file);
+            lightboxLiveObjectUrls.set(matched.id, blobUrl);
+            lightboxNeedsPermissionIds.delete(matched.id);
+            if (entry.handle) saveLbFileHandle(matched.id, entry.handle);
+            createQuickImagePreviewBlob(entry.file).then(b => { if (b) saveLbPreviewBlob(matched.id, b); });
+            updatedCount++;
+          }
+        }
+        if (updatedCount > 0) {
+          showStatusToast(`✓ Reconnected ${updatedCount} file(s) from "${newDir.name}".`);
+          renderWorkspace();
+          renderCompareFloatingBar();
+        }
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+}
+
 async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
+  // 1. Instantly load all saved preview blobs from IndexedDB into memory
+  const previewMap = await getAllLbPreviewBlobs();
+  previewMap.forEach((blob, id) => {
+    if (!lightboxLiveObjectUrls.has(id)) {
+      try {
+        const url = URL.createObjectURL(blob);
+        lightboxLiveObjectUrls.set(id, url);
+        lightboxNeedsPermissionIds.delete(id);
+      } catch (_) {}
+    }
+  });
+
+  // 2. Load stored file handles
   const dbMap = await getAllLbFileHandles();
   dbMap.forEach((h, id) => {
     if (!lightboxStoredHandles.has(id)) lightboxStoredHandles.set(id, h);
   });
+
+  if (requestUserPrompt) {
+    await reconnectActiveLightboxFolder();
+    return;
+  }
 
   const lbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
   let changed = false;
@@ -21814,10 +22060,7 @@ async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
     const handle = lightboxStoredHandles.get(it.id);
     if (!handle) continue;
     try {
-      let perm = handle.queryPermission ? await handle.queryPermission({ mode: 'read' }) : 'granted';
-      if (perm !== 'granted' && requestUserPrompt && handle.requestPermission) {
-        perm = await handle.requestPermission({ mode: 'read' });
-      }
+      const perm = handle.queryPermission ? await handle.queryPermission({ mode: 'read' }) : 'granted';
       if (perm === 'granted') {
         const file = await handle.getFile();
         const blobUrl = URL.createObjectURL(file);
@@ -21830,9 +22073,7 @@ async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
           changed = true;
         }
       }
-    } catch (_) {
-      // Handle moved or revoked; server streamUrl remains fallback if available
-    }
+    } catch (_) {}
   }
 
   if (changed && state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
@@ -21956,7 +22197,7 @@ async function chooseLightboxLocalFolder() {
         showStatusToast(`No image or video files found inside "${dirHandle.name}".`);
         return;
       }
-      await linkLocalFilesIntoLightbox(entries, { folderName: dirHandle.name, createProjectFromFolder: true });
+      await linkLocalFilesIntoLightbox(entries, { folderName: dirHandle.name, createProjectFromFolder: true, dirHandle });
       return;
     } catch (err) {
       if (err && err.name === 'AbortError') return;
@@ -22138,6 +22379,10 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
     targetProjId = 'unsorted';
   }
 
+  if (opts.dirHandle && targetProjId && targetProjId !== 'all' && targetProjId !== 'unsorted') {
+    saveLbDirHandle(targetProjId, opts.dirHandle);
+  }
+
   const existingLbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
   const existingSigSet = new Set(
     existingLbItems
@@ -22168,6 +22413,11 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
 
     if (entry.handle) {
       saveLbFileHandle(itemId, entry.handle);
+    }
+    if (!isVid) {
+      createQuickImagePreviewBlob(file).then(thumbBlob => {
+        if (thumbBlob) saveLbPreviewBlob(itemId, thumbBlob);
+      }).catch(() => {});
     }
 
     const newItem = {
@@ -24305,12 +24555,21 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
     : `style="aspect-ratio: 1; max-height: 540px;"`;
 
   let mediaHtml = '';
-  if (isUnresolved) {
-    mediaHtml = `<div class="lb-reconnect-card-box"><button type="button" class="lb-reconnect-card-btn" data-lb-reconnect="1">↻ Reconnect File</button></div>`;
-  } else if (mediaKind === 'video') {
-    mediaHtml = `<video src="${escapeHtml(vidSrc)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1"></video>`;
+  if (dispUrl) {
+    if (mediaKind === 'video') {
+      mediaHtml = `<video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1"></video>`;
+    } else {
+      mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}">`;
+    }
   } else {
-    mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}">`;
+    const ext = (it.originalFileName || it.title || '').split('.').pop().toUpperCase() || (mediaKind === 'video' ? 'VIDEO' : 'IMAGE');
+    mediaHtml = `
+      <div class="lb-studio-placeholder-stage">
+        <span class="lb-placeholder-icon" aria-hidden="true">${mediaKind === 'video' ? '🎬' : '🖼'}</span>
+        <span class="lb-placeholder-ext">${escapeHtml(ext)}</span>
+        <span class="lb-placeholder-dim">${escapeHtml(subLabel)}</span>
+      </div>
+    `;
   }
 
   return `
@@ -25285,10 +25544,10 @@ function renderLightboxView(ws, spaceObj) {
       ${lightboxNeedsPermissionIds.size > 0 ? `
         <div class="lb-reconnect-banner" id="lbReconnectBanner">
           <div class="lb-reconnect-banner-left">
-            <span class="lb-reconnect-icon" aria-hidden="true">⚠️</span>
-            <span>${lightboxNeedsPermissionIds.size} local file(s) need browser permission to display after reload.</span>
+            <span class="lb-reconnect-icon" aria-hidden="true">📁</span>
+            <span>Local files linked from Mac folder need one-click reconnection.</span>
           </div>
-          <button type="button" class="lb-tool-btn is-primary" id="btnLbReconnectAll">↻ Reconnect Local Files</button>
+          <button type="button" class="lb-tool-btn is-primary" id="btnLbReconnectAll">Reconnect Folder</button>
         </div>
       ` : ''}
 
@@ -25383,11 +25642,11 @@ function renderLightboxView(ws, spaceObj) {
   ws.querySelector('#btnLbChooseFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
   ws.querySelector('#btnLbEmptyAddFiles')?.addEventListener('click', () => chooseLightboxLocalFiles());
   ws.querySelector('#btnLbEmptyAddFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
-  ws.querySelector('#btnLbReconnectAll')?.addEventListener('click', () => hydrateLightboxLocalHandles(true));
+  ws.querySelector('#btnLbReconnectAll')?.addEventListener('click', () => reconnectActiveLightboxFolder());
   ws.querySelectorAll('[data-lb-reconnect]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      hydrateLightboxLocalHandles(true);
+      reconnectActiveLightboxFolder();
     });
   });
 
