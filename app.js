@@ -1820,7 +1820,11 @@ function restoreNavState() {
     }
 
     const hash = window.location.hash || '';
-    if (hash.startsWith('#project/')) {
+    if (hash === '#lightbox' || hash === '#space/lightbox') {
+      state.viewType = 'space';
+      state.activeSpaceId = 'lightbox';
+      state.activeProjectId = null;
+    } else if (hash.startsWith('#project/')) {
       const pid = decodeURIComponent(hash.slice('#project/'.length));
       if (pid) {
         state.viewType = 'project';
@@ -23429,14 +23433,14 @@ function getLightboxDisplayUrl(it) {
   const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
   if (liveBlob) return liveBlob;
 
-  // On local server, if local file path exists, use our fast QuickLook raster thumbnail API:
-  if (!isStaticWeb && vIt.localPath && vIt.localPath.startsWith('/')) {
-    return `/api/local-media-thumb?path=${encodeURIComponent(vIt.localPath)}`;
-  }
-
-  // Only trust staticThumbUrl if it does not point to missing phantom lb_ asset_thumbs
+  // 1. Instant Static Thumbnails: Use pre-rendered JPEG/WebP thumbnails whenever available (both localhost and GitHub Pages)
   if (vIt.staticThumbUrl && !vIt.staticThumbUrl.startsWith('asset_thumbs/lb_')) {
     return vIt.staticThumbUrl;
+  }
+
+  // 2. On local server, fall back to on-demand QuickLook raster thumbnail API:
+  if (!isStaticWeb && vIt.localPath && vIt.localPath.startsWith('/')) {
+    return `/api/local-media-thumb?path=${encodeURIComponent(vIt.localPath)}`;
   }
 
   const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
