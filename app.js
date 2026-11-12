@@ -2864,6 +2864,16 @@ function ensureVaultSleekAndGDrive(v) {
   return v;
 }
 
+function getTrashedClusterNamesSet(v = vault) {
+  const trashed = new Set();
+  (v?.toolDock?.trash || []).forEach(t => {
+    if (t && t.trashType === 'cluster' && t.name) {
+      trashed.add(String(t.name).trim().toLowerCase());
+    }
+  });
+  return trashed;
+}
+
 function normalizeToolDockData(v) {
   if (!v) return;
   if (!v.toolDock || typeof v.toolDock !== 'object') {
@@ -3116,16 +3126,6 @@ function normalizeToolDockData(v) {
   // Keep legacy reference synchronized so any code reading td.tools stays accurate
   td.tools = td.launchpad;
   td.rdItems = td.rdLab;
-
-function getTrashedClusterNamesSet(v = vault) {
-  const trashed = new Set();
-  (v?.toolDock?.trash || []).forEach(t => {
-    if (t && t.trashType === 'cluster' && t.name) {
-      trashed.add(String(t.name).trim().toLowerCase());
-    }
-  });
-  return trashed;
-}
 
   // Ensure space categories include any custom clusters present in non-staple launchpad tools
   const tdSpace = Array.isArray(v.spaces) ? v.spaces.find(s => s.id === 'tool_dock') : null;
