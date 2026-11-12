@@ -26143,6 +26143,11 @@ function renderLightboxView(ws, spaceObj) {
       <div class="lb-canvas-head">
         <div class="lb-head-left">
           ${leftHeadHtml}
+          <div class="lb-undo-group" role="group" aria-label="Lightbox History">
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbUndo" title="Undo (⌘Z)" ${state.lightboxUndoStack?.length ? '' : 'disabled'}>↶ Undo</button>
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbRedo" title="Redo (⇧⌘Z)" ${state.lightboxRedoStack?.length ? '' : 'disabled'}>↷ Redo</button>
+          </div>
+          <span class="lb-safety-badge" title="Local Mac disk files are untouched. Lightbox actions are strictly sandboxed inside Ideal.">🛡️ Local Files Protected</span>
         </div>
 
         <div class="lb-head-right">
@@ -26202,13 +26207,17 @@ function renderLightboxView(ws, spaceObj) {
             </button>
           ` : ''}
 
-          ${filteredItems.length > 0 ? `
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbBatchExportFolder" title="Export original files to Desktop folder">
-              ${escapeHtml(exportLabel)}
+          ${(activeFilter === '★ Keep Selected' || keptItems.length > 0) ? `
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbBatchExportFolder" title="Copy kept files into a new clean folder on your Desktop">
+              ★ Export Kept Folder (${keptItems.length})
             </button>
-          ` : ''}
+          ` : (filteredItems.length > 0 ? `
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbBatchExportFolder" title="Copy current files into a new clean folder on your Desktop">
+              Export Folder (${filteredItems.length})
+            </button>
+          ` : '')}
 
-          <button type="button" class="lb-tool-btn is-primary" id="btnLbChooseFiles" title="Link local image or video files without uploading">+ Choose Files</button>
+          <button type="button" class="lb-tool-btn" id="btnLbChooseFiles" title="Link local image or video files without uploading">+ Choose Files</button>
           <button type="button" class="lb-tool-btn" id="btnLbChooseFolder" title="Link an entire local folder without uploading">+ Choose Folder</button>
         </div>
       </div>
@@ -26234,6 +26243,15 @@ function renderLightboxView(ws, spaceObj) {
       </div>
     </div>
   `;
+
+  // Bind Undo & Redo buttons
+  ws.querySelector('#btnLbUndo')?.addEventListener('click', () => {
+    undoLightboxAction();
+  });
+  ws.querySelector('#btnLbRedo')?.addEventListener('click', () => {
+    redoLightboxAction();
+  });
+  updateLightboxUndoRedoButtons();
 
   // Bind Accessible Command Menus & Filter Popover
   bindLightboxCommandMenu(
@@ -26592,7 +26610,8 @@ function renderLightboxView(ws, spaceObj) {
   // Bind Batch Export buttons
   const projLabel = activeProjObj ? activeProjObj.title : 'All_Projects';
   ws.querySelector('#btnLbBatchExportFolder')?.addEventListener('click', () => {
-    exportLightboxSelectedFolder(exportTargetItems, projLabel);
+    const toExport = (keptItems.length > 0) ? keptItems : exportTargetItems;
+    exportLightboxSelectedFolder(toExport, projLabel);
   });
   ws.querySelector('#btnLbExportKeptSub')?.addEventListener('click', () => {
     exportLightboxSelectedFolder(filteredItems, `${projLabel}_Selects`);
