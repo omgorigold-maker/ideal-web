@@ -7404,18 +7404,103 @@ function matchesGDriveFormatFilter(extStr, fmt) {
   return true;
 }
 
+function getClientAssetSpecimenSvg(name, ext, cat) {
+  const cleanBase = (name || 'Untitled Asset').replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').slice(0, 24);
+  const safeTitle = escapeHtml(cleanBase);
+  let rawExt = ((ext || 'FILE').replace('.', '').toUpperCase() || 'FILE').slice(0, 7);
+  if (rawExt === 'FILE' && name && name.includes('.')) {
+    rawExt = name.split('.').pop().toUpperCase().slice(0, 7);
+  }
+  const safeExt = escapeHtml(rawExt);
+
+  let badgeBg = 'rgba(255, 255, 255, 0.08)';
+  let badgeBorder = 'rgba(255, 255, 255, 0.16)';
+  let badgeColor = '#D4CFC4';
+  let badgeText = safeExt;
+  let iconSvg = '';
+
+  if (['OTF', 'TTF', 'WOFF', 'WOFF2'].includes(rawExt)) {
+    badgeText = `TYPEFACE · ${safeExt}`;
+    badgeBg = 'rgba(237, 234, 227, 0.08)';
+    badgeBorder = 'rgba(237, 234, 227, 0.16)';
+    badgeColor = '#D4CFC4';
+    iconSvg = `
+      <text x="150" y="135" text-anchor="middle" dominant-baseline="central" fill="#F0ECE1" font-family="Georgia, serif" font-size="64" font-weight="400">Ag</text>
+      <line x1="60" y1="168" x2="240" y2="168" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text x="150" y="184" text-anchor="middle" fill="#8E8B82" font-family="monospace" font-size="8.5" letter-spacing="1.5">A B C D E F G</text>
+    `;
+  } else if (['PSD', 'PSB'].includes(rawExt)) {
+    badgeText = `PHOTOSHOP · ${safeExt}`;
+    badgeBg = 'rgba(49, 168, 255, 0.12)';
+    badgeBorder = 'rgba(49, 168, 255, 0.3)';
+    badgeColor = '#31A8FF';
+    iconSvg = `
+      <g transform="translate(105, 88)">
+        <rect x="0" y="0" width="90" height="80" rx="6" fill="#141412" stroke="rgba(49,168,255,0.3)" stroke-width="1.5"/>
+        <text x="45" y="46" text-anchor="middle" dominant-baseline="central" fill="#31A8FF" font-family="-apple-system, sans-serif" font-size="28" font-weight="700">Ps</text>
+      </g>
+    `;
+  } else if (['AI', 'EPS'].includes(rawExt)) {
+    badgeText = `VECTOR · ${safeExt}`;
+    badgeBg = 'rgba(255, 154, 0, 0.12)';
+    badgeBorder = 'rgba(255, 154, 0, 0.3)';
+    badgeColor = '#FFA629';
+    iconSvg = `
+      <g transform="translate(105, 88)">
+        <rect x="0" y="0" width="90" height="80" rx="6" fill="#141412" stroke="rgba(255,154,0,0.3)" stroke-width="1.5"/>
+        <text x="45" y="46" text-anchor="middle" dominant-baseline="central" fill="#FFA629" font-family="-apple-system, sans-serif" font-size="28" font-weight="700">Ai</text>
+      </g>
+    `;
+  } else if (['INDD', 'INDT', 'IDML'].includes(rawExt)) {
+    badgeText = `INDESIGN · ${safeExt}`;
+    badgeBg = 'rgba(209, 46, 102, 0.14)';
+    badgeBorder = 'rgba(209, 46, 102, 0.35)';
+    badgeColor = '#FF4B8B';
+    iconSvg = `
+      <g transform="translate(105, 88)">
+        <rect x="0" y="0" width="90" height="80" rx="6" fill="#141412" stroke="rgba(209,46,102,0.35)" stroke-width="1.5"/>
+        <text x="45" y="46" text-anchor="middle" dominant-baseline="central" fill="#FF4B8B" font-family="-apple-system, sans-serif" font-size="28" font-weight="700">Id</text>
+      </g>
+    `;
+  } else {
+    badgeText = safeExt;
+    iconSvg = `
+      <g transform="translate(115, 92)">
+        <rect x="0" y="0" width="70" height="70" rx="6" fill="#141412" stroke="rgba(255,255,255,0.14)" stroke-width="1.2"/>
+        <text x="35" y="38" text-anchor="middle" dominant-baseline="central" fill="#D4CFC4" font-family="monospace" font-size="15" font-weight="600">${safeExt.slice(0, 4)}</text>
+      </g>
+    `;
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 260" width="100%" height="100%">
+    <rect width="300" height="260" fill="#10100E"/>
+    <g transform="translate(16, 20)">
+      <rect x="0" y="0" width="${badgeText.length * 7.5 + 16}" height="22" rx="3" fill="${badgeBg}" stroke="${badgeBorder}" stroke-width="1"/>
+      <text x="${(badgeText.length * 7.5 + 16) / 2}" y="14" text-anchor="middle" fill="${badgeColor}" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" letter-spacing="0.8">${badgeText}</text>
+    </g>
+    ${iconSvg}
+    <g transform="translate(150, 222)">
+      <text x="0" y="0" text-anchor="middle" fill="#EDEDE9" font-family="-apple-system, sans-serif" font-size="11" font-weight="500">${safeTitle}</text>
+    </g>
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function getGDriveAssetThumbSrc(fileOrEx) {
   if (!fileOrEx) return '';
-  const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
-  if (isCloudWeb && (fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl)) {
-    return fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl;
+  const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
+  if (isStaticWeb) {
+    if (fileOrEx.staticThumbUrl) return fileOrEx.staticThumbUrl;
+    return getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
   }
-  return fileOrEx.thumbUrl || fileOrEx.fallbackThumbUrl || fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl || '';
+  return fileOrEx.thumbUrl || fileOrEx.staticThumbUrl || getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
 }
 
 function getGDriveAssetFallbackSrc(fileOrEx) {
   if (!fileOrEx) return '';
-  return fileOrEx.cloudThumbUrl || fileOrEx.lh3ThumbUrl || fileOrEx.fallbackThumbUrl || (fileOrEx.thumbUrl ? `${fileOrEx.thumbUrl}&fallback=1` : '');
+  if (fileOrEx.staticThumbUrl) return fileOrEx.staticThumbUrl;
+  return getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
 }
 
 function getEnclosingFolderSection(folderName) {
@@ -8536,6 +8621,9 @@ function renderGDriveEnclosingFolderView(ws, encObj, spaceObj) {
             if (fb && imgEl.src !== fb && !imgEl.dataset.triedFb) {
               imgEl.dataset.triedFb = '1';
               imgEl.src = fb;
+            } else if (!imgEl.dataset.triedSvg) {
+              imgEl.dataset.triedSvg = '1';
+              imgEl.src = getClientAssetSpecimenSvg(assetObj.title, assetObj.ext, assetObj.category);
             }
           });
         }
@@ -8892,6 +8980,9 @@ function renderGDriveFolderDrillDown(ws, batch, spaceObj) {
         if (fb && imgEl.src !== fb && !imgEl.dataset.triedFb) {
           imgEl.dataset.triedFb = '1';
           imgEl.src = fb;
+        } else if (!imgEl.dataset.triedSvg) {
+          imgEl.dataset.triedSvg = '1';
+          imgEl.src = getClientAssetSpecimenSvg(file.title, file.ext, file.category);
         }
       });
     }
@@ -8962,9 +9053,6 @@ function renderEagleAssetBrowser(ws, driveBatches, spaceObj) {
         const hay = `${ex.name || ''} ${ext} ${b.title || ''} ${b.relPath || ''}`.toLowerCase();
         if (!hay.includes(searchQ)) return;
       }
-      const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
-      const primarySrc = (isCloudWeb && (ex.cloudThumbUrl || ex.lh3ThumbUrl)) ? (ex.cloudThumbUrl || ex.lh3ThumbUrl) : (ex.thumbUrl || ex.fallbackThumbUrl || ex.cloudThumbUrl || ex.lh3ThumbUrl || '');
-      const fallbackSrc = ex.cloudThumbUrl || ex.lh3ThumbUrl || ex.fallbackThumbUrl || `${ex.thumbUrl || ''}&fallback=1`;
       allFiles.push({
         id: fileId,
         vaultItemId: null,
@@ -8975,8 +9063,8 @@ function renderEagleAssetBrowser(ws, driveBatches, spaceObj) {
         ext,
         cid: ex.cid,
         kind: ['MP4', 'MOV', 'WEBM'].includes(ext) ? 'video' : 'image',
-        thumbSrc: primarySrc,
-        fallbackSrc,
+        thumbSrc: getGDriveAssetThumbSrc(ex),
+        fallbackSrc: getGDriveAssetFallbackSrc(ex),
         cloudThumbUrl: ex.cloudThumbUrl,
         driveHighResUrl: ex.driveHighResUrl,
         driveDownloadUrl: ex.driveDownloadUrl,
@@ -9145,6 +9233,9 @@ function renderEagleAssetBrowser(ws, driveBatches, spaceObj) {
         if (fb && imgEl.src !== fb && !imgEl.dataset.triedFb) {
           imgEl.dataset.triedFb = '1';
           imgEl.src = fb;
+        } else if (!imgEl.dataset.triedSvg) {
+          imgEl.dataset.triedSvg = '1';
+          imgEl.src = getClientAssetSpecimenSvg(file.title, file.ext, file.category);
         }
       });
     }
@@ -9618,10 +9709,9 @@ function buildGDriveEnclosingCardEl(enc, idx) {
     : (enc.examples || []);
   const visibleFour = rawExList.slice(0, 4);
 
-  const isCloudWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:' || !state.gdriveStats?.driveRoot);
   const tilesHtml = visibleFour.map((ex, tIdx) => {
-    const primarySrc = (isCloudWeb && (ex.cloudThumbUrl || ex.lh3ThumbUrl)) ? (ex.cloudThumbUrl || ex.lh3ThumbUrl) : (ex.thumbUrl || ex.fallbackThumbUrl || ex.cloudThumbUrl || ex.lh3ThumbUrl || '');
-    const fallbackSrc = ex.cloudThumbUrl || ex.lh3ThumbUrl || ex.fallbackThumbUrl || `${ex.thumbUrl || ''}&fallback=1`;
+    const primarySrc = getGDriveAssetThumbSrc(ex);
+    const fallbackSrc = getGDriveAssetFallbackSrc(ex);
     const extBadge = (ex.ext || '').replace('.', '').toUpperCase() || 'FILE';
     const isLcpImg = idx === 0 && tIdx === 0;
     const priorityAttr = isLcpImg ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"';
@@ -9661,6 +9751,9 @@ function buildGDriveEnclosingCardEl(enc, idx) {
       if (fb && img.src !== fb && !img.dataset.triedFallback) {
         img.dataset.triedFallback = '1';
         img.src = fb;
+      } else if (!img.dataset.triedSvg) {
+        img.dataset.triedSvg = '1';
+        img.src = getClientAssetSpecimenSvg(img.alt || 'Asset', 'FILE', enc.name);
       }
     });
   });
@@ -9826,6 +9919,9 @@ function openEnclosingPreviewPicker(enc) {
       if (fb && img.src !== fb && !img.dataset.triedFb) {
         img.dataset.triedFb = '1';
         img.src = fb;
+      } else if (!img.dataset.triedSvg) {
+        img.dataset.triedSvg = '1';
+        img.src = getClientAssetSpecimenSvg(img.alt || 'Asset', 'FILE');
       }
     });
   });
@@ -9963,6 +10059,9 @@ function buildGDriveBatchCardEl(batch, idx) {
       if (fb && img.src !== fb && !img.dataset.triedFallback) {
         img.dataset.triedFallback = '1';
         img.src = fb;
+      } else if (!img.dataset.triedSvg) {
+        img.dataset.triedSvg = '1';
+        img.src = getClientAssetSpecimenSvg(img.alt || 'Asset', 'FILE', enc.name);
       }
     });
   });
@@ -22317,6 +22416,7 @@ async function reconnectActiveLightboxFolder() {
 
 async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
   // 1. Instantly load all saved preview blobs from IndexedDB into memory
+  let changed = false;
   const previewMap = await getAllLbPreviewBlobs();
   previewMap.forEach((blob, id) => {
     if (!lightboxLiveObjectUrls.has(id)) {
@@ -22324,6 +22424,7 @@ async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
         const url = URL.createObjectURL(blob);
         lightboxLiveObjectUrls.set(id, url);
         lightboxNeedsPermissionIds.delete(id);
+        changed = true;
       } catch (_) {}
     }
   });
@@ -22340,7 +22441,7 @@ async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
   }
 
   const lbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
-  let changed = false;
+  // Re-check handles for any items still needing permissions
 
   for (const it of lbItems) {
     if (lightboxLiveObjectUrls.has(it.id)) {
@@ -23115,7 +23216,13 @@ function getLightboxMediaSrc(it) {
   const vIt = (vault.items || []).find(x => x && x.id === (it.vaultItemId || it.id)) || it;
   const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
   if (liveBlob) return liveBlob;
+  if (vIt.localPath && vIt.localPath.startsWith('/')) {
+    return `/api/local-media?path=${encodeURIComponent(vIt.localPath)}`;
+  }
   const raw = String(vIt.url || it.url || '');
+  if (raw.startsWith('/api/local-media') || raw.startsWith('http') || raw.startsWith('vault_media/')) {
+    return raw;
+  }
   if (!raw || raw.startsWith('local-handle://')) return '';
   return raw;
 }

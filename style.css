@@ -7287,6 +7287,37 @@ body[data-topbar-elevation="elevated"] .hud-top-row {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
 }
 
+/* Lightbox Local Protection Badge & Undo Controls */
+.lb-safety-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--text-mid);
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.lb-undo-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lb-undo-group .lb-tool-btn[disabled],
+.lb-undo-group .lb-tool-btn.is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .hud-icon-btn {
   width: 24px !important;
   height: 24px !important;
