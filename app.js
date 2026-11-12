@@ -252,6 +252,13 @@ function uid(prefix = '') {
           lastVaultSha = r.sha;
           return jsonResp({ ok: true, vault: r.data });
         }
+        try {
+          const direct = await nativeFetch('ideal_vault.json?_t=' + Date.now());
+          if (direct.ok) {
+            const dj = await direct.json();
+            return jsonResp({ ok: true, vault: dj });
+          }
+        } catch (e) {}
         return jsonResp({ ok: false }, r.status || 404);
       }
       if (method === 'POST') {
