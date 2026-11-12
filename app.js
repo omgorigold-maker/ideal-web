@@ -4342,6 +4342,7 @@ function captureCustomizationSnapshot(v = vault) {
   delete custCopy.assetSections;
   delete custCopy.enclosingOrder;
   delete custCopy.enclosingPreviews;
+  delete custCopy.topBarTitles;
   return JSON.stringify({
     customization: custCopy
   });
@@ -4356,13 +4357,16 @@ function restoreCustomizationSnapshot(snapStr) {
       const preservedAssetSections = vault.assetSections || vault.customization?.assetSections || {};
       const preservedEnclosingOrder = vault.enclosingOrder || vault.customization?.enclosingOrder || [];
       const preservedEnclosingPreviews = vault.enclosingPreviews || vault.customization?.enclosingPreviews || {};
+      const preservedTopBarTitles = vault.customTopBarTitles || vault.customization?.topBarTitles || {};
 
       vault.customization = JSON.parse(JSON.stringify(parsed.customization));
       vault.customization.worldTitles = { ...preservedWorldTitles };
       vault.customization.assetSections = preservedAssetSections;
       vault.customization.enclosingOrder = preservedEnclosingOrder;
       vault.customization.enclosingPreviews = preservedEnclosingPreviews;
+      vault.customization.topBarTitles = { ...preservedTopBarTitles };
 
+      vault.customTopBarTitles = { ...preservedTopBarTitles };
       vault.assetSections = preservedAssetSections;
       vault.enclosingOrder = preservedEnclosingOrder;
       vault.enclosingPreviews = preservedEnclosingPreviews;
@@ -4382,6 +4386,7 @@ function applyTemplateObjectToVault(tpl, v = vault) {
   const preservedAssetSections = v.assetSections || v.customization?.assetSections || {};
   const preservedEnclosingOrder = v.enclosingOrder || v.customization?.enclosingOrder || [];
   const preservedEnclosingPreviews = v.enclosingPreviews || v.customization?.enclosingPreviews || {};
+  const preservedTopBarTitles = v.customTopBarTitles || v.customization?.topBarTitles || {};
 
   tc.activeTemplateId = tpl.id;
   v.customization = {
@@ -4392,12 +4397,14 @@ function applyTemplateObjectToVault(tpl, v = vault) {
     assetSections: preservedAssetSections,
     enclosingOrder: preservedEnclosingOrder,
     enclosingPreviews: preservedEnclosingPreviews,
+    topBarTitles: { ...preservedTopBarTitles },
     activeTemplateId: tpl.id
   };
 
   v.assetSections = preservedAssetSections;
   v.enclosingOrder = preservedEnclosingOrder;
   v.enclosingPreviews = preservedEnclosingPreviews;
+  v.customTopBarTitles = { ...preservedTopBarTitles };
 
   // Do NOT touch sp.title or sp.heading from presets! Spaces titles belong to the user!
   const scMap = tpl.spacesConfig || FACTORY_DEFAULT_SPACES_CONFIG;
@@ -4406,10 +4413,13 @@ function applyTemplateObjectToVault(tpl, v = vault) {
       if (!sp || sp.id === 'customize') return;
       if (v.customSpaceTitles && v.customSpaceTitles[sp.id]) {
         sp.title = v.customSpaceTitles[sp.id];
-        sp.heading = v.customSpaceTitles[sp.id];
       } else if (sp.title === 'Drive & PSD Assets' || sp.title === 'Google Drive & PSD Vault') {
         sp.title = 'Assets & Vaults';
-        sp.heading = 'Assets & Vaults';
+      }
+      if (v.customTopBarTitles && v.customTopBarTitles[sp.id]) {
+        sp.heading = v.customTopBarTitles[sp.id];
+      } else if (sp.id === 'lightbox') {
+        sp.heading = 'The Lightbox — Curation, Comparison & Routing Hub';
       }
       if (v.customSpaceCodes && v.customSpaceCodes[sp.id]) {
         sp.code = v.customSpaceCodes[sp.id];
@@ -4801,6 +4811,11 @@ function applyCustomizationToDOM() {
   // Stage pattern & hover motion
   document.body.dataset.stagePattern = c.stagePattern || 'none';
   document.body.dataset.hoverMotion = c.hoverMotion || 'lift';
+
+  // Top bar unified appearance (Frosted glass / Solid studio / Minimal, Text tone, Elevation)
+  document.body.dataset.topbarBg = c.topBarBg || 'glass';
+  document.body.dataset.topbarTone = c.topBarTone || 'ink';
+  document.body.dataset.topbarElevation = c.topBarElevation || 'whisper';
 
   // Per-section UI tokens & scale engine
   const { type, obj } = getActiveContainer();
