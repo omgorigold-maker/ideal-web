@@ -22961,6 +22961,7 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
   const now = Date.now();
   const createdItems = [];
   let skippedCount = 0;
+  let reconnectedCount = 0;
 
   for (let idx = 0; idx < validEntries.length; idx++) {
     const entry = validEntries[idx];
@@ -22968,6 +22969,23 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
     const subf = entry.subfolder || '';
     const sig = `${file.name.toLowerCase()}::${Number(file.size || 0)}::${subf.toLowerCase()}`;
     if (existingSigSet.has(sig)) {
+      const isVidMatch = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v)$/i.test(file.name);
+      const existingMatch = existingLbItems.find(i =>
+        (targetProjId === 'unsorted' ? !i.lightboxProjectId : (targetProjId === 'all' || i.lightboxProjectId === targetProjId)) &&
+        (i.originalFileName || i.title || '').toLowerCase() === file.name.toLowerCase()
+      );
+      if (existingMatch) {
+        const blobUrl = URL.createObjectURL(file);
+        lightboxLiveObjectUrls.set(existingMatch.id, blobUrl);
+        lightboxNeedsPermissionIds.delete(existingMatch.id);
+        if (entry.handle) saveLbFileHandle(existingMatch.id, entry.handle);
+        if (!isVidMatch) {
+          createQuickImagePreviewBlob(file).then(thumbBlob => {
+            if (thumbBlob) saveLbPreviewBlob(existingMatch.id, thumbBlob);
+          }).catch(() => {});
+        }
+        reconnectedCount++;
+      }
       skippedCount++;
       continue;
     }
@@ -23016,6 +23034,11 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
     createdItems.push(newItem);
   }
 
+  if (createdItems.length === 0 && reconnectedCount > 0) {
+    showStatusToast(`✓ Reconnected ${reconnectedCount} local file(s).`);
+    renderAll();
+    return;
+  }
   if (createdItems.length === 0 && skippedCount > 0) {
     showStatusToast(`All ${skippedCount} local file(s) are already linked in this view.`);
     renderAll();
@@ -23426,6 +23449,7 @@ function getLightboxDisplayUrl(it) {
   const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
   const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
   if (liveBlob) return liveBlob;
+  if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
   const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
   const ext = (nameProbe.split('.').pop() || '').toLowerCase();
   if (/\.(heic|heif|tif|tiff)$/i.test(nameProbe) && !isStaticWeb) {
@@ -23439,9 +23463,11 @@ function getLightboxDisplayUrl(it) {
   }
   const src = getLightboxMediaSrc(vIt);
   if (isStaticWeb && src.startsWith('/api/')) {
+    if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
     return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
   }
   if (!src) {
+    if (vIt.staticThumbUrl) return vIt.staticThumbUrl;
     return getClientAssetSpecimenSvg(vIt.title || vIt.originalFileName, ext, 'Lightbox');
   }
   return src;
@@ -25159,9 +25185,11 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
   let mediaHtml = '';
   if (dispUrl) {
     if (mediaKind === 'video') {
+      const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
+      const showVideoDirectly = Boolean(vidSrc && (!isStaticWeb || vidSrc.startsWith('blob:')));
       mediaHtml = `
-        <video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
-        <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: none;" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
+        <video src="${escapeHtml(vidSrc || dispUrl)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
+        <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: ${showVideoDirectly ? 'none' : 'block'};" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
       `;
     } else {
       mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">`;
