@@ -19181,6 +19181,63 @@ function renderCustomizeView(ws) {
     });
   });
 
+  // Top Bar Background Finish
+  ws.querySelectorAll('[data-topbar-bg]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      c.topBarBg = btn.dataset.topbarBg;
+      ws.querySelectorAll('[data-topbar-bg]').forEach(b => b.classList.toggle('active', b === btn));
+      applyCustomizationToDOM();
+      updateCustomizerDirtyState();
+    });
+  });
+
+  // Top Bar Tone
+  ws.querySelectorAll('[data-topbar-tone]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      c.topBarTone = btn.dataset.topbarTone;
+      ws.querySelectorAll('[data-topbar-tone]').forEach(b => b.classList.toggle('active', b === btn));
+      applyCustomizationToDOM();
+      updateCustomizerDirtyState();
+    });
+  });
+
+  // Top Bar Elevation
+  ws.querySelectorAll('[data-topbar-elevation]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      c.topBarElevation = btn.dataset.topbarElevation;
+      ws.querySelectorAll('[data-topbar-elevation]').forEach(b => b.classList.toggle('active', b === btn));
+      applyCustomizationToDOM();
+      updateCustomizerDirtyState();
+    });
+  });
+
+  // Lightbox Top Bar Title Input
+  const lbTopInput = ws.querySelector('#custTopBarTitle_lightbox');
+  lbTopInput?.addEventListener('input', (e) => {
+    setSpaceTopBarTitle('lightbox', e.target.value);
+    renderHeaderAndToolbar();
+    updateCustomizerDirtyState();
+  });
+
+  ws.querySelector('#btnResetLbTopBarTitle')?.addEventListener('click', () => {
+    const defTitle = 'The Lightbox — Curation, Comparison & Routing Hub';
+    setSpaceTopBarTitle('lightbox', defTitle);
+    if (lbTopInput) lbTopInput.value = defTitle;
+    renderHeaderAndToolbar();
+    updateCustomizerDirtyState();
+    showStatusToast('✓ Reset Lightbox top bar title to default');
+  });
+
+  // Other Spaces Top Bar Title Inputs
+  ws.querySelectorAll('.cust-space-topbar-input').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const spId = input.dataset.spaceId;
+      setSpaceTopBarTitle(spId, e.target.value);
+      renderHeaderAndToolbar();
+      updateCustomizerDirtyState();
+    });
+  });
+
   // Reset to Default Preset
   ws.querySelector('#btnResetDefaults')?.addEventListener('click', () => {
     const defTpl = getWebsiteDefaultTemplate(vault);
