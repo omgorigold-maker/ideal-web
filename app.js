@@ -7491,17 +7491,25 @@ function getClientAssetSpecimenSvg(name, ext, cat) {
 
 function getGDriveAssetThumbSrc(fileOrEx) {
   if (!fileOrEx) return '';
+  const sid = fileOrEx.sid ? String(fileOrEx.sid) : '';
+  const manifestThumb = (sid && window._IDEAL_ASSET_THUMBS_MANIFEST && window._IDEAL_ASSET_THUMBS_MANIFEST[sid]) ? window._IDEAL_ASSET_THUMBS_MANIFEST[sid] : null;
+  const staticThumb = fileOrEx.staticThumbUrl || manifestThumb;
+
   const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
   if (isStaticWeb) {
-    if (fileOrEx.staticThumbUrl) return fileOrEx.staticThumbUrl;
+    if (staticThumb) return staticThumb;
     return getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
   }
-  return fileOrEx.thumbUrl || fileOrEx.staticThumbUrl || getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
+  // On localhost/server, PREFER staticThumb or manifestThumb first so we NEVER hit server or disk!
+  return staticThumb || fileOrEx.thumbUrl || getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
 }
 
 function getGDriveAssetFallbackSrc(fileOrEx) {
   if (!fileOrEx) return '';
-  if (fileOrEx.staticThumbUrl) return fileOrEx.staticThumbUrl;
+  const sid = fileOrEx.sid ? String(fileOrEx.sid) : '';
+  const manifestThumb = (sid && window._IDEAL_ASSET_THUMBS_MANIFEST && window._IDEAL_ASSET_THUMBS_MANIFEST[sid]) ? window._IDEAL_ASSET_THUMBS_MANIFEST[sid] : null;
+  const staticThumb = fileOrEx.staticThumbUrl || manifestThumb;
+  if (staticThumb) return staticThumb;
   return getClientAssetSpecimenSvg(fileOrEx.name, fileOrEx.ext, fileOrEx.category);
 }
 
