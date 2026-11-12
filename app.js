@@ -695,6 +695,9 @@ const FACTORY_DEFAULT_TEMPLATE = {
     showStatusBadge: true,
     showCountBadge: true,
     showCardTags: false,
+    topBarBg: 'glass',
+    topBarTone: 'ink',
+    topBarElevation: 'whisper',
     worldTitles: {
       'I. Creative Studio': 'I. Creative Studio',
       'II. Lab & Assets': 'II. Lab & Assets',
@@ -734,6 +737,9 @@ const BUILTIN_STUDIO_TEMPLATES = [
       showStatusBadge: true,
       showCountBadge: true,
       showCardTags: true,
+      topBarBg: 'glass',
+      topBarTone: 'ink',
+      topBarElevation: 'whisper',
       activeTemplateId: 'tpl_dark_cinema'
     },
     spacesConfig: JSON.parse(JSON.stringify(FACTORY_DEFAULT_SPACES_CONFIG))
@@ -2546,19 +2552,21 @@ function ensureVaultSleekAndGDrive(v) {
     return fallback;
   };
   const keepHeading = (id, fallback, staleList = []) => {
-    if (v.customSpaceTitles && typeof v.customSpaceTitles[id] === 'string' && v.customSpaceTitles[id].trim()) {
-      return v.customSpaceTitles[id].trim();
+    if (v.customTopBarTitles && typeof v.customTopBarTitles[id] === 'string' && v.customTopBarTitles[id].trim()) {
+      return v.customTopBarTitles[id].trim();
     }
     try {
-      const rawTitles = localStorage.getItem('ideal_custom_space_titles');
+      const rawTitles = localStorage.getItem('ideal_custom_topbar_titles');
       if (rawTitles) {
         const parsed = JSON.parse(rawTitles);
         if (parsed && typeof parsed[id] === 'string' && parsed[id].trim()) {
+          v.customTopBarTitles = v.customTopBarTitles || {};
+          v.customTopBarTitles[id] = parsed[id].trim();
           return parsed[id].trim();
         }
       }
     } catch (e) {}
-    const h = oldSpacesMap[id]?.heading || oldSpacesMap[id]?.title;
+    const h = oldSpacesMap[id]?.heading;
     const staleSet = new Set(['Drive & PSD Assets', 'Google Drive & PSD Vault', ...staleList]);
     if (h && typeof h === 'string' && h.trim() && !staleSet.has(h.trim())) {
       return h.trim();

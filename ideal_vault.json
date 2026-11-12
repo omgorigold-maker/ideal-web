@@ -61,16 +61,7 @@
       "Color Palettes": "vaults",
       "Color Palettes & Swatches": "vaults"
     },
-    "enclosingOrder": [
-      "MOCKUPS",
-      "TEXTURES",
-      "ELEMENTS",
-      "FONTS",
-      "TEMPLATES",
-      "Logos",
-      "Color Palettes",
-      "References"
-    ],
+    "enclosingOrder": [],
     "enclosingPreviews": {
       "MOCKUPS": [
         {
@@ -977,21 +968,20 @@
       "heading": "The Lightbox",
       "categories": [
         "All Assets",
-        "Stacked Piles",
         "★ Keep Selected",
         "Portfolio Staging",
         "Instagram Board"
       ],
       "ui": {
         "layoutMode": "wall",
-        "cardSize": 255,
+        "cardSize": 180,
         "aspectRatio": "16 / 10.5",
         "imageFit": "contain",
         "sortOrder": "manual",
         "scaleStepByMode": {
-          "lightbox": 3
+          "lightbox": 1
         },
-        "scaleStep": 3
+        "scaleStep": 1
       }
     },
     {
@@ -1538,7 +1528,8 @@
       "createdAt": 1794486696386,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 120
+      "wallY": 120,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_54_iod0",
@@ -1562,7 +1553,8 @@
       "createdAt": 1794486696385,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 120
+      "wallY": 120,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_53_jf7y",
@@ -1850,7 +1842,8 @@
       "createdAt": 1794486696373,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 1368
+      "wallY": 1368,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_41_mnem",
@@ -1864,8 +1857,8 @@
       "kind": "image",
       "fileSize": 490241,
       "lastModified": 1789645119970,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1150,
+      "naturalH": 1626,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1874,7 +1867,10 @@
       "createdAt": 1794486696372,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 1680
+      "wallY": 1680,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1150×1626)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_40_2j5y",
@@ -1888,8 +1884,8 @@
       "kind": "image",
       "fileSize": 935657,
       "lastModified": 1789644442000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1725,
+      "naturalH": 2439,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1898,7 +1894,10 @@
       "createdAt": 1794486696371,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 1680
+      "wallY": 1680,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1725×2439)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_39_0g3o",
@@ -1912,8 +1911,8 @@
       "kind": "image",
       "fileSize": 785536,
       "lastModified": 1789644446000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1725,
+      "naturalH": 2439,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1922,7 +1921,10 @@
       "createdAt": 1794486696370,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 1680
+      "wallY": 1680,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1725×2439)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_38_nl3r",
@@ -1936,8 +1938,8 @@
       "kind": "image",
       "fileSize": 147717,
       "lastModified": 1789644682000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 551,
+      "naturalH": 780,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1946,7 +1948,10 @@
       "createdAt": 1794486696369,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 1992
+      "wallY": 1992,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (551×780)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_37_65ty",
@@ -1960,8 +1965,8 @@
       "kind": "image",
       "fileSize": 414292,
       "lastModified": 1789644585000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1173,
+      "naturalH": 1658,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1970,7 +1975,10 @@
       "createdAt": 1794486696368,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 1992
+      "wallY": 1992,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1173×1658)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_36_ml2b",
@@ -1984,8 +1992,8 @@
       "kind": "image",
       "fileSize": 862692,
       "lastModified": 1789644455000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1725,
+      "naturalH": 2439,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -1994,7 +2002,10 @@
       "createdAt": 1794486696367,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 1992
+      "wallY": 1992,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1725×2439)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_35_hi3a",
@@ -2008,8 +2019,8 @@
       "kind": "image",
       "fileSize": 807772,
       "lastModified": 1789644458000,
-      "naturalW": 0,
-      "naturalH": 0,
+      "naturalW": 1725,
+      "naturalH": 2439,
       "lightboxKeep": false,
       "igStatus": "",
       "lightboxRoute": "",
@@ -2018,7 +2029,10 @@
       "createdAt": 1794486696366,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 2304
+      "wallY": 2304,
+      "aspectRatioKey": "0.71:1",
+      "aspectRatioLabel": "0.71:1 (1725×2439)",
+      "isOddRatio": true
     },
     {
       "id": "itm_lb_local_1794486696331_34_nj9y",
@@ -2066,7 +2080,8 @@
       "createdAt": 1794486696364,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 2304
+      "wallY": 2304,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_32_dkeh",
@@ -2114,7 +2129,8 @@
       "createdAt": 1794486696362,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 2616
+      "wallY": 2616,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_30_1rqo",
@@ -2162,7 +2178,8 @@
       "createdAt": 1794486696360,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 2928
+      "wallY": 2928,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_28_ulwm",
@@ -2210,7 +2227,8 @@
       "createdAt": 1794486696358,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 2928
+      "wallY": 2928,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_26_jk89",
@@ -2234,7 +2252,8 @@
       "createdAt": 1794486696357,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 3240
+      "wallY": 3240,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_25_oz46",
@@ -2258,7 +2277,8 @@
       "createdAt": 1794486696356,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 3240
+      "wallY": 3240,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_24_dap4",
@@ -2282,7 +2302,8 @@
       "createdAt": 1794486696355,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 3240
+      "wallY": 3240,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_23_02lr",
@@ -2306,7 +2327,8 @@
       "createdAt": 1794486696354,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 3552
+      "wallY": 3552,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_22_76ay",
@@ -2330,7 +2352,8 @@
       "createdAt": 1794486696353,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 3552
+      "wallY": 3552,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_21_fbpg",
@@ -2474,7 +2497,8 @@
       "createdAt": 1794486696347,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 4176
+      "wallY": 4176,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_15_rx94",
@@ -2498,7 +2522,8 @@
       "createdAt": 1794486696346,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 912,
-      "wallY": 4176
+      "wallY": 4176,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_14_vjzj",
@@ -2522,7 +2547,8 @@
       "createdAt": 1794486696345,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 288,
-      "wallY": 4488
+      "wallY": 4488,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_13_56vl",
@@ -2546,7 +2572,8 @@
       "createdAt": 1794486696344,
       "lightboxProjectId": "lbproj_1794486696331_xp31",
       "wallX": 600,
-      "wallY": 4488
+      "wallY": 4488,
+      "_dimScanFailed": true
     },
     {
       "id": "itm_lb_local_1794486696331_12_hsgk",
