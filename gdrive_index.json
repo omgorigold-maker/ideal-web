@@ -3801,7 +3801,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=13NpCKcP5E_ukKObGUL9wXrpmoii91pv0&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/13NpCKcP5E_ukKObGUL9wXrpmoii91pv0=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=42385&cid=13NpCKcP5E_ukKObGUL9wXrpmoii91pv0&ext=PNG&name=Artboard1.png&cat=Mockups+%28PSD%29&rel=ASSETS%2FMOCKUPS%2FPlans%2FArtboard1.png&v=1605552514",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=42385&cid=13NpCKcP5E_ukKObGUL9wXrpmoii91pv0&ext=PNG&name=Artboard1.png&cat=Mockups+%28PSD%29&rel=ASSETS%2FMOCKUPS%2FPlans%2FArtboard1.png&v=1605552514&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=42385&cid=13NpCKcP5E_ukKObGUL9wXrpmoii91pv0&ext=PNG&name=Artboard1.png&cat=Mockups+%28PSD%29&rel=ASSETS%2FMOCKUPS%2FPlans%2FArtboard1.png&v=1605552514&fallback=1",
+          "staticThumbUrl": "asset_thumbs/42385.webp"
         }
       ],
       "enclosingFolder": "MOCKUPS"
@@ -14543,7 +14544,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Ap9iZRaObmJa40zMLtbIPb7opWoPr6td&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Ap9iZRaObmJa40zMLtbIPb7opWoPr6td=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55478&cid=1Ap9iZRaObmJa40zMLtbIPb7opWoPr6td&ext=AI&name=Badges.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FAI%2FBadges.ai&v=1729863572&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55478&cid=1Ap9iZRaObmJa40zMLtbIPb7opWoPr6td&ext=AI&name=Badges.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FAI%2FBadges.ai&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55478&cid=1Ap9iZRaObmJa40zMLtbIPb7opWoPr6td&ext=AI&name=Badges.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FAI%2FBadges.ai&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55478.webp"
         },
         {
           "sid": 53605,
@@ -14565,7 +14567,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=130E3utXganJAQNLzLCGu6efDy8IjDo3r&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/130E3utXganJAQNLzLCGu6efDy8IjDo3r=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53605&cid=130E3utXganJAQNLzLCGu6efDy8IjDo3r&ext=AI&name=Colored.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FAI%2FColored.ai&v=1729863572&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53605&cid=130E3utXganJAQNLzLCGu6efDy8IjDo3r&ext=AI&name=Colored.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FAI%2FColored.ai&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53605&cid=130E3utXganJAQNLzLCGu6efDy8IjDo3r&ext=AI&name=Colored.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FAI%2FColored.ai&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53605.webp"
         },
         {
           "sid": 55486,
@@ -14587,7 +14590,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=16Vo5Mv3Ql2K2Moi3a8yjmqIqgpCmuovn&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/16Vo5Mv3Ql2K2Moi3a8yjmqIqgpCmuovn=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55486&cid=16Vo5Mv3Ql2K2Moi3a8yjmqIqgpCmuovn&ext=AI&name=E0000_04.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FAI%2FE0000_04.ai&v=1729863572&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55486&cid=16Vo5Mv3Ql2K2Moi3a8yjmqIqgpCmuovn&ext=AI&name=E0000_04.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FAI%2FE0000_04.ai&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55486&cid=16Vo5Mv3Ql2K2Moi3a8yjmqIqgpCmuovn&ext=AI&name=E0000_04.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FAI%2FE0000_04.ai&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55486.webp"
         },
         {
           "sid": 55426,
@@ -14609,7 +14613,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=10RBmY6A84uBP8i8D5Jv8SIZ8xSK5gUx1&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/10RBmY6A84uBP8i8D5Jv8SIZ8xSK5gUx1=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55426&cid=10RBmY6A84uBP8i8D5Jv8SIZ8xSK5gUx1&ext=AI&name=Inverted.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FAI%2FInverted.ai&v=1729863572&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55426&cid=10RBmY6A84uBP8i8D5Jv8SIZ8xSK5gUx1&ext=AI&name=Inverted.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FAI%2FInverted.ai&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55426&cid=10RBmY6A84uBP8i8D5Jv8SIZ8xSK5gUx1&ext=AI&name=Inverted.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FAI%2FInverted.ai&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55426.webp"
         },
         {
           "sid": 53767,
@@ -14631,7 +14636,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1RZ0_mMkSg7BJJ633RUJCDFgOu1LJ_7I-&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1RZ0_mMkSg7BJJ633RUJCDFgOu1LJ_7I-=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53767&cid=1RZ0_mMkSg7BJJ633RUJCDFgOu1LJ_7I-&ext=AI&name=Outlines.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FAI%2FOutlines.ai&v=1729863572&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53767&cid=1RZ0_mMkSg7BJJ633RUJCDFgOu1LJ_7I-&ext=AI&name=Outlines.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FAI%2FOutlines.ai&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53767&cid=1RZ0_mMkSg7BJJ633RUJCDFgOu1LJ_7I-&ext=AI&name=Outlines.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FAI%2FOutlines.ai&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53767.webp"
         },
         {
           "sid": 53527,
@@ -15504,7 +15510,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1aZprseQ40voSDasDSW3fC-WkPL2ZxI3Y&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1aZprseQ40voSDasDSW3fC-WkPL2ZxI3Y=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55990&cid=1aZprseQ40voSDasDSW3fC-WkPL2ZxI3Y&ext=SVG&name=Badge_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+1.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55990&cid=1aZprseQ40voSDasDSW3fC-WkPL2ZxI3Y&ext=SVG&name=Badge_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+1.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55990&cid=1aZprseQ40voSDasDSW3fC-WkPL2ZxI3Y&ext=SVG&name=Badge_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+1.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55990.svg"
         },
         {
           "sid": 55988,
@@ -15526,7 +15533,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1fKTIl2ueIG7EK1BA91diWSAl4A96TPgj&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1fKTIl2ueIG7EK1BA91diWSAl4A96TPgj=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55988&cid=1fKTIl2ueIG7EK1BA91diWSAl4A96TPgj&ext=SVG&name=Badge_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+2.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55988&cid=1fKTIl2ueIG7EK1BA91diWSAl4A96TPgj&ext=SVG&name=Badge_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+2.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55988&cid=1fKTIl2ueIG7EK1BA91diWSAl4A96TPgj&ext=SVG&name=Badge_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+2.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55988.svg"
         },
         {
           "sid": 55994,
@@ -15548,7 +15556,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1CBIpjsdUhjohQEuT-Gidzlc2m__Dyk56&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1CBIpjsdUhjohQEuT-Gidzlc2m__Dyk56=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55994&cid=1CBIpjsdUhjohQEuT-Gidzlc2m__Dyk56&ext=SVG&name=Badge_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+3.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55994&cid=1CBIpjsdUhjohQEuT-Gidzlc2m__Dyk56&ext=SVG&name=Badge_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+3.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55994&cid=1CBIpjsdUhjohQEuT-Gidzlc2m__Dyk56&ext=SVG&name=Badge_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+3.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55994.svg"
         },
         {
           "sid": 55986,
@@ -15570,7 +15579,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1mo7UAjaeyanh-RlnfgMZjOZ9OjXijZNK&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1mo7UAjaeyanh-RlnfgMZjOZ9OjXijZNK=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55986&cid=1mo7UAjaeyanh-RlnfgMZjOZ9OjXijZNK&ext=SVG&name=Badge_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+4.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55986&cid=1mo7UAjaeyanh-RlnfgMZjOZ9OjXijZNK&ext=SVG&name=Badge_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+4.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55986&cid=1mo7UAjaeyanh-RlnfgMZjOZ9OjXijZNK&ext=SVG&name=Badge_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+4.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55986.svg"
         },
         {
           "sid": 55992,
@@ -15592,7 +15602,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1JBmfuusm8kp0IIvM2nxaT5GJvfHsdAeU&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1JBmfuusm8kp0IIvM2nxaT5GJvfHsdAeU=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55992&cid=1JBmfuusm8kp0IIvM2nxaT5GJvfHsdAeU&ext=SVG&name=Badge_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+5.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55992&cid=1JBmfuusm8kp0IIvM2nxaT5GJvfHsdAeU&ext=SVG&name=Badge_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+5.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55992&cid=1JBmfuusm8kp0IIvM2nxaT5GJvfHsdAeU&ext=SVG&name=Badge_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F4.+Badge%2FSVG%2FBadge_Asset+5.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55992.svg"
         },
         {
           "sid": 53507,
@@ -15614,7 +15625,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1pSTJ7rkcz7ZMGJnb-JGvBGCSKigOzTp6&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1pSTJ7rkcz7ZMGJnb-JGvBGCSKigOzTp6=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53507&cid=1pSTJ7rkcz7ZMGJnb-JGvBGCSKigOzTp6&ext=SVG&name=Colored_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+1.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53507&cid=1pSTJ7rkcz7ZMGJnb-JGvBGCSKigOzTp6&ext=SVG&name=Colored_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+1.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53507&cid=1pSTJ7rkcz7ZMGJnb-JGvBGCSKigOzTp6&ext=SVG&name=Colored_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+1.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53507.svg"
         },
         {
           "sid": 53521,
@@ -15636,7 +15648,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1dc5VAZrEk8KHd4c1m0ATZ0zkAh66ZoWU&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1dc5VAZrEk8KHd4c1m0ATZ0zkAh66ZoWU=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53521&cid=1dc5VAZrEk8KHd4c1m0ATZ0zkAh66ZoWU&ext=SVG&name=Colored_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+10.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53521&cid=1dc5VAZrEk8KHd4c1m0ATZ0zkAh66ZoWU&ext=SVG&name=Colored_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+10.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53521&cid=1dc5VAZrEk8KHd4c1m0ATZ0zkAh66ZoWU&ext=SVG&name=Colored_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+10.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53521.svg"
         },
         {
           "sid": 53513,
@@ -15658,7 +15671,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=18PzH0k64wdIjqbtOVNtlW_c9rH1yabWo&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/18PzH0k64wdIjqbtOVNtlW_c9rH1yabWo=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53513&cid=18PzH0k64wdIjqbtOVNtlW_c9rH1yabWo&ext=SVG&name=Colored_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+12.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53513&cid=18PzH0k64wdIjqbtOVNtlW_c9rH1yabWo&ext=SVG&name=Colored_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+12.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53513&cid=18PzH0k64wdIjqbtOVNtlW_c9rH1yabWo&ext=SVG&name=Colored_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+12.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53513.svg"
         },
         {
           "sid": 53515,
@@ -15680,7 +15694,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1KQK9VEWeK56fRuhM92J11-pZUb4Q_D9K&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1KQK9VEWeK56fRuhM92J11-pZUb4Q_D9K=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53515&cid=1KQK9VEWeK56fRuhM92J11-pZUb4Q_D9K&ext=SVG&name=Colored_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+13.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53515&cid=1KQK9VEWeK56fRuhM92J11-pZUb4Q_D9K&ext=SVG&name=Colored_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+13.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53515&cid=1KQK9VEWeK56fRuhM92J11-pZUb4Q_D9K&ext=SVG&name=Colored_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+13.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53515.svg"
         },
         {
           "sid": 53523,
@@ -15702,7 +15717,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Zz00VDd3iZscijm-Y9ESkWb3-3xwnvQG&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Zz00VDd3iZscijm-Y9ESkWb3-3xwnvQG=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53523&cid=1Zz00VDd3iZscijm-Y9ESkWb3-3xwnvQG&ext=SVG&name=Colored_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+14.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53523&cid=1Zz00VDd3iZscijm-Y9ESkWb3-3xwnvQG&ext=SVG&name=Colored_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+14.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53523&cid=1Zz00VDd3iZscijm-Y9ESkWb3-3xwnvQG&ext=SVG&name=Colored_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+14.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53523.svg"
         },
         {
           "sid": 53553,
@@ -15724,7 +15740,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1OTC8mQ_xKRMyVgfduD1oUc7p7_b3q9LO&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1OTC8mQ_xKRMyVgfduD1oUc7p7_b3q9LO=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53553&cid=1OTC8mQ_xKRMyVgfduD1oUc7p7_b3q9LO&ext=SVG&name=Colored_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+15.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53553&cid=1OTC8mQ_xKRMyVgfduD1oUc7p7_b3q9LO&ext=SVG&name=Colored_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+15.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53553&cid=1OTC8mQ_xKRMyVgfduD1oUc7p7_b3q9LO&ext=SVG&name=Colored_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+15.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53553.svg"
         },
         {
           "sid": 53505,
@@ -15746,7 +15763,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1mCQ3saqcQH3F1qHV_KBM71mDBnGMqPPL&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1mCQ3saqcQH3F1qHV_KBM71mDBnGMqPPL=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53505&cid=1mCQ3saqcQH3F1qHV_KBM71mDBnGMqPPL&ext=SVG&name=Colored_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+16.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53505&cid=1mCQ3saqcQH3F1qHV_KBM71mDBnGMqPPL&ext=SVG&name=Colored_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+16.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53505&cid=1mCQ3saqcQH3F1qHV_KBM71mDBnGMqPPL&ext=SVG&name=Colored_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+16.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53505.svg"
         },
         {
           "sid": 53541,
@@ -15768,7 +15786,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1fQTdmbRa7FE2VnwciXlLbBSiv4EGCE4r&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1fQTdmbRa7FE2VnwciXlLbBSiv4EGCE4r=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53541&cid=1fQTdmbRa7FE2VnwciXlLbBSiv4EGCE4r&ext=SVG&name=Colored_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+17.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53541&cid=1fQTdmbRa7FE2VnwciXlLbBSiv4EGCE4r&ext=SVG&name=Colored_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+17.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53541&cid=1fQTdmbRa7FE2VnwciXlLbBSiv4EGCE4r&ext=SVG&name=Colored_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+17.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53541.svg"
         },
         {
           "sid": 53529,
@@ -15790,7 +15809,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=12ervByPjWkrtYTiOjILQIPGBhAKm5iHh&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/12ervByPjWkrtYTiOjILQIPGBhAKm5iHh=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53529&cid=12ervByPjWkrtYTiOjILQIPGBhAKm5iHh&ext=SVG&name=Colored_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+18.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53529&cid=12ervByPjWkrtYTiOjILQIPGBhAKm5iHh&ext=SVG&name=Colored_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+18.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53529&cid=12ervByPjWkrtYTiOjILQIPGBhAKm5iHh&ext=SVG&name=Colored_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+18.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53529.svg"
         },
         {
           "sid": 53539,
@@ -15812,7 +15832,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1sGP41vMVP3fheUzfDcoJ0GIUV2wPLfTY&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1sGP41vMVP3fheUzfDcoJ0GIUV2wPLfTY=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53539&cid=1sGP41vMVP3fheUzfDcoJ0GIUV2wPLfTY&ext=SVG&name=Colored_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+19.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53539&cid=1sGP41vMVP3fheUzfDcoJ0GIUV2wPLfTY&ext=SVG&name=Colored_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+19.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53539&cid=1sGP41vMVP3fheUzfDcoJ0GIUV2wPLfTY&ext=SVG&name=Colored_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+19.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53539.svg"
         },
         {
           "sid": 53533,
@@ -15834,7 +15855,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1cP5i0BzApm8xhfyUyPlEWgmk3fbeeL5f&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1cP5i0BzApm8xhfyUyPlEWgmk3fbeeL5f=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53533&cid=1cP5i0BzApm8xhfyUyPlEWgmk3fbeeL5f&ext=SVG&name=Colored_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+2.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53533&cid=1cP5i0BzApm8xhfyUyPlEWgmk3fbeeL5f&ext=SVG&name=Colored_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+2.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53533&cid=1cP5i0BzApm8xhfyUyPlEWgmk3fbeeL5f&ext=SVG&name=Colored_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+2.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53533.svg"
         },
         {
           "sid": 53519,
@@ -15856,7 +15878,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1HfShBy-i75YDAt_zTImlpJul9Qh5dZZC&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1HfShBy-i75YDAt_zTImlpJul9Qh5dZZC=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53519&cid=1HfShBy-i75YDAt_zTImlpJul9Qh5dZZC&ext=SVG&name=Colored_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+20.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53519&cid=1HfShBy-i75YDAt_zTImlpJul9Qh5dZZC&ext=SVG&name=Colored_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+20.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53519&cid=1HfShBy-i75YDAt_zTImlpJul9Qh5dZZC&ext=SVG&name=Colored_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+20.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53519.svg"
         },
         {
           "sid": 53537,
@@ -15878,7 +15901,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=17ipmXkX2sJSUH1FyJG_BjxkawgTF9fF-&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/17ipmXkX2sJSUH1FyJG_BjxkawgTF9fF-=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53537&cid=17ipmXkX2sJSUH1FyJG_BjxkawgTF9fF-&ext=SVG&name=Colored_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+21.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53537&cid=17ipmXkX2sJSUH1FyJG_BjxkawgTF9fF-&ext=SVG&name=Colored_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+21.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53537&cid=17ipmXkX2sJSUH1FyJG_BjxkawgTF9fF-&ext=SVG&name=Colored_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+21.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53537.svg"
         },
         {
           "sid": 53549,
@@ -15900,7 +15924,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1eXPgL0zLrlm2I49TpRrIMj5wpLCJ4Qri&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1eXPgL0zLrlm2I49TpRrIMj5wpLCJ4Qri=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53549&cid=1eXPgL0zLrlm2I49TpRrIMj5wpLCJ4Qri&ext=SVG&name=Colored_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+22.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53549&cid=1eXPgL0zLrlm2I49TpRrIMj5wpLCJ4Qri&ext=SVG&name=Colored_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+22.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53549&cid=1eXPgL0zLrlm2I49TpRrIMj5wpLCJ4Qri&ext=SVG&name=Colored_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+22.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53549.svg"
         },
         {
           "sid": 53543,
@@ -15922,7 +15947,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1IkHs6SslydbW9FTeEmQ4NyxnCxparJOT&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1IkHs6SslydbW9FTeEmQ4NyxnCxparJOT=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53543&cid=1IkHs6SslydbW9FTeEmQ4NyxnCxparJOT&ext=SVG&name=Colored_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+23.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53543&cid=1IkHs6SslydbW9FTeEmQ4NyxnCxparJOT&ext=SVG&name=Colored_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+23.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53543&cid=1IkHs6SslydbW9FTeEmQ4NyxnCxparJOT&ext=SVG&name=Colored_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+23.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53543.svg"
         },
         {
           "sid": 53517,
@@ -15944,7 +15970,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1GASfmUadugE8PgiM4PpHvyyPbOqydwbr&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1GASfmUadugE8PgiM4PpHvyyPbOqydwbr=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53517&cid=1GASfmUadugE8PgiM4PpHvyyPbOqydwbr&ext=SVG&name=Colored_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+24.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53517&cid=1GASfmUadugE8PgiM4PpHvyyPbOqydwbr&ext=SVG&name=Colored_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+24.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53517&cid=1GASfmUadugE8PgiM4PpHvyyPbOqydwbr&ext=SVG&name=Colored_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+24.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53517.svg"
         },
         {
           "sid": 53551,
@@ -15966,7 +15993,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=10w3TpTyXsKK5HsvQ-fO0PArra4kIyhc2&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/10w3TpTyXsKK5HsvQ-fO0PArra4kIyhc2=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53551&cid=10w3TpTyXsKK5HsvQ-fO0PArra4kIyhc2&ext=SVG&name=Colored_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+25.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53551&cid=10w3TpTyXsKK5HsvQ-fO0PArra4kIyhc2&ext=SVG&name=Colored_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+25.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53551&cid=10w3TpTyXsKK5HsvQ-fO0PArra4kIyhc2&ext=SVG&name=Colored_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+25.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53551.svg"
         },
         {
           "sid": 53525,
@@ -15988,7 +16016,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1aRxhatFsS1jlxecfBdNw_qiE1ZInGD5P&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1aRxhatFsS1jlxecfBdNw_qiE1ZInGD5P=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53525&cid=1aRxhatFsS1jlxecfBdNw_qiE1ZInGD5P&ext=SVG&name=Colored_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+3.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53525&cid=1aRxhatFsS1jlxecfBdNw_qiE1ZInGD5P&ext=SVG&name=Colored_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+3.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53525&cid=1aRxhatFsS1jlxecfBdNw_qiE1ZInGD5P&ext=SVG&name=Colored_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+3.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53525.svg"
         },
         {
           "sid": 53531,
@@ -16010,7 +16039,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1zVNZz64dzRpj2hN3SOWWOJIZY6LscYRZ&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1zVNZz64dzRpj2hN3SOWWOJIZY6LscYRZ=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53531&cid=1zVNZz64dzRpj2hN3SOWWOJIZY6LscYRZ&ext=SVG&name=Colored_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+4.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53531&cid=1zVNZz64dzRpj2hN3SOWWOJIZY6LscYRZ&ext=SVG&name=Colored_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+4.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53531&cid=1zVNZz64dzRpj2hN3SOWWOJIZY6LscYRZ&ext=SVG&name=Colored_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+4.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53531.svg"
         },
         {
           "sid": 53511,
@@ -16032,7 +16062,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1N4QSD4u8FqnBsWpUYBFuEJVKCyHM9zWQ&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1N4QSD4u8FqnBsWpUYBFuEJVKCyHM9zWQ=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53511&cid=1N4QSD4u8FqnBsWpUYBFuEJVKCyHM9zWQ&ext=SVG&name=Colored_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+5.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53511&cid=1N4QSD4u8FqnBsWpUYBFuEJVKCyHM9zWQ&ext=SVG&name=Colored_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+5.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53511&cid=1N4QSD4u8FqnBsWpUYBFuEJVKCyHM9zWQ&ext=SVG&name=Colored_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+5.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53511.svg"
         },
         {
           "sid": 53535,
@@ -16054,7 +16085,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Bn26CiRBdqxtPznZpj0wsBezDIshdYln&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Bn26CiRBdqxtPznZpj0wsBezDIshdYln=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53535&cid=1Bn26CiRBdqxtPznZpj0wsBezDIshdYln&ext=SVG&name=Colored_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+6.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53535&cid=1Bn26CiRBdqxtPznZpj0wsBezDIshdYln&ext=SVG&name=Colored_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+6.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53535&cid=1Bn26CiRBdqxtPznZpj0wsBezDIshdYln&ext=SVG&name=Colored_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+6.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53535.svg"
         },
         {
           "sid": 53509,
@@ -16076,7 +16108,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1gb-hX_QGENaUnt2xWDdnxhfxBQYQ5nnS&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1gb-hX_QGENaUnt2xWDdnxhfxBQYQ5nnS=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53509&cid=1gb-hX_QGENaUnt2xWDdnxhfxBQYQ5nnS&ext=SVG&name=Colored_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+7.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53509&cid=1gb-hX_QGENaUnt2xWDdnxhfxBQYQ5nnS&ext=SVG&name=Colored_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+7.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53509&cid=1gb-hX_QGENaUnt2xWDdnxhfxBQYQ5nnS&ext=SVG&name=Colored_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F1.+Colored%2FSVG%2FColored_Asset+7.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53509.svg"
         },
         {
           "sid": 55454,
@@ -16098,7 +16131,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1YSZLyfO6ehZq9ODA7mHf5AfI0F6LmbYc&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1YSZLyfO6ehZq9ODA7mHf5AfI0F6LmbYc=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55454&cid=1YSZLyfO6ehZq9ODA7mHf5AfI0F6LmbYc&ext=SVG&name=Inverted_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+1.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55454&cid=1YSZLyfO6ehZq9ODA7mHf5AfI0F6LmbYc&ext=SVG&name=Inverted_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+1.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55454&cid=1YSZLyfO6ehZq9ODA7mHf5AfI0F6LmbYc&ext=SVG&name=Inverted_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+1.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55454.svg"
         },
         {
           "sid": 55448,
@@ -16120,7 +16154,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1dCD5TUXLBE0vToQaxVmYeFORLcXMay_z&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1dCD5TUXLBE0vToQaxVmYeFORLcXMay_z=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55448&cid=1dCD5TUXLBE0vToQaxVmYeFORLcXMay_z&ext=SVG&name=Inverted_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+10.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55448&cid=1dCD5TUXLBE0vToQaxVmYeFORLcXMay_z&ext=SVG&name=Inverted_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+10.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55448&cid=1dCD5TUXLBE0vToQaxVmYeFORLcXMay_z&ext=SVG&name=Inverted_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+10.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55448.svg"
         },
         {
           "sid": 55460,
@@ -16142,7 +16177,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1jNSeK4OlF-bG_fX96tVOklL7Q8G8FwKR&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1jNSeK4OlF-bG_fX96tVOklL7Q8G8FwKR=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55460&cid=1jNSeK4OlF-bG_fX96tVOklL7Q8G8FwKR&ext=SVG&name=Inverted_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+12.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55460&cid=1jNSeK4OlF-bG_fX96tVOklL7Q8G8FwKR&ext=SVG&name=Inverted_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+12.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55460&cid=1jNSeK4OlF-bG_fX96tVOklL7Q8G8FwKR&ext=SVG&name=Inverted_Asset+12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+12.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55460.svg"
         },
         {
           "sid": 55452,
@@ -16164,7 +16200,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=18hbLVQSuNwaK0aNOi0CFtL5Y-Fv_MaB4&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/18hbLVQSuNwaK0aNOi0CFtL5Y-Fv_MaB4=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55452&cid=18hbLVQSuNwaK0aNOi0CFtL5Y-Fv_MaB4&ext=SVG&name=Inverted_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+13.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55452&cid=18hbLVQSuNwaK0aNOi0CFtL5Y-Fv_MaB4&ext=SVG&name=Inverted_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+13.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55452&cid=18hbLVQSuNwaK0aNOi0CFtL5Y-Fv_MaB4&ext=SVG&name=Inverted_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+13.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55452.svg"
         },
         {
           "sid": 55476,
@@ -16186,7 +16223,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1lJubGdMtAJmlqyIXBajL4tCGZJFmcw73&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1lJubGdMtAJmlqyIXBajL4tCGZJFmcw73=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55476&cid=1lJubGdMtAJmlqyIXBajL4tCGZJFmcw73&ext=SVG&name=Inverted_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+14.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55476&cid=1lJubGdMtAJmlqyIXBajL4tCGZJFmcw73&ext=SVG&name=Inverted_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+14.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55476&cid=1lJubGdMtAJmlqyIXBajL4tCGZJFmcw73&ext=SVG&name=Inverted_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+14.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55476.svg"
         },
         {
           "sid": 55440,
@@ -16208,7 +16246,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1ie9nfXdcCPw-c25j5fdUPPnM78HmqK_f&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1ie9nfXdcCPw-c25j5fdUPPnM78HmqK_f=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55440&cid=1ie9nfXdcCPw-c25j5fdUPPnM78HmqK_f&ext=SVG&name=Inverted_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+15.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55440&cid=1ie9nfXdcCPw-c25j5fdUPPnM78HmqK_f&ext=SVG&name=Inverted_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+15.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55440&cid=1ie9nfXdcCPw-c25j5fdUPPnM78HmqK_f&ext=SVG&name=Inverted_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+15.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55440.svg"
         },
         {
           "sid": 55446,
@@ -16230,7 +16269,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1ffYcQGVoZMdX8G5jX4mMeqjVoZ85QQxj&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1ffYcQGVoZMdX8G5jX4mMeqjVoZ85QQxj=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55446&cid=1ffYcQGVoZMdX8G5jX4mMeqjVoZ85QQxj&ext=SVG&name=Inverted_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+16.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55446&cid=1ffYcQGVoZMdX8G5jX4mMeqjVoZ85QQxj&ext=SVG&name=Inverted_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+16.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55446&cid=1ffYcQGVoZMdX8G5jX4mMeqjVoZ85QQxj&ext=SVG&name=Inverted_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+16.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55446.svg"
         },
         {
           "sid": 55450,
@@ -16252,7 +16292,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Bias4CLAri795uG70f0hRkNiGa1saFMV&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Bias4CLAri795uG70f0hRkNiGa1saFMV=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55450&cid=1Bias4CLAri795uG70f0hRkNiGa1saFMV&ext=SVG&name=Inverted_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+17.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55450&cid=1Bias4CLAri795uG70f0hRkNiGa1saFMV&ext=SVG&name=Inverted_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+17.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55450&cid=1Bias4CLAri795uG70f0hRkNiGa1saFMV&ext=SVG&name=Inverted_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+17.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55450.svg"
         },
         {
           "sid": 55458,
@@ -16274,7 +16315,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1wHIp8OqQM5_CwcdZHUaf-HeMyTlIfGMC&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1wHIp8OqQM5_CwcdZHUaf-HeMyTlIfGMC=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55458&cid=1wHIp8OqQM5_CwcdZHUaf-HeMyTlIfGMC&ext=SVG&name=Inverted_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+18.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55458&cid=1wHIp8OqQM5_CwcdZHUaf-HeMyTlIfGMC&ext=SVG&name=Inverted_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+18.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55458&cid=1wHIp8OqQM5_CwcdZHUaf-HeMyTlIfGMC&ext=SVG&name=Inverted_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+18.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55458.svg"
         },
         {
           "sid": 55444,
@@ -16296,7 +16338,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1HHotADacvmYizNOroaInweutLmzO8ror&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1HHotADacvmYizNOroaInweutLmzO8ror=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55444&cid=1HHotADacvmYizNOroaInweutLmzO8ror&ext=SVG&name=Inverted_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+19.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55444&cid=1HHotADacvmYizNOroaInweutLmzO8ror&ext=SVG&name=Inverted_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+19.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55444&cid=1HHotADacvmYizNOroaInweutLmzO8ror&ext=SVG&name=Inverted_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+19.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55444.svg"
         },
         {
           "sid": 55468,
@@ -16318,7 +16361,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1TphNFi7uZpQcEfXk2TypfCOlqyyUrbUI&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1TphNFi7uZpQcEfXk2TypfCOlqyyUrbUI=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55468&cid=1TphNFi7uZpQcEfXk2TypfCOlqyyUrbUI&ext=SVG&name=Inverted_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+2.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55468&cid=1TphNFi7uZpQcEfXk2TypfCOlqyyUrbUI&ext=SVG&name=Inverted_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+2.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55468&cid=1TphNFi7uZpQcEfXk2TypfCOlqyyUrbUI&ext=SVG&name=Inverted_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+2.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55468.svg"
         },
         {
           "sid": 55474,
@@ -16340,7 +16384,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1DpFND37PNpHOmLyfY7Stgi5P4yL6pfBm&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1DpFND37PNpHOmLyfY7Stgi5P4yL6pfBm=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55474&cid=1DpFND37PNpHOmLyfY7Stgi5P4yL6pfBm&ext=SVG&name=Inverted_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+20.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55474&cid=1DpFND37PNpHOmLyfY7Stgi5P4yL6pfBm&ext=SVG&name=Inverted_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+20.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55474&cid=1DpFND37PNpHOmLyfY7Stgi5P4yL6pfBm&ext=SVG&name=Inverted_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+20.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55474.svg"
         },
         {
           "sid": 55436,
@@ -16362,7 +16407,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=11wYLfPDHhqLgvLzo853gQzyJO6J5cVoA&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/11wYLfPDHhqLgvLzo853gQzyJO6J5cVoA=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55436&cid=11wYLfPDHhqLgvLzo853gQzyJO6J5cVoA&ext=SVG&name=Inverted_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+21.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55436&cid=11wYLfPDHhqLgvLzo853gQzyJO6J5cVoA&ext=SVG&name=Inverted_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+21.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55436&cid=11wYLfPDHhqLgvLzo853gQzyJO6J5cVoA&ext=SVG&name=Inverted_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+21.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55436.svg"
         },
         {
           "sid": 55432,
@@ -16384,7 +16430,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1txdonhkr4jThRuiA_J2485tQLX4PCHKZ&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1txdonhkr4jThRuiA_J2485tQLX4PCHKZ=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55432&cid=1txdonhkr4jThRuiA_J2485tQLX4PCHKZ&ext=SVG&name=Inverted_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+22.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55432&cid=1txdonhkr4jThRuiA_J2485tQLX4PCHKZ&ext=SVG&name=Inverted_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+22.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55432&cid=1txdonhkr4jThRuiA_J2485tQLX4PCHKZ&ext=SVG&name=Inverted_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+22.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55432.svg"
         },
         {
           "sid": 55466,
@@ -16406,7 +16453,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1rlFGV1l-B9rWBppygrkoufCJKg9LqK4r&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1rlFGV1l-B9rWBppygrkoufCJKg9LqK4r=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55466&cid=1rlFGV1l-B9rWBppygrkoufCJKg9LqK4r&ext=SVG&name=Inverted_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+23.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55466&cid=1rlFGV1l-B9rWBppygrkoufCJKg9LqK4r&ext=SVG&name=Inverted_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+23.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55466&cid=1rlFGV1l-B9rWBppygrkoufCJKg9LqK4r&ext=SVG&name=Inverted_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+23.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55466.svg"
         },
         {
           "sid": 55470,
@@ -16428,7 +16476,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1ZCyzZGMgRtuVQtowoYNpb3g00I9U_6NK&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1ZCyzZGMgRtuVQtowoYNpb3g00I9U_6NK=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55470&cid=1ZCyzZGMgRtuVQtowoYNpb3g00I9U_6NK&ext=SVG&name=Inverted_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+24.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55470&cid=1ZCyzZGMgRtuVQtowoYNpb3g00I9U_6NK&ext=SVG&name=Inverted_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+24.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55470&cid=1ZCyzZGMgRtuVQtowoYNpb3g00I9U_6NK&ext=SVG&name=Inverted_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+24.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55470.svg"
         },
         {
           "sid": 55428,
@@ -16450,7 +16499,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1JoCvUdMECzjMWFz8Iu37KWoZ4PpK7oew&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1JoCvUdMECzjMWFz8Iu37KWoZ4PpK7oew=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55428&cid=1JoCvUdMECzjMWFz8Iu37KWoZ4PpK7oew&ext=SVG&name=Inverted_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+25.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55428&cid=1JoCvUdMECzjMWFz8Iu37KWoZ4PpK7oew&ext=SVG&name=Inverted_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+25.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55428&cid=1JoCvUdMECzjMWFz8Iu37KWoZ4PpK7oew&ext=SVG&name=Inverted_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+25.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55428.svg"
         },
         {
           "sid": 55456,
@@ -16472,7 +16522,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1xnBbW5TVIuFP_4mLRP2pfGCOYtRCum-_&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1xnBbW5TVIuFP_4mLRP2pfGCOYtRCum-_=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55456&cid=1xnBbW5TVIuFP_4mLRP2pfGCOYtRCum-_&ext=SVG&name=Inverted_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+3.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55456&cid=1xnBbW5TVIuFP_4mLRP2pfGCOYtRCum-_&ext=SVG&name=Inverted_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+3.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55456&cid=1xnBbW5TVIuFP_4mLRP2pfGCOYtRCum-_&ext=SVG&name=Inverted_Asset+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+3.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55456.svg"
         },
         {
           "sid": 55464,
@@ -16494,7 +16545,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=18RoK-ntwVF90jjZ4YrT_XoLt01lygCjX&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/18RoK-ntwVF90jjZ4YrT_XoLt01lygCjX=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55464&cid=18RoK-ntwVF90jjZ4YrT_XoLt01lygCjX&ext=SVG&name=Inverted_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+4.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55464&cid=18RoK-ntwVF90jjZ4YrT_XoLt01lygCjX&ext=SVG&name=Inverted_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+4.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55464&cid=18RoK-ntwVF90jjZ4YrT_XoLt01lygCjX&ext=SVG&name=Inverted_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+4.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55464.svg"
         },
         {
           "sid": 55438,
@@ -16516,7 +16568,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=10o_2PlzLOloLi7R-P8RpKPatIHM7Tl7L&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/10o_2PlzLOloLi7R-P8RpKPatIHM7Tl7L=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55438&cid=10o_2PlzLOloLi7R-P8RpKPatIHM7Tl7L&ext=SVG&name=Inverted_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+5.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55438&cid=10o_2PlzLOloLi7R-P8RpKPatIHM7Tl7L&ext=SVG&name=Inverted_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+5.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55438&cid=10o_2PlzLOloLi7R-P8RpKPatIHM7Tl7L&ext=SVG&name=Inverted_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+5.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55438.svg"
         },
         {
           "sid": 55434,
@@ -16538,7 +16591,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Uaiy6UqQGmXjsL5JfzUcoGOXDRT9fWWu&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Uaiy6UqQGmXjsL5JfzUcoGOXDRT9fWWu=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55434&cid=1Uaiy6UqQGmXjsL5JfzUcoGOXDRT9fWWu&ext=SVG&name=Inverted_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+6.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55434&cid=1Uaiy6UqQGmXjsL5JfzUcoGOXDRT9fWWu&ext=SVG&name=Inverted_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+6.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55434&cid=1Uaiy6UqQGmXjsL5JfzUcoGOXDRT9fWWu&ext=SVG&name=Inverted_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+6.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55434.svg"
         },
         {
           "sid": 55442,
@@ -16560,7 +16614,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Co_96peMr8KbW_hMBUxk0cmP01KtrNVO&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Co_96peMr8KbW_hMBUxk0cmP01KtrNVO=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55442&cid=1Co_96peMr8KbW_hMBUxk0cmP01KtrNVO&ext=SVG&name=Inverted_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+7.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55442&cid=1Co_96peMr8KbW_hMBUxk0cmP01KtrNVO&ext=SVG&name=Inverted_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+7.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55442&cid=1Co_96peMr8KbW_hMBUxk0cmP01KtrNVO&ext=SVG&name=Inverted_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+7.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55442.svg"
         },
         {
           "sid": 55430,
@@ -16582,7 +16637,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=10EsOC1u9rozWd_8gEq5jaEN2OUfo0q8U&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/10EsOC1u9rozWd_8gEq5jaEN2OUfo0q8U=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55430&cid=10EsOC1u9rozWd_8gEq5jaEN2OUfo0q8U&ext=SVG&name=Inverted_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+8.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55430&cid=10EsOC1u9rozWd_8gEq5jaEN2OUfo0q8U&ext=SVG&name=Inverted_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+8.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55430&cid=10EsOC1u9rozWd_8gEq5jaEN2OUfo0q8U&ext=SVG&name=Inverted_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+8.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55430.svg"
         },
         {
           "sid": 55462,
@@ -16604,7 +16660,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1AP11Ly6o7oaE71IZbqB9bWUaTfBCbv1j&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1AP11Ly6o7oaE71IZbqB9bWUaTfBCbv1j=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55462&cid=1AP11Ly6o7oaE71IZbqB9bWUaTfBCbv1j&ext=SVG&name=Inverted_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+9.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55462&cid=1AP11Ly6o7oaE71IZbqB9bWUaTfBCbv1j&ext=SVG&name=Inverted_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+9.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55462&cid=1AP11Ly6o7oaE71IZbqB9bWUaTfBCbv1j&ext=SVG&name=Inverted_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F3.+Inverted%2FSVG%2FInverted_Asset+9.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55462.svg"
         },
         {
           "sid": 53693,
@@ -16626,7 +16683,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1tbIixNqfo3MhFoe0BzUHzdFsvis9Pui5&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1tbIixNqfo3MhFoe0BzUHzdFsvis9Pui5=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53693&cid=1tbIixNqfo3MhFoe0BzUHzdFsvis9Pui5&ext=SVG&name=Outline_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+1.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53693&cid=1tbIixNqfo3MhFoe0BzUHzdFsvis9Pui5&ext=SVG&name=Outline_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+1.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53693&cid=1tbIixNqfo3MhFoe0BzUHzdFsvis9Pui5&ext=SVG&name=Outline_Asset+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+1.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53693.svg"
         },
         {
           "sid": 53695,
@@ -16648,7 +16706,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1m82atySxm3E465pICkFpAZLzyQPaq5tR&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1m82atySxm3E465pICkFpAZLzyQPaq5tR=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53695&cid=1m82atySxm3E465pICkFpAZLzyQPaq5tR&ext=SVG&name=Outline_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+10.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53695&cid=1m82atySxm3E465pICkFpAZLzyQPaq5tR&ext=SVG&name=Outline_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+10.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53695&cid=1m82atySxm3E465pICkFpAZLzyQPaq5tR&ext=SVG&name=Outline_Asset+10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+10.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53695.svg"
         },
         {
           "sid": 53675,
@@ -16670,7 +16729,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1h-iDwMVRRYGj14P0CwwJT3kFXtlE5Wx6&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1h-iDwMVRRYGj14P0CwwJT3kFXtlE5Wx6=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53675&cid=1h-iDwMVRRYGj14P0CwwJT3kFXtlE5Wx6&ext=SVG&name=Outline_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+13.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53675&cid=1h-iDwMVRRYGj14P0CwwJT3kFXtlE5Wx6&ext=SVG&name=Outline_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+13.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53675&cid=1h-iDwMVRRYGj14P0CwwJT3kFXtlE5Wx6&ext=SVG&name=Outline_Asset+13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+13.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53675.svg"
         },
         {
           "sid": 53712,
@@ -16692,7 +16752,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1qwmtw8svX7ehxc4fCF3mN6Edee6WBM4Y&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1qwmtw8svX7ehxc4fCF3mN6Edee6WBM4Y=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53712&cid=1qwmtw8svX7ehxc4fCF3mN6Edee6WBM4Y&ext=SVG&name=Outline_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+14.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53712&cid=1qwmtw8svX7ehxc4fCF3mN6Edee6WBM4Y&ext=SVG&name=Outline_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+14.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53712&cid=1qwmtw8svX7ehxc4fCF3mN6Edee6WBM4Y&ext=SVG&name=Outline_Asset+14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+14.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53712.svg"
         },
         {
           "sid": 53699,
@@ -16714,7 +16775,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1r5XJkZV_WRTaqz-rmUGtff14rSJ0LPuH&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1r5XJkZV_WRTaqz-rmUGtff14rSJ0LPuH=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53699&cid=1r5XJkZV_WRTaqz-rmUGtff14rSJ0LPuH&ext=SVG&name=Outline_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+15.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53699&cid=1r5XJkZV_WRTaqz-rmUGtff14rSJ0LPuH&ext=SVG&name=Outline_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+15.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53699&cid=1r5XJkZV_WRTaqz-rmUGtff14rSJ0LPuH&ext=SVG&name=Outline_Asset+15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+15.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53699.svg"
         },
         {
           "sid": 53657,
@@ -16736,7 +16798,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1wfRjvvptb4Dof03mhh-b_3gyTZzvs08B&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1wfRjvvptb4Dof03mhh-b_3gyTZzvs08B=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53657&cid=1wfRjvvptb4Dof03mhh-b_3gyTZzvs08B&ext=SVG&name=Outline_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+16.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53657&cid=1wfRjvvptb4Dof03mhh-b_3gyTZzvs08B&ext=SVG&name=Outline_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+16.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53657&cid=1wfRjvvptb4Dof03mhh-b_3gyTZzvs08B&ext=SVG&name=Outline_Asset+16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+16.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53657.svg"
         },
         {
           "sid": 53681,
@@ -16758,7 +16821,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1nbIPKuAczeGX3JPAJlA4B1SDL23Egzvo&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1nbIPKuAczeGX3JPAJlA4B1SDL23Egzvo=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53681&cid=1nbIPKuAczeGX3JPAJlA4B1SDL23Egzvo&ext=SVG&name=Outline_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+17.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53681&cid=1nbIPKuAczeGX3JPAJlA4B1SDL23Egzvo&ext=SVG&name=Outline_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+17.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53681&cid=1nbIPKuAczeGX3JPAJlA4B1SDL23Egzvo&ext=SVG&name=Outline_Asset+17.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+17.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53681.svg"
         },
         {
           "sid": 53665,
@@ -16780,7 +16844,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1yWYgnXKjDuA4_b4D6Ox2IjNw90U03_c_&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1yWYgnXKjDuA4_b4D6Ox2IjNw90U03_c_=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53665&cid=1yWYgnXKjDuA4_b4D6Ox2IjNw90U03_c_&ext=SVG&name=Outline_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+18.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53665&cid=1yWYgnXKjDuA4_b4D6Ox2IjNw90U03_c_&ext=SVG&name=Outline_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+18.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53665&cid=1yWYgnXKjDuA4_b4D6Ox2IjNw90U03_c_&ext=SVG&name=Outline_Asset+18.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+18.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53665.svg"
         },
         {
           "sid": 53697,
@@ -16802,7 +16867,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1wOzB9Iuds6A8MCR3U-Bs-i9c2MfRLOsr&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1wOzB9Iuds6A8MCR3U-Bs-i9c2MfRLOsr=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53697&cid=1wOzB9Iuds6A8MCR3U-Bs-i9c2MfRLOsr&ext=SVG&name=Outline_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+19.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53697&cid=1wOzB9Iuds6A8MCR3U-Bs-i9c2MfRLOsr&ext=SVG&name=Outline_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+19.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53697&cid=1wOzB9Iuds6A8MCR3U-Bs-i9c2MfRLOsr&ext=SVG&name=Outline_Asset+19.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+19.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53697.svg"
         },
         {
           "sid": 53673,
@@ -16824,7 +16890,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1wRv1JdMqhh5HBScmiOtrOSAAkzF6jl7v&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1wRv1JdMqhh5HBScmiOtrOSAAkzF6jl7v=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53673&cid=1wRv1JdMqhh5HBScmiOtrOSAAkzF6jl7v&ext=SVG&name=Outline_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+2.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53673&cid=1wRv1JdMqhh5HBScmiOtrOSAAkzF6jl7v&ext=SVG&name=Outline_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+2.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53673&cid=1wRv1JdMqhh5HBScmiOtrOSAAkzF6jl7v&ext=SVG&name=Outline_Asset+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+2.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53673.svg"
         },
         {
           "sid": 53683,
@@ -16846,7 +16913,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1xtHFNRJIfKl9YUMqW2ThknD6hJHO8lI2&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1xtHFNRJIfKl9YUMqW2ThknD6hJHO8lI2=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53683&cid=1xtHFNRJIfKl9YUMqW2ThknD6hJHO8lI2&ext=SVG&name=Outline_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+20.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53683&cid=1xtHFNRJIfKl9YUMqW2ThknD6hJHO8lI2&ext=SVG&name=Outline_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+20.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53683&cid=1xtHFNRJIfKl9YUMqW2ThknD6hJHO8lI2&ext=SVG&name=Outline_Asset+20.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+20.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53683.svg"
         },
         {
           "sid": 53687,
@@ -16868,7 +16936,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=15wT06vPHHZr8nJs1hyWKtr3-fFMXe33f&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/15wT06vPHHZr8nJs1hyWKtr3-fFMXe33f=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53687&cid=15wT06vPHHZr8nJs1hyWKtr3-fFMXe33f&ext=SVG&name=Outline_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+21.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53687&cid=15wT06vPHHZr8nJs1hyWKtr3-fFMXe33f&ext=SVG&name=Outline_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+21.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53687&cid=15wT06vPHHZr8nJs1hyWKtr3-fFMXe33f&ext=SVG&name=Outline_Asset+21.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+21.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53687.svg"
         },
         {
           "sid": 53685,
@@ -16890,7 +16959,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1sZb0_xVOe55bdfHu2v_ZPWFZIqGP-MG-&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1sZb0_xVOe55bdfHu2v_ZPWFZIqGP-MG-=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53685&cid=1sZb0_xVOe55bdfHu2v_ZPWFZIqGP-MG-&ext=SVG&name=Outline_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+22.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53685&cid=1sZb0_xVOe55bdfHu2v_ZPWFZIqGP-MG-&ext=SVG&name=Outline_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+22.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53685&cid=1sZb0_xVOe55bdfHu2v_ZPWFZIqGP-MG-&ext=SVG&name=Outline_Asset+22.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+22.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53685.svg"
         },
         {
           "sid": 53679,
@@ -16912,7 +16982,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1V_Gq9dXWljcSR-DKrwgpuM2NyfjXl6rv&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1V_Gq9dXWljcSR-DKrwgpuM2NyfjXl6rv=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53679&cid=1V_Gq9dXWljcSR-DKrwgpuM2NyfjXl6rv&ext=SVG&name=Outline_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+23.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53679&cid=1V_Gq9dXWljcSR-DKrwgpuM2NyfjXl6rv&ext=SVG&name=Outline_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+23.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53679&cid=1V_Gq9dXWljcSR-DKrwgpuM2NyfjXl6rv&ext=SVG&name=Outline_Asset+23.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+23.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53679.svg"
         },
         {
           "sid": 53663,
@@ -16934,7 +17005,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1-ixYce3rnGNV98uuJq2XZVEz98n7R5mr&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1-ixYce3rnGNV98uuJq2XZVEz98n7R5mr=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53663&cid=1-ixYce3rnGNV98uuJq2XZVEz98n7R5mr&ext=SVG&name=Outline_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+24.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53663&cid=1-ixYce3rnGNV98uuJq2XZVEz98n7R5mr&ext=SVG&name=Outline_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+24.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53663&cid=1-ixYce3rnGNV98uuJq2XZVEz98n7R5mr&ext=SVG&name=Outline_Asset+24.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+24.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53663.svg"
         },
         {
           "sid": 53661,
@@ -16956,7 +17028,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1dQYNTbwr4VBc2ocoPx2tI4HgpNg4Ow9J&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1dQYNTbwr4VBc2ocoPx2tI4HgpNg4Ow9J=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53661&cid=1dQYNTbwr4VBc2ocoPx2tI4HgpNg4Ow9J&ext=SVG&name=Outline_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+25.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53661&cid=1dQYNTbwr4VBc2ocoPx2tI4HgpNg4Ow9J&ext=SVG&name=Outline_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+25.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53661&cid=1dQYNTbwr4VBc2ocoPx2tI4HgpNg4Ow9J&ext=SVG&name=Outline_Asset+25.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+25.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53661.svg"
         },
         {
           "sid": 53667,
@@ -16978,7 +17051,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=13pgSmrDrVcsBx69XM_fH9Q7E-KaoScwW&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/13pgSmrDrVcsBx69XM_fH9Q7E-KaoScwW=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53667&cid=13pgSmrDrVcsBx69XM_fH9Q7E-KaoScwW&ext=SVG&name=Outline_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+4.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53667&cid=13pgSmrDrVcsBx69XM_fH9Q7E-KaoScwW&ext=SVG&name=Outline_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+4.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53667&cid=13pgSmrDrVcsBx69XM_fH9Q7E-KaoScwW&ext=SVG&name=Outline_Asset+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+4.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53667.svg"
         },
         {
           "sid": 53671,
@@ -17000,7 +17074,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1sd8NkZxoLIInu64qXZM6k41EqR_zI4Ov&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1sd8NkZxoLIInu64qXZM6k41EqR_zI4Ov=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53671&cid=1sd8NkZxoLIInu64qXZM6k41EqR_zI4Ov&ext=SVG&name=Outline_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+5.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53671&cid=1sd8NkZxoLIInu64qXZM6k41EqR_zI4Ov&ext=SVG&name=Outline_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+5.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53671&cid=1sd8NkZxoLIInu64qXZM6k41EqR_zI4Ov&ext=SVG&name=Outline_Asset+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+5.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53671.svg"
         },
         {
           "sid": 53677,
@@ -17022,7 +17097,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1vnF1IdwjWPg-39BmPU7xLTZv_C8yUGu1&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1vnF1IdwjWPg-39BmPU7xLTZv_C8yUGu1=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53677&cid=1vnF1IdwjWPg-39BmPU7xLTZv_C8yUGu1&ext=SVG&name=Outline_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+6.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53677&cid=1vnF1IdwjWPg-39BmPU7xLTZv_C8yUGu1&ext=SVG&name=Outline_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+6.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53677&cid=1vnF1IdwjWPg-39BmPU7xLTZv_C8yUGu1&ext=SVG&name=Outline_Asset+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+6.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53677.svg"
         },
         {
           "sid": 53689,
@@ -17044,7 +17120,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1VmqQPL0230V16ipvEQYdsG5YNIRXjBwk&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1VmqQPL0230V16ipvEQYdsG5YNIRXjBwk=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53689&cid=1VmqQPL0230V16ipvEQYdsG5YNIRXjBwk&ext=SVG&name=Outline_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+7.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53689&cid=1VmqQPL0230V16ipvEQYdsG5YNIRXjBwk&ext=SVG&name=Outline_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+7.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53689&cid=1VmqQPL0230V16ipvEQYdsG5YNIRXjBwk&ext=SVG&name=Outline_Asset+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+7.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53689.svg"
         },
         {
           "sid": 53710,
@@ -17066,7 +17143,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=11I-8v-v66HrT9yQ1MmITYQhNt0ZFneCO&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/11I-8v-v66HrT9yQ1MmITYQhNt0ZFneCO=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53710&cid=11I-8v-v66HrT9yQ1MmITYQhNt0ZFneCO&ext=SVG&name=Outline_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+8.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53710&cid=11I-8v-v66HrT9yQ1MmITYQhNt0ZFneCO&ext=SVG&name=Outline_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+8.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53710&cid=11I-8v-v66HrT9yQ1MmITYQhNt0ZFneCO&ext=SVG&name=Outline_Asset+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+8.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53710.svg"
         },
         {
           "sid": 53659,
@@ -17088,7 +17166,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1L9RShs8Qp2klLGpOJFhVNQSsDDmv7qmh&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1L9RShs8Qp2klLGpOJFhVNQSsDDmv7qmh=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=53659&cid=1L9RShs8Qp2klLGpOJFhVNQSsDDmv7qmh&ext=SVG&name=Outline_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+9.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53659&cid=1L9RShs8Qp2klLGpOJFhVNQSsDDmv7qmh&ext=SVG&name=Outline_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+9.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=53659&cid=1L9RShs8Qp2klLGpOJFhVNQSsDDmv7qmh&ext=SVG&name=Outline_Asset+9.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F2.+Outline%2FSVG%2FOutline_Asset+9.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/53659.svg"
         },
         {
           "sid": 55996,
@@ -17110,7 +17189,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1X2zFCXc0aYfMjFSJUQ3qou2rbDa-6vJm&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1X2zFCXc0aYfMjFSJUQ3qou2rbDa-6vJm=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55996&cid=1X2zFCXc0aYfMjFSJUQ3qou2rbDa-6vJm&ext=SVG&name=Pattern+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+1.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55996&cid=1X2zFCXc0aYfMjFSJUQ3qou2rbDa-6vJm&ext=SVG&name=Pattern+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+1.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55996&cid=1X2zFCXc0aYfMjFSJUQ3qou2rbDa-6vJm&ext=SVG&name=Pattern+1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+1.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55996.svg"
         },
         {
           "sid": 56000,
@@ -17132,7 +17212,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1coxVo4XBgmhp35CJlHhOrV1kXfnWA7ga&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1coxVo4XBgmhp35CJlHhOrV1kXfnWA7ga=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=56000&cid=1coxVo4XBgmhp35CJlHhOrV1kXfnWA7ga&ext=SVG&name=Pattern+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+2.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=56000&cid=1coxVo4XBgmhp35CJlHhOrV1kXfnWA7ga&ext=SVG&name=Pattern+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+2.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=56000&cid=1coxVo4XBgmhp35CJlHhOrV1kXfnWA7ga&ext=SVG&name=Pattern+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+2.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/56000.svg"
         },
         {
           "sid": 55998,
@@ -17154,7 +17235,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1Bj0uiMnUw3wbf6ZcD71gdat3Ffaa-Nim&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1Bj0uiMnUw3wbf6ZcD71gdat3Ffaa-Nim=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=55998&cid=1Bj0uiMnUw3wbf6ZcD71gdat3Ffaa-Nim&ext=SVG&name=Pattern+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+3.svg&v=1729863572",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55998&cid=1Bj0uiMnUw3wbf6ZcD71gdat3Ffaa-Nim&ext=SVG&name=Pattern+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+3.svg&v=1729863572&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=55998&cid=1Bj0uiMnUw3wbf6ZcD71gdat3Ffaa-Nim&ext=SVG&name=Pattern+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FHalloween%2F5.+Pattern%2FSVG%2FPattern+3.svg&v=1729863572&fallback=1",
+          "staticThumbUrl": "asset_thumbs/55998.svg"
         },
         {
           "sid": 55982,
@@ -20818,7 +20900,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1TOFLWBjl9DeJA0X30_01kA__48RRJ-Su&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1TOFLWBjl9DeJA0X30_01kA__48RRJ-Su=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48255&cid=1TOFLWBjl9DeJA0X30_01kA__48RRJ-Su&ext=SVG&name=Coquette+Ribbons++1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons++1.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48255&cid=1TOFLWBjl9DeJA0X30_01kA__48RRJ-Su&ext=SVG&name=Coquette+Ribbons++1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons++1.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48255&cid=1TOFLWBjl9DeJA0X30_01kA__48RRJ-Su&ext=SVG&name=Coquette+Ribbons++1.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons++1.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48255.svg"
         },
         {
           "sid": 48275,
@@ -20840,7 +20923,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1r9IhYTrV8gFimoQKsGzKwCDaM9FJZezu&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1r9IhYTrV8gFimoQKsGzKwCDaM9FJZezu=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48275&cid=1r9IhYTrV8gFimoQKsGzKwCDaM9FJZezu&ext=SVG&name=Coquette+Ribbons+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+2.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48275&cid=1r9IhYTrV8gFimoQKsGzKwCDaM9FJZezu&ext=SVG&name=Coquette+Ribbons+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+2.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48275&cid=1r9IhYTrV8gFimoQKsGzKwCDaM9FJZezu&ext=SVG&name=Coquette+Ribbons+2.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+2.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48275.svg"
         },
         {
           "sid": 48253,
@@ -20862,7 +20946,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1QOLFEQgQ01QgkPj0ot42bAv1igxkdZP4&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1QOLFEQgQ01QgkPj0ot42bAv1igxkdZP4=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48253&cid=1QOLFEQgQ01QgkPj0ot42bAv1igxkdZP4&ext=SVG&name=Coquette+Ribbons+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+3.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48253&cid=1QOLFEQgQ01QgkPj0ot42bAv1igxkdZP4&ext=SVG&name=Coquette+Ribbons+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+3.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48253&cid=1QOLFEQgQ01QgkPj0ot42bAv1igxkdZP4&ext=SVG&name=Coquette+Ribbons+3.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+3.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48253.svg"
         },
         {
           "sid": 48249,
@@ -20884,7 +20969,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1VRIifp9PCsBSaczvAH3-h2R8M4-6PCQf&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1VRIifp9PCsBSaczvAH3-h2R8M4-6PCQf=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48249&cid=1VRIifp9PCsBSaczvAH3-h2R8M4-6PCQf&ext=SVG&name=Coquette+Ribbons+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+4.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48249&cid=1VRIifp9PCsBSaczvAH3-h2R8M4-6PCQf&ext=SVG&name=Coquette+Ribbons+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+4.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48249&cid=1VRIifp9PCsBSaczvAH3-h2R8M4-6PCQf&ext=SVG&name=Coquette+Ribbons+4.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+4.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48249.svg"
         },
         {
           "sid": 48267,
@@ -20906,7 +20992,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1qk-hQHLZc0bIznE3ZQJXKwUPault-M0G&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1qk-hQHLZc0bIznE3ZQJXKwUPault-M0G=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48267&cid=1qk-hQHLZc0bIznE3ZQJXKwUPault-M0G&ext=SVG&name=Coquette+Ribbons+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+5.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48267&cid=1qk-hQHLZc0bIznE3ZQJXKwUPault-M0G&ext=SVG&name=Coquette+Ribbons+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+5.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48267&cid=1qk-hQHLZc0bIznE3ZQJXKwUPault-M0G&ext=SVG&name=Coquette+Ribbons+5.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+5.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48267.svg"
         },
         {
           "sid": 48259,
@@ -20928,7 +21015,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1MqX6C1j6Xg6fsAWCi8pEe2WmEJJGvFIL&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1MqX6C1j6Xg6fsAWCi8pEe2WmEJJGvFIL=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48259&cid=1MqX6C1j6Xg6fsAWCi8pEe2WmEJJGvFIL&ext=SVG&name=Coquette+Ribbons+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+6.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48259&cid=1MqX6C1j6Xg6fsAWCi8pEe2WmEJJGvFIL&ext=SVG&name=Coquette+Ribbons+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+6.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48259&cid=1MqX6C1j6Xg6fsAWCi8pEe2WmEJJGvFIL&ext=SVG&name=Coquette+Ribbons+6.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+6.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48259.svg"
         },
         {
           "sid": 48245,
@@ -20950,7 +21038,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1cCQASZ5BRj2cwg3GCK4Mehn66tzkrk35&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1cCQASZ5BRj2cwg3GCK4Mehn66tzkrk35=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48245&cid=1cCQASZ5BRj2cwg3GCK4Mehn66tzkrk35&ext=SVG&name=Coquette+Ribbons+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+7.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48245&cid=1cCQASZ5BRj2cwg3GCK4Mehn66tzkrk35&ext=SVG&name=Coquette+Ribbons+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+7.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48245&cid=1cCQASZ5BRj2cwg3GCK4Mehn66tzkrk35&ext=SVG&name=Coquette+Ribbons+7.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+7.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48245.svg"
         },
         {
           "sid": 48261,
@@ -20972,7 +21061,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1AFLtZ_W8f1uLKUhn4QKlzWUM8XOdchT4&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1AFLtZ_W8f1uLKUhn4QKlzWUM8XOdchT4=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48261&cid=1AFLtZ_W8f1uLKUhn4QKlzWUM8XOdchT4&ext=SVG&name=Coquette+Ribbons+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+8.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48261&cid=1AFLtZ_W8f1uLKUhn4QKlzWUM8XOdchT4&ext=SVG&name=Coquette+Ribbons+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+8.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48261&cid=1AFLtZ_W8f1uLKUhn4QKlzWUM8XOdchT4&ext=SVG&name=Coquette+Ribbons+8.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+8.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48261.svg"
         },
         {
           "sid": 48247,
@@ -20994,7 +21084,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=137gCr2TlY_BQU9zsH92ERLn0fHlw6G5s&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/137gCr2TlY_BQU9zsH92ERLn0fHlw6G5s=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48247&cid=137gCr2TlY_BQU9zsH92ERLn0fHlw6G5s&ext=SVG&name=Coquette+Ribbons+Texture+Black-09.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-09.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48247&cid=137gCr2TlY_BQU9zsH92ERLn0fHlw6G5s&ext=SVG&name=Coquette+Ribbons+Texture+Black-09.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-09.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48247&cid=137gCr2TlY_BQU9zsH92ERLn0fHlw6G5s&ext=SVG&name=Coquette+Ribbons+Texture+Black-09.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-09.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48247.svg"
         },
         {
           "sid": 48251,
@@ -21016,7 +21107,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1DEHU2S_naBlWZet5jh9O1LM71U46BoZR&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1DEHU2S_naBlWZet5jh9O1LM71U46BoZR=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48251&cid=1DEHU2S_naBlWZet5jh9O1LM71U46BoZR&ext=SVG&name=Coquette+Ribbons+Texture+Black-10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-10.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48251&cid=1DEHU2S_naBlWZet5jh9O1LM71U46BoZR&ext=SVG&name=Coquette+Ribbons+Texture+Black-10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-10.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48251&cid=1DEHU2S_naBlWZet5jh9O1LM71U46BoZR&ext=SVG&name=Coquette+Ribbons+Texture+Black-10.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-10.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48251.svg"
         },
         {
           "sid": 48263,
@@ -21038,7 +21130,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1xqmIxHjZ4RLlThZy1gyiFupbkNkwuvnF&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1xqmIxHjZ4RLlThZy1gyiFupbkNkwuvnF=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48263&cid=1xqmIxHjZ4RLlThZy1gyiFupbkNkwuvnF&ext=SVG&name=Coquette+Ribbons+Texture+Black-11.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-11.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48263&cid=1xqmIxHjZ4RLlThZy1gyiFupbkNkwuvnF&ext=SVG&name=Coquette+Ribbons+Texture+Black-11.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-11.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48263&cid=1xqmIxHjZ4RLlThZy1gyiFupbkNkwuvnF&ext=SVG&name=Coquette+Ribbons+Texture+Black-11.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-11.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48263.svg"
         },
         {
           "sid": 48273,
@@ -21060,7 +21153,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=16O0G55TuAiTfY93wgWazHjOQ1bDksYdQ&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/16O0G55TuAiTfY93wgWazHjOQ1bDksYdQ=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48273&cid=16O0G55TuAiTfY93wgWazHjOQ1bDksYdQ&ext=SVG&name=Coquette+Ribbons+Texture+Black-12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-12.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48273&cid=16O0G55TuAiTfY93wgWazHjOQ1bDksYdQ&ext=SVG&name=Coquette+Ribbons+Texture+Black-12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-12.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48273&cid=16O0G55TuAiTfY93wgWazHjOQ1bDksYdQ&ext=SVG&name=Coquette+Ribbons+Texture+Black-12.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-12.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48273.svg"
         },
         {
           "sid": 48257,
@@ -21082,7 +21176,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1-_gr76znxUbuaQLS72Bwm9SGC0R-Mkj0&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1-_gr76znxUbuaQLS72Bwm9SGC0R-Mkj0=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48257&cid=1-_gr76znxUbuaQLS72Bwm9SGC0R-Mkj0&ext=SVG&name=Coquette+Ribbons+Texture+Black-13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-13.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48257&cid=1-_gr76znxUbuaQLS72Bwm9SGC0R-Mkj0&ext=SVG&name=Coquette+Ribbons+Texture+Black-13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-13.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48257&cid=1-_gr76znxUbuaQLS72Bwm9SGC0R-Mkj0&ext=SVG&name=Coquette+Ribbons+Texture+Black-13.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-13.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48257.svg"
         },
         {
           "sid": 48265,
@@ -21104,7 +21199,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1jVXV5M-j-MLxdk6K1Z3sQDabCbeBqONy&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1jVXV5M-j-MLxdk6K1Z3sQDabCbeBqONy=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48265&cid=1jVXV5M-j-MLxdk6K1Z3sQDabCbeBqONy&ext=SVG&name=Coquette+Ribbons+Texture+Black-14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-14.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48265&cid=1jVXV5M-j-MLxdk6K1Z3sQDabCbeBqONy&ext=SVG&name=Coquette+Ribbons+Texture+Black-14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-14.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48265&cid=1jVXV5M-j-MLxdk6K1Z3sQDabCbeBqONy&ext=SVG&name=Coquette+Ribbons+Texture+Black-14.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-14.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48265.svg"
         },
         {
           "sid": 48269,
@@ -21126,7 +21222,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1AgG5JP3DWgruI0CWOTppq1SWt2sBaHGw&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1AgG5JP3DWgruI0CWOTppq1SWt2sBaHGw=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48269&cid=1AgG5JP3DWgruI0CWOTppq1SWt2sBaHGw&ext=SVG&name=Coquette+Ribbons+Texture+Black-15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-15.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48269&cid=1AgG5JP3DWgruI0CWOTppq1SWt2sBaHGw&ext=SVG&name=Coquette+Ribbons+Texture+Black-15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-15.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48269&cid=1AgG5JP3DWgruI0CWOTppq1SWt2sBaHGw&ext=SVG&name=Coquette+Ribbons+Texture+Black-15.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-15.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48269.svg"
         },
         {
           "sid": 48271,
@@ -21148,7 +21245,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1tnQltN1oOCG01_Ua_PiQYxLeeBxXtdlW&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1tnQltN1oOCG01_Ua_PiQYxLeeBxXtdlW=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=48271&cid=1tnQltN1oOCG01_Ua_PiQYxLeeBxXtdlW&ext=SVG&name=Coquette+Ribbons+Texture+Black-16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-16.svg&v=1720143970",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48271&cid=1tnQltN1oOCG01_Ua_PiQYxLeeBxXtdlW&ext=SVG&name=Coquette+Ribbons+Texture+Black-16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-16.svg&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=48271&cid=1tnQltN1oOCG01_Ua_PiQYxLeeBxXtdlW&ext=SVG&name=Coquette+Ribbons+Texture+Black-16.svg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FSVG%2FCoquette+Ribbons+Texture+Black-16.svg&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/48271.svg"
         },
         {
           "sid": 47871,
@@ -21170,7 +21268,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1JoyJeu1yFlP4MtYOpZju6ZUuM9_FGhQ8&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1JoyJeu1yFlP4MtYOpZju6ZUuM9_FGhQ8=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=47871&cid=1JoyJeu1yFlP4MtYOpZju6ZUuM9_FGhQ8&ext=AI&name=Coquette+Ribbons.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FCoquette+Ribbons.ai&v=1720143970&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47871&cid=1JoyJeu1yFlP4MtYOpZju6ZUuM9_FGhQ8&ext=AI&name=Coquette+Ribbons.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FCoquette+Ribbons.ai&v=1720143970&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47871&cid=1JoyJeu1yFlP4MtYOpZju6ZUuM9_FGhQ8&ext=AI&name=Coquette+Ribbons.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FCoquette+Ribbons%2FCoquette+Ribbons.ai&v=1720143970&fallback=1",
+          "staticThumbUrl": "asset_thumbs/47871.webp"
         }
       ],
       "enclosingFolder": "ELEMENTS"
@@ -21326,7 +21425,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1dYLjzCUfGOhRS2nMTgE5IuZ9h1J9EPDs&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1dYLjzCUfGOhRS2nMTgE5IuZ9h1J9EPDs=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=90101&cid=1dYLjzCUfGOhRS2nMTgE5IuZ9h1J9EPDs&ext=JPEG&name=AdobeColor-Primary+Colors+copy.jpeg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FAdobeColor-Primary+Colors+copy.jpeg&v=1793947931",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90101&cid=1dYLjzCUfGOhRS2nMTgE5IuZ9h1J9EPDs&ext=JPEG&name=AdobeColor-Primary+Colors+copy.jpeg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FAdobeColor-Primary+Colors+copy.jpeg&v=1793947931&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90101&cid=1dYLjzCUfGOhRS2nMTgE5IuZ9h1J9EPDs&ext=JPEG&name=AdobeColor-Primary+Colors+copy.jpeg&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FAdobeColor-Primary+Colors+copy.jpeg&v=1793947931&fallback=1",
+          "staticThumbUrl": "asset_thumbs/90101.webp"
         },
         {
           "sid": 90089,
@@ -21348,7 +21448,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1p5ppTR_U0GMxmdbA1-lA_N3PHF-yRMK6&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1p5ppTR_U0GMxmdbA1-lA_N3PHF-yRMK6=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=90089&cid=1p5ppTR_U0GMxmdbA1-lA_N3PHF-yRMK6&ext=PNG&name=DARK+VELVET.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FDARK+VELVET.png&v=1793947473",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90089&cid=1p5ppTR_U0GMxmdbA1-lA_N3PHF-yRMK6&ext=PNG&name=DARK+VELVET.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FDARK+VELVET.png&v=1793947473&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90089&cid=1p5ppTR_U0GMxmdbA1-lA_N3PHF-yRMK6&ext=PNG&name=DARK+VELVET.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FDARK+VELVET.png&v=1793947473&fallback=1",
+          "staticThumbUrl": "asset_thumbs/90089.webp"
         },
         {
           "sid": 90087,
@@ -21370,7 +21471,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1YvHvrsv0d6EnL6CaBSr4jBSPjV4sRDgo&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1YvHvrsv0d6EnL6CaBSr4jBSPjV4sRDgo=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=90087&cid=1YvHvrsv0d6EnL6CaBSr4jBSPjV4sRDgo&ext=PNG&name=HIP.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FHIP.png&v=1793947491",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90087&cid=1YvHvrsv0d6EnL6CaBSr4jBSPjV4sRDgo&ext=PNG&name=HIP.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FHIP.png&v=1793947491&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=90087&cid=1YvHvrsv0d6EnL6CaBSr4jBSPjV4sRDgo&ext=PNG&name=HIP.png&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FColor+Palettes%2FHIP.png&v=1793947491&fallback=1",
+          "staticThumbUrl": "asset_thumbs/90087.webp"
         }
       ],
       "enclosingFolder": "Color Palettes"
@@ -21543,7 +21645,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1a1QyD5fkI1CAJNqQy0Hb_iht-bGzqpvQ&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1a1QyD5fkI1CAJNqQy0Hb_iht-bGzqpvQ=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=47599&cid=1a1QyD5fkI1CAJNqQy0Hb_iht-bGzqpvQ&ext=AI&name=Crowns.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FCrowns.ai&v=1575896220&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47599&cid=1a1QyD5fkI1CAJNqQy0Hb_iht-bGzqpvQ&ext=AI&name=Crowns.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FCrowns.ai&v=1575896220&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47599&cid=1a1QyD5fkI1CAJNqQy0Hb_iht-bGzqpvQ&ext=AI&name=Crowns.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FCrowns.ai&v=1575896220&fallback=1",
+          "staticThumbUrl": "asset_thumbs/47599.webp"
         },
         {
           "sid": 47603,
@@ -21565,7 +21668,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1qTq5YJZkSFbmi3M19c28V5BWwuyny0q6&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1qTq5YJZkSFbmi3M19c28V5BWwuyny0q6=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=47603&cid=1qTq5YJZkSFbmi3M19c28V5BWwuyny0q6&ext=AI&name=Roses-Laurels-Symbols.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FRoses-Laurels-Symbols.ai&v=1575896220&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47603&cid=1qTq5YJZkSFbmi3M19c28V5BWwuyny0q6&ext=AI&name=Roses-Laurels-Symbols.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FRoses-Laurels-Symbols.ai&v=1575896220&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47603&cid=1qTq5YJZkSFbmi3M19c28V5BWwuyny0q6&ext=AI&name=Roses-Laurels-Symbols.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FRoses-Laurels-Symbols.ai&v=1575896220&fallback=1",
+          "staticThumbUrl": "asset_thumbs/47603.webp"
         },
         {
           "sid": 47605,
@@ -21587,7 +21691,8 @@
           "cloudThumbUrl": "https://drive.google.com/thumbnail?id=1l69SAl6eiudxO38mi0Ee41iOH0NmWxhK&sz=w640",
           "lh3ThumbUrl": "https://lh3.googleusercontent.com/d/1l69SAl6eiudxO38mi0Ee41iOH0NmWxhK=w640",
           "localThumbUrl": "/api/gdrive-thumb?sid=47605&cid=1l69SAl6eiudxO38mi0Ee41iOH0NmWxhK&ext=AI&name=Shields.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FShields.ai&v=1575896220&fallback=1",
-          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47605&cid=1l69SAl6eiudxO38mi0Ee41iOH0NmWxhK&ext=AI&name=Shields.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FShields.ai&v=1575896220&fallback=1"
+          "fallbackThumbUrl": "/api/gdrive-thumb?sid=47605&cid=1l69SAl6eiudxO38mi0Ee41iOH0NmWxhK&ext=AI&name=Shields.ai&cat=3D+%26+Graphic+Stocks&rel=ASSETS%2FELEMENTS%2FIcons%2C+Banners%2C+Badges%2FShields.ai&v=1575896220&fallback=1",
+          "staticThumbUrl": "asset_thumbs/47605.webp"
         }
       ],
       "enclosingFolder": "ELEMENTS"
