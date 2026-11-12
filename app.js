@@ -4933,6 +4933,50 @@ function updateSidebarBoardJumpButton() {
   }
 }
 
+function getSpaceTopBarTitle(spaceId) {
+  if (vault?.customTopBarTitles && typeof vault.customTopBarTitles[spaceId] === 'string' && vault.customTopBarTitles[spaceId].trim()) {
+    return vault.customTopBarTitles[spaceId].trim();
+  }
+  if (vault?.customization?.topBarTitles && typeof vault.customization.topBarTitles[spaceId] === 'string' && vault.customization.topBarTitles[spaceId].trim()) {
+    return vault.customization.topBarTitles[spaceId].trim();
+  }
+  try {
+    const raw = localStorage.getItem('ideal_custom_topbar_titles');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed[spaceId] === 'string' && parsed[spaceId].trim()) {
+        vault.customTopBarTitles = vault.customTopBarTitles || {};
+        vault.customTopBarTitles[spaceId] = parsed[spaceId].trim();
+        return parsed[spaceId].trim();
+      }
+    }
+  } catch (e) {}
+  const sp = vault?.spaces?.find(s => s.id === spaceId);
+  if (spaceId === 'lightbox') {
+    return sp?.heading || 'The Lightbox — Curation, Comparison & Routing Hub';
+  }
+  return sp?.heading || sp?.title || '';
+}
+
+function setSpaceTopBarTitle(spaceId, title) {
+  const clean = (title || '').trim();
+  const sp = vault?.spaces?.find(s => s.id === spaceId);
+  const fallback = (spaceId === 'lightbox') ? 'The Lightbox — Curation, Comparison & Routing Hub' : (sp?.title || '');
+  const finalTitle = clean || fallback;
+  if (sp) {
+    sp.heading = finalTitle;
+  }
+  vault.customTopBarTitles = vault.customTopBarTitles || {};
+  vault.customTopBarTitles[spaceId] = finalTitle;
+  vault.customization = vault.customization || {};
+  vault.customization.topBarTitles = vault.customization.topBarTitles || {};
+  vault.customization.topBarTitles[spaceId] = finalTitle;
+  try {
+    localStorage.setItem('ideal_custom_topbar_titles', JSON.stringify(vault.customTopBarTitles));
+  } catch (e) {}
+  return finalTitle;
+}
+
 function renderSidebar() {
   const brandTitle = document.getElementById('sidebarBrandTitle') || document.getElementById('sidebarBrandName');
   const brandBadge = document.getElementById('sidebarBrandBadge');
@@ -5032,7 +5076,6 @@ function renderSidebar() {
           const clean = (newVal || '').trim();
           if (clean) {
             sp.title = clean;
-            sp.heading = clean;
             vault.customSpaceTitles = vault.customSpaceTitles || {};
             vault.customSpaceTitles[sp.id] = clean;
             try {
@@ -5548,18 +5591,20 @@ function renderHeaderAndToolbar() {
     }
     if (titleEl) {
       if (type === 'space' && obj.id === 'gdrive_assets') {
-        titleEl.textContent = 'Assets & Vaults';
+        const gTitle = getSpaceTopBarTitle('gdrive_assets') || 'Assets & Vaults';
+        titleEl.textContent = gTitle;
         titleEl.style.cursor = 'pointer';
         titleEl.title = 'Click to return to Assets & Vaults Dashboard';
         const isDashboardActive = !state.activeGDriveEnclosingFolder || state.activeCategory === 'All';
         titleEl.classList.toggle('active', isDashboardActive);
       } else if (type === 'space' && obj.id === 'lightbox') {
         titleEl.textContent = 'The Lightbox';
-        titleEl.style.cursor = '';
+        titleEl.style.cursor = 'default';
         titleEl.title = 'The Lightbox';
         titleEl.classList.remove('active');
       } else {
-        titleEl.textContent = obj.title;
+        const topTitle = (type === 'space') ? getSpaceTopBarTitle(obj.id) : obj.title;
+        titleEl.textContent = topTitle;
         titleEl.style.cursor = '';
         titleEl.title = 'Click or double-click to rename';
         titleEl.classList.remove('active');
@@ -18685,6 +18730,104 @@ function renderCustomizeView(ws) {
           </div>
         </div>
       </section>
+
+      <!-- PANEL 4: FLOATING TOP BAR & TITLES (UNIFIED APPEARANCE & INDIVIDUAL TITLES) -->
+      <section class="customizer-panel" style="grid-column: 1 / -1;">
+        <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="kicker-mono">04 / FLOATING TOP BAR &amp; TITLES</div>
+            <h3>Unified Top Bar Finish &amp; Independent Space Headings</h3>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:18px;">
+          <!-- Top Bar Unified Appearance -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR BACKGROUND FINISH</div>
+              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
+                <button type="button" class="font-option-btn ${(c.topBarBg || 'glass') === 'glass' ? 'active' : ''}" data-topbar-bg="glass">
+                  <span style="font-size:12px;font-weight:600;">Frosted Glass</span>
+                  <span class="kicker-mono">Translucent Blur</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarBg === 'solid' ? 'active' : ''}" data-topbar-bg="solid">
+                  <span style="font-size:12px;font-weight:600;">Solid Studio</span>
+                  <span class="kicker-mono">Clean Surface</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarBg === 'minimal' ? 'active' : ''}" data-topbar-bg="minimal">
+                  <span style="font-size:12px;font-weight:600;">Minimal</span>
+                  <span class="kicker-mono">Subtle Frameless</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR TITLE TONE</div>
+              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
+                <button type="button" class="font-option-btn ${(c.topBarTone || 'ink') === 'ink' ? 'active' : ''}" data-topbar-tone="ink">
+                  <span style="font-size:12px;font-weight:600;color:var(--text);">Crisp Text</span>
+                  <span class="kicker-mono">High Contrast</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarTone === 'mid' ? 'active' : ''}" data-topbar-tone="mid">
+                  <span style="font-size:12px;font-weight:600;color:var(--text-mid);">Mid Gray</span>
+                  <span class="kicker-mono">Muted Tone</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarTone === 'accent' ? 'active' : ''}" data-topbar-tone="accent">
+                  <span style="font-size:12px;font-weight:600;color:var(--accent);">Accent</span>
+                  <span class="kicker-mono">Theme Colored</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR ELEVATION &amp; SHADOW</div>
+              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
+                <button type="button" class="font-option-btn ${(c.topBarElevation || 'whisper') === 'whisper' ? 'active' : ''}" data-topbar-elevation="whisper">
+                  <span style="font-size:12px;font-weight:600;">Whisper Float</span>
+                  <span class="kicker-mono">Subtle Shadow</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarElevation === 'flat' ? 'active' : ''}" data-topbar-elevation="flat">
+                  <span style="font-size:12px;font-weight:600;">Flat Studio</span>
+                  <span class="kicker-mono">No Shadow</span>
+                </button>
+                <button type="button" class="font-option-btn ${c.topBarElevation === 'elevated' ? 'active' : ''}" data-topbar-elevation="elevated">
+                  <span style="font-size:12px;font-weight:600;">Deep Elevation</span>
+                  <span class="kicker-mono">Rich Float</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Individual Space Top Bar Headings (Disconnected from Sidebar) -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+              <div class="kicker-mono" style="margin-bottom:4px;color:var(--accent);">★ THE LIGHTBOX TOP BAR TITLE</div>
+              <p style="font-size:11px;color:var(--text-mid);margin:0 0 8px 0;line-height:1.4;">
+                Top bar heading displayed on The Lightbox page. Click-editing is locked on the page; customize its title right here:
+              </p>
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="custTopBarTitle_lightbox" class="form-input" style="flex:1;font-size:12px;padding:6px 10px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);" value="${escapeHtml(getSpaceTopBarTitle('lightbox'))}">
+                <button type="button" class="outline-btn" id="btnResetLbTopBarTitle" title="Reset to standard hub title" style="padding:6px 10px;font-size:11px;">Default</button>
+              </div>
+            </div>
+
+            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+              <div class="kicker-mono" style="margin-bottom:4px;">DISCONNECTED TOP BAR SPACE TITLES</div>
+              <p style="font-size:11px;color:var(--text-mid);margin:0 0 10px 0;line-height:1.4;">
+                Top bar headings are completely independent from sidebar titles. Editing a title here or in the sidebar will not overwrite each other.
+              </p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                ${vault.spaces.filter(s => s.id !== 'lightbox' && s.id !== 'customize').map(sp => `
+                  <div style="display:flex;flex-direction:column;gap:3px;">
+                    <span class="kicker-mono" style="font-size:9.5px;color:var(--text-faint);">${escapeHtml(sp.code)} • SIDEBAR: "${escapeHtml(sp.title)}"</span>
+                    <input type="text" class="form-input cust-space-topbar-input" data-space-id="${escapeHtml(sp.id)}" style="font-size:11.5px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);" value="${escapeHtml(getSpaceTopBarTitle(sp.id))}" placeholder="${escapeHtml(sp.title)}">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   `;
 
@@ -20627,6 +20770,9 @@ function initEvents() {
 
   document.getElementById('viewTitle')?.addEventListener('click', (e) => {
     const { type, obj } = getActiveContainer();
+    if (type === 'space' && obj.id === 'lightbox') {
+      return; // The Lightbox top bar is uneditable from clicking on it (customize via Customization panel)
+    }
     if (type === 'space' && obj.id === 'gdrive_assets') {
       state.activeCategory = 'All';
       state.activeGDriveBatchId = null;
@@ -20648,15 +20794,15 @@ function initEvents() {
         return;
       }
     }
-    const cur = type === 'project' ? obj.title : (obj.heading || obj.title);
+    const cur = type === 'project' ? obj.title : getSpaceTopBarTitle(obj.id);
     promptInlineRename(e.currentTarget, cur, (val) => {
       if (type === 'project') {
         obj.title = val;
       } else {
-        obj.title = val;
-        obj.heading = val;
+        // Disconnected from sidebar: only update top bar title / heading
+        setSpaceTopBarTitle(obj.id, val);
       }
-      saveVault('RENAMED TITLE');
+      saveVault('RENAMED TOP BAR TITLE');
       renderAll();
     });
   });
