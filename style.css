@@ -13661,20 +13661,20 @@ progress.lb-progress-el::-moz-progress-bar {
 /* Responsive Studio Grid (Controlled by Top Size Slider 1..5) */
 .lb-studio-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
   align-items: stretch;
 }
 
-.lb-studio-grid[data-scale-step="1"] { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.lb-studio-grid[data-scale-step="2"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-.lb-studio-grid[data-scale-step="3"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.lb-studio-grid[data-scale-step="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.lb-studio-grid[data-scale-step="5"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lb-studio-grid[data-scale-step="1"] { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.lb-studio-grid[data-scale-step="2"] { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.lb-studio-grid[data-scale-step="3"] { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.lb-studio-grid[data-scale-step="4"] { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+.lb-studio-grid[data-scale-step="5"] { grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap: 24px; }
 
 @media (max-width: 1150px) {
   .lb-studio-grid {
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 }
 
@@ -13889,12 +13889,12 @@ progress.lb-progress-el::-moz-progress-bar {
 .lb-studio-stage {
   position: relative;
   inline-size: 100%;
-  aspect-ratio: 4 / 3;
   background: var(--lb-stage-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: clip;
+  min-block-size: 180px;
 }
 
 .lb-studio-media {
@@ -13905,7 +13905,7 @@ progress.lb-progress-el::-moz-progress-bar {
 
 .lb-studio-media.is-contain-fit {
   object-fit: contain;
-  padding: 6px;
+  padding: 0;
 }
 
 .lb-studio-media.is-cover-fit {
@@ -14085,10 +14085,10 @@ progress.lb-progress-el::-moz-progress-bar {
 .lb-studio-card-footer {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px 8px 8px;
+  gap: 4px;
+  padding: 6px 8px 8px;
   margin-block-start: auto;
-  flex-wrap: wrap;
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
 .lb-studio-card.is-render-pile .lb-studio-card-footer {
@@ -14099,35 +14099,54 @@ progress.lb-progress-el::-moz-progress-bar {
 
 .lb-action-pill {
   appearance: none;
-  flex: 1 1 auto;
-  min-inline-size: 24px;
-  min-block-size: 25px;
-  padding: 2px 6px;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  min-block-size: 26px;
+  padding: 3px 6px;
   border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--lb-text-muted);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  background: #ffffff;
+  color: #475569;
   font-family: inherit;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
+  overflow: clip;
+  text-overflow: ellipsis;
   cursor: pointer;
+  transition: all 0.12s ease;
 }
 
 /* Keep unselected secondary pills quiet at rest; lift cleanly on card hover/focus */
 @media (hover: hover) {
   .lb-studio-card:not(:hover):not(:focus-within) .lb-action-pill:not([aria-pressed="true"]):not(.is-pile-open-btn) {
-    opacity: 0.58;
+    opacity: 0.75;
   }
   .lb-action-pill:hover {
-    background: #f1f4f8;
-    color: var(--lb-text);
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
   }
 }
 
-/* Style toggled state directly from [aria-pressed="true"] without changing border-width, padding, or font-weight */
 .lb-action-pill.is-keep[aria-pressed="true"] {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #047857;
+}
+
+.lb-action-pill.is-portfolio[aria-pressed="true"] {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.lb-action-pill.is-ig[aria-pressed="true"] {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
   background: #ecfdf5;
   border-color: #a7f3d0;
   color: #047857;

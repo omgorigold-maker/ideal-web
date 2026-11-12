@@ -21553,9 +21553,9 @@ function ensureLightboxCleanWorkspace(v = vault) {
   v.items = Array.isArray(v.items) ? v.items : [];
   v.lightboxProjects = Array.isArray(v.lightboxProjects) ? v.lightboxProjects : [];
 
-  if (!v.lightboxCleanV104) {
+  if (!v.lightboxCleanV105) {
     const now = Date.now();
-    v.lightboxCleanV104 = true;
+    v.lightboxCleanV105 = true;
     v.lightboxProjects = [
       {
         id: 'lbproj_character_lookdev',
@@ -21569,7 +21569,7 @@ function ensureLightboxCleanWorkspace(v = vault) {
     v.items.unshift(
       {
         id: 'itm_lb_char_01_clay',
-        title: 'Character_Bust_01_Clay.png',
+        title: 'Character Bust — 01 Clay',
         originalFileName: 'Character_Bust_01_Clay.png',
         url: 'vault_media/character_lookdev_01_clay.png',
         kind: 'image',
@@ -21591,7 +21591,7 @@ function ensureLightboxCleanWorkspace(v = vault) {
       },
       {
         id: 'itm_lb_char_02_light',
-        title: 'Character_Bust_02_BaseLight.png',
+        title: 'Character Bust — 02 Base Light',
         originalFileName: 'Character_Bust_02_BaseLight.png',
         url: 'vault_media/character_lookdev_02_lighting.png',
         kind: 'image',
@@ -21613,7 +21613,7 @@ function ensureLightboxCleanWorkspace(v = vault) {
       },
       {
         id: 'itm_lb_char_03_final',
-        title: 'Character_Bust_03_FinalRender.png',
+        title: 'Character Bust — 03 Final',
         originalFileName: 'Character_Bust_03_FinalRender.png',
         url: 'vault_media/character_lookdev_03_final.png',
         kind: 'image',
@@ -24255,6 +24255,11 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
   const fitMode = state.lightboxFitMode === 'cover' ? 'is-cover-fit' : 'is-contain-fit';
   const isUnresolved = String(it.url || '').startsWith('local-handle://') && !vidSrc;
 
+  const resolvedPassBadge = passBadgeText || it.stackVersionLabel || '';
+  const stageRatioStyle = (w > 0 && h > 0)
+    ? `style="aspect-ratio: ${w} / ${h}; max-height: 540px;"`
+    : `style="aspect-ratio: 1; max-height: 540px;"`;
+
   let mediaHtml = '';
   if (isUnresolved) {
     mediaHtml = `<div class="lb-reconnect-card-box"><button type="button" class="lb-reconnect-card-btn" data-lb-reconnect="1">↻ Reconnect File</button></div>`;
@@ -24266,12 +24271,12 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
 
   return `
     <article class="lb-studio-card ${isKeep ? 'is-kept' : ''} ${isCompared ? 'is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" draggable="true">
-      <div class="lb-studio-stage">
+      <div class="lb-studio-stage" ${stageRatioStyle}>
         ${mediaHtml}
         <div class="lb-stage-top-row">
           <div class="lb-stage-tags-left">
             <button type="button" class="lb-select-check" aria-pressed="${isCompared ? 'true' : 'false'}" data-lb-cmp="${escapeHtml(it.id)}" aria-label="Select ${escapeHtml(titleText)}" title="Select for comparison or batch actions (Shift+Click for range)">✓</button>
-            ${passBadgeText ? `<span class="lb-tag-pill is-pass">${escapeHtml(passBadgeText)}</span>` : ''}
+            ${resolvedPassBadge ? `<span class="lb-tag-pill is-pass">${escapeHtml(resolvedPassBadge)}</span>` : ''}
             ${subf ? `<span class="lb-tag-pill is-folder" title="Subfolder: ${escapeHtml(subf)}">${escapeHtml(String(subf).split('/').pop().slice(0, 14))}</span>` : ''}
             ${!subf && projObj && state.lightboxProjectId === 'all' ? `<span class="lb-tag-pill is-project">${escapeHtml(projObj.title.slice(0, 14))}</span>` : ''}
           </div>
@@ -24407,13 +24412,10 @@ function renderLightboxMasterGroupHtml(groupTitle, groupItems, scaleStep = 3, sh
   const hideSingleRatioHeader = sortedBuckets.length <= 1;
 
   const ratioSectionsHtml = sortedBuckets.map(bucket => {
-    const { stacks, pilesCount } = buildLightboxStacks(bucket.items);
-    const cardsHtml = stacks.map(st => {
-      if (st.isPile) {
-        return buildLightboxPileCardHtml(st);
-      }
-      const passInfo = parseRenderStackInfo(st.leadItem);
-      return buildLightboxAssetCardHtml(st.leadItem, passInfo.isStackedCandidate ? passInfo.versionLabel : '');
+    const cardsHtml = bucket.items.map(it => {
+      const passInfo = parseRenderStackInfo(it);
+      const passLbl = passInfo.isStackedCandidate ? passInfo.versionLabel : (it.stackVersionLabel || '');
+      return buildLightboxAssetCardHtml(it, passLbl);
     }).join('');
 
     return `
@@ -24424,7 +24426,7 @@ function renderLightboxMasterGroupHtml(groupTitle, groupItems, scaleStep = 3, sh
               <span class="lb-ratio-badge ${bucket.isOdd ? 'is-odd' : ''}">
                 ${bucket.isOdd ? '✦ ' : ''}${escapeHtml(bucket.label)}
               </span>
-              <span class="lb-ratio-count">${bucket.items.length} ${bucket.items.length === 1 ? 'file' : 'files'}${pilesCount > 0 ? ` · ${pilesCount} ${pilesCount === 1 ? 'stack' : 'stacks'}` : ''}</span>
+              <span class="lb-ratio-count">${bucket.items.length} ${bucket.items.length === 1 ? 'file' : 'files'}</span>
             </div>
             ${bucket.items.length > 1 ? `
               <button type="button" class="lb-compare-group-btn" data-lb-compare-bucket="${escapeHtml(groupTitle)}::${escapeHtml(bucket.key)}" title="Compare all ${escapeHtml(bucket.key)} files side-by-side">
