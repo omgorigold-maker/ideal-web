@@ -3102,8 +3102,11 @@ function normalizeToolDockData(v) {
   }
 
   td.launchpad.forEach(t => {
-    if (t.url && t.url.includes('GoogleDrive-origold97@gmail.com')) {
-      t.url = t.url.replace('GoogleDrive-origold97@gmail.com', 'GoogleDrive-omg.ori.gold@gmail.com');
+    if (t.url && t.url.includes('/Library/CloudStorage/GoogleDrive-') && state.gdriveStats?.driveRoot) {
+      t.url = t.url.replace(/^.*\/Library\/CloudStorage\/GoogleDrive-[^/]+\/My Drive/, state.gdriveStats.driveRoot);
+    }
+    if (t.link && t.link.includes('/Library/CloudStorage/GoogleDrive-') && state.gdriveStats?.driveRoot) {
+      t.link = t.link.replace(/^.*\/Library\/CloudStorage\/GoogleDrive-[^/]+\/My Drive/, state.gdriveStats.driveRoot);
     }
   });
 
@@ -3368,7 +3371,7 @@ function createDefaultToolDockSeed() {
       { id: 'tl_vj_folder', title: 'Master VJ Loops Vault', category: 'Motion & VJ', badge: 'MAC FINDER', icon: '⊞', color: '#14B8A6', link: '~/Desktop/VJ', desc: 'Resolume Arena decks, DXV3 / ProRes 4444 stage packs' },
       { id: 'tl_shadertoy', title: 'Shadertoy GLSL Lab', category: 'Motion & VJ', badge: 'SHADERS', icon: '◈', color: '#7C3AED', link: 'https://www.shadertoy.com', desc: 'Raymarching, chrome displacement & acid reaction shaders' },
 
-      { id: 'tl_gdrive_local', title: 'Google Drive PSD Vault', category: 'Admin & Utils', badge: 'MAC FINDER', icon: '⌘', color: '#2563EB', link: '~/Library/CloudStorage/GoogleDrive-omg.ori.gold@gmail.com/My Drive/ASSETS', desc: 'Direct Finder access to 74 PSD & texture asset batches' },
+      { id: 'tl_gdrive_local', title: 'Google Drive PSD Vault', category: 'Admin & Utils', badge: 'MAC FINDER', icon: '⌘', color: '#2563EB', link: '~/Library/CloudStorage/GoogleDrive/My Drive/ASSETS', desc: 'Direct Finder access to 74 PSD & texture asset batches' },
       { id: 'tl_finland_app', title: 'Finland Command Center', category: 'Admin & Utils', badge: 'SISTER APP', icon: 'FI', color: '#059669', link: 'http://localhost:8000', desc: 'Financials, scheduling & administrative sister-app' },
       { id: 'tl_are_na', title: 'Are.na Research Channels', category: 'Admin & Utils', badge: 'RESEARCH', icon: '✺', color: '#52525B', link: 'https://www.are.na', desc: 'Exhibition curation & archival visual references' }
     ],
@@ -3520,6 +3523,7 @@ function loadVault() {
   } catch (e) {}
 
   const result = ensureVaultSleekAndGDrive(loaded);
+  ensureLightboxCleanWorkspace(result);
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(result));
   } catch (e) {}
@@ -3660,7 +3664,7 @@ async function fetchGDriveAssets(forceRefresh = false) {
 }
 
 function getActiveGDriveLaneInfo(catName) {
-  const rootPath = state.gdriveStats?.driveRoot || '/Users/origold_vol2/Library/CloudStorage/GoogleDrive-omg.ori.gold@gmail.com/My Drive';
+  const rootPath = state.gdriveStats?.driveRoot || '~/Library/CloudStorage/GoogleDrive/My Drive';
   const linksMap = state.gdriveCategoryLinks || {};
   const key = (!catName || catName.startsWith('All')) ? 'All' : catName;
   if (linksMap[key]) {
@@ -3720,8 +3724,19 @@ async function syncFromServerOnBoot() {
         if (localSaved && Array.isArray(localSaved.items)) {
           const serverItemIds = new Set((serverVault.items || []).map(i => i.id));
           localSaved.items.forEach(li => {
-            if (li && li.id && !serverItemIds.has(li.id)) {
-              serverVault.items.push(li);
+            if (!li || !li.id || serverItemIds.has(li.id)) return;
+            if (li.parentType === 'space' && li.parentId === 'lightbox' && !localSaved.lightboxCleanV104) return;
+            serverVault.items.push(li);
+          });
+        }
+        if (localSaved && localSaved.lightboxCleanV104 && Array.isArray(localSaved.lightboxProjects)) {
+          serverVault.lightboxCleanV104 = true;
+          serverVault.lightboxProjects = Array.isArray(serverVault.lightboxProjects) ? serverVault.lightboxProjects : [];
+          const sLbProjIds = new Set(serverVault.lightboxProjects.map(p => p && p.id));
+          localSaved.lightboxProjects.forEach(lp => {
+            if (lp && lp.id && !sLbProjIds.has(lp.id)) {
+              serverVault.lightboxProjects.push(lp);
+              sLbProjIds.add(lp.id);
             }
           });
         }
@@ -3867,7 +3882,9 @@ async function syncFromServerOnBoot() {
         } catch (e) {}
 
         vault = ensureVaultSleekAndGDrive(serverVault);
+        ensureLightboxCleanWorkspace(vault);
         localStorage.setItem(LS_KEY, JSON.stringify(vault));
+        hydrateLightboxLocalHandles(false);
         renderAll();
         fetch('/api/vault', {
           method: 'POST',
@@ -5588,8 +5605,7 @@ function renderFilterActionRow() {
   let list = type === 'project' ? (obj.sections = obj.sections || ['All']) : (obj.categories = obj.categories || ['All']);
   const LIGHTBOX_SHORT_LABELS = {
     'All Assets': 'All',
-    'Stacked Piles': 'Stacks',
-    '★ Keep Selected': 'Selects',
+    '★ Keep Selected': '★ Keep',
     'Portfolio Staging': 'Portfolio',
     'Instagram Board': 'Instagram'
   };
@@ -5600,8 +5616,10 @@ function renderFilterActionRow() {
     } else if (state.lightboxFilter === 'Videos') {
       state.lightboxMediaKind = 'video';
       state.lightboxFilter = 'All Assets';
+    } else if (state.lightboxFilter === 'Stacked Piles') {
+      state.lightboxFilter = 'All Assets';
     }
-    list = ['All Assets', 'Stacked Piles', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'];
+    list = ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
       state.lightboxFilter = 'All Assets';
@@ -7332,7 +7350,7 @@ function renderGDriveAssetsView(ws, spaceObj) {
           subfolderCount: matching.length,
           totalCount: matching.reduce((acc, b) => acc + (b.totalCount || 0), 0),
           driveFolderUrl: matching[0].driveFolderUrl || '',
-          localFolder: `/Users/origold_vol2/Library/CloudStorage/GoogleDrive-omg.ori.gold@gmail.com/My Drive/ASSETS/${matching[0].enclosingFolder || activeEncName}`,
+          localFolder: `${state.gdriveStats?.driveRoot || '~/Library/CloudStorage/GoogleDrive/My Drive'}/ASSETS/${matching[0].enclosingFolder || activeEncName}`,
           examples: matching.flatMap(b => b.examples || []).slice(0, 10)
         };
       }
@@ -7380,7 +7398,7 @@ function renderGDriveRootEnclosingView(ws, spaceObj) {
           subfolderCount: 0,
           totalCount: 0,
           driveFolderUrl: b.driveFolderUrl || '',
-          localFolder: `/Users/origold_vol2/Library/CloudStorage/GoogleDrive-omg.ori.gold@gmail.com/My Drive/ASSETS/${name}`,
+          localFolder: `${state.gdriveStats?.driveRoot || '~/Library/CloudStorage/GoogleDrive/My Drive'}/ASSETS/${name}`,
           examples: []
         });
       }
@@ -19894,9 +19912,19 @@ function requestDelete(kind, id, title) {
   const msgEl = document.getElementById('confirmDeleteMessage');
   const yesBtn = document.getElementById('btnConfirmDeleteYes');
 
-  if (titleEl) titleEl.textContent = `Delete "${title}"?`;
+  if (titleEl) {
+    titleEl.textContent = (kind === 'lb_project' || kind === 'lb_item' || kind === 'lb_batch_items')
+      ? `Remove "${title}" from Lightbox?`
+      : `Delete "${title}"?`;
+  }
   if (msgEl) {
-    if (kind === 'mf_req') {
+    if (kind === 'lb_project') {
+      msgEl.textContent = 'This removes the project and its linked items from Lightbox only. Your original files on your Mac stay 100% untouched.';
+    } else if (kind === 'lb_item') {
+      msgEl.textContent = 'This removes the item from Lightbox only. Any local file on your Mac stays 100% untouched in its folder.';
+    } else if (kind === 'lb_batch_items') {
+      msgEl.textContent = 'All selected items will be removed from Lightbox only. Your original local files on your Mac stay 100% untouched.';
+    } else if (kind === 'mf_req') {
       msgEl.textContent = 'Are you sure you want to delete this requirement?';
     } else if (kind === 'mf_lead') {
       msgEl.textContent = 'Are you sure you want to delete this opportunity?';
@@ -19921,7 +19949,11 @@ function requestDelete(kind, id, title) {
     }
   }
   if (yesBtn) {
-    yesBtn.textContent = (kind === 'mf_req' || kind === 'mf_lead' || kind === 'cust_template' || kind === 'tool_cluster') ? 'Delete' : 'Move to Trash';
+    if (kind === 'lb_project' || kind === 'lb_item' || kind === 'lb_batch_items') {
+      yesBtn.textContent = 'Remove from Lightbox';
+    } else {
+      yesBtn.textContent = (kind === 'mf_req' || kind === 'mf_lead' || kind === 'cust_template' || kind === 'tool_cluster') ? 'Delete' : 'Move to Trash';
+    }
   }
   dlg?.showModal();
 }
@@ -19930,7 +19962,50 @@ async function executeConfirmedDelete() {
   const pd = state.pendingDelete;
   if (!pd) return;
 
-  if (pd.kind === 'cust_template') {
+  if (pd.kind === 'lb_project') {
+    const lbProj = getLightboxProjects().find(p => p.id === pd.id);
+    const lbItems = (vault.items || []).filter(i => i.parentType === 'space' && i.parentId === 'lightbox' && i.lightboxProjectId === pd.id);
+    if (lbProj) {
+      vault.lightboxTrash = Array.isArray(vault.lightboxTrash) ? vault.lightboxTrash : [];
+      vault.lightboxTrash.push({
+        project: JSON.parse(JSON.stringify(lbProj)),
+        items: JSON.parse(JSON.stringify(lbItems)),
+        deletedAt: new Date().toISOString()
+      });
+    }
+    const removedIds = new Set(lbItems.map(x => x.id));
+    for (const pi of lbItems) {
+      cleanupRemovedLightboxItemResources(pi);
+    }
+    vault.lightboxProjects = getLightboxProjects().filter(p => p.id !== pd.id);
+    vault.items = (vault.items || []).filter(i => !removedIds.has(i.id));
+    if (state.lightboxProjectId === pd.id) {
+      state.lightboxProjectId = getLightboxProjects()[0]?.id || 'all';
+    }
+    if (Array.isArray(state.selectedCompareAssets)) {
+      state.selectedCompareAssets = state.selectedCompareAssets.filter(a => !removedIds.has(a.vaultItemId || a.id));
+    }
+  } else if (pd.kind === 'lb_item') {
+    const it = (vault.items || []).find(i => i.id === pd.id);
+    if (it) {
+      vault.lightboxTrash = Array.isArray(vault.lightboxTrash) ? vault.lightboxTrash : [];
+      vault.lightboxTrash.push({ item: JSON.parse(JSON.stringify(it)), deletedAt: new Date().toISOString() });
+      cleanupRemovedLightboxItemResources(it);
+    }
+    vault.items = (vault.items || []).filter(i => i.id !== pd.id);
+  } else if (pd.kind === 'lb_batch_items') {
+    const ids = Array.isArray(pd.id) ? pd.id : [];
+    const rmSet = new Set(ids);
+    const removedItems = (vault.items || []).filter(i => rmSet.has(i.id));
+    if (removedItems.length > 0) {
+      vault.lightboxTrash = Array.isArray(vault.lightboxTrash) ? vault.lightboxTrash : [];
+      vault.lightboxTrash.push({ items: JSON.parse(JSON.stringify(removedItems)), deletedAt: new Date().toISOString() });
+      for (const it of removedItems) {
+        cleanupRemovedLightboxItemResources(it);
+      }
+    }
+    vault.items = (vault.items || []).filter(i => !rmSet.has(i.id));
+  } else if (pd.kind === 'cust_template') {
     ensureCustomizationTemplates(vault);
     if ((vault.customizationTemplates || []).length > 1) {
       vault.customizationTemplates = (vault.customizationTemplates || []).filter(t => t && t.id !== pd.id);
@@ -20596,7 +20671,13 @@ function initEvents() {
 
   // Sidebar footer & floating HUD quick actions
   document.getElementById('btnSidebarAddProject')?.addEventListener('click', () => createAndOpenNewProjectBoard());
-  document.getElementById('btnSidebarUpload')?.addEventListener('click', () => document.getElementById('globalFileInput')?.click());
+  document.getElementById('btnSidebarUpload')?.addEventListener('click', () => {
+    if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+      chooseLightboxLocalFiles();
+      return;
+    }
+    document.getElementById('globalFileInput')?.click();
+  });
   document.getElementById('btnSidebarQuickNote')?.addEventListener('click', () => openQuickComposer('note'));
   document.getElementById('btnSidebarQuickLink')?.addEventListener('click', () => openQuickComposer('link'));
 
@@ -20673,11 +20754,12 @@ function initEvents() {
     const sel = state.selectedCompareAssets || [];
     if (!sel.length) return;
     const ids = sel.map(a => a.vaultItemId || a.id).filter(Boolean);
+    const isLbNow = state.viewType === 'space' && state.activeSpaceId === 'lightbox';
     if (ids.length === 1) {
       const single = vault.items.find(i => i.id === ids[0]);
-      requestDelete('item', ids[0], single?.title || sel[0]?.title || 'Asset');
+      requestDelete(isLbNow ? 'lb_item' : 'item', ids[0], single?.title || sel[0]?.title || 'Asset');
     } else {
-      requestDelete('batch_items', ids, `${ids.length} selected files`);
+      requestDelete(isLbNow ? 'lb_batch_items' : 'batch_items', ids, `${ids.length} selected files`);
     }
   });
 
@@ -20826,11 +20908,29 @@ function initEvents() {
   initMfIntakeDialogEvents();
 
   document.getElementById('globalFileInput')?.addEventListener('change', (e) => {
+    if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+      handleLightboxLocalInputFiles(e.target.files, false);
+      e.target.value = '';
+      return;
+    }
     handleFilesUpload(e.target.files);
     e.target.value = '';
   });
   document.getElementById('globalFolderInput')?.addEventListener('change', (e) => {
+    if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+      handleLightboxLocalInputFiles(e.target.files, true);
+      e.target.value = '';
+      return;
+    }
     handleFilesUpload(e.target.files);
+    e.target.value = '';
+  });
+  document.getElementById('lbLocalFileInput')?.addEventListener('change', (e) => {
+    handleLightboxLocalInputFiles(e.target.files, false);
+    e.target.value = '';
+  });
+  document.getElementById('lbLocalFolderInput')?.addEventListener('change', (e) => {
+    handleLightboxLocalInputFiles(e.target.files, true);
     e.target.value = '';
   });
 
@@ -20843,11 +20943,14 @@ function initEvents() {
       e.preventDefault();
       if (dropOverlay) {
         const isMf = (state.viewType === 'space' && ['residencies', 'work_apps', 'dream_clients', 'opportunity_pool'].includes(state.activeSpaceId));
+        const isLb = (state.viewType === 'space' && state.activeSpaceId === 'lightbox');
         const kicker = dropOverlay.querySelector('.kicker-mono');
         if (kicker) {
           kicker.textContent = isMf
             ? 'DROP OPPORTUNITY (AUTO-EXTRACT DETAILS & SAVE ORIGINAL)'
-            : 'DROP FILES OR FOLDERS (UNCOMPRESSED ORIGINAL QUALITY · RECURSIVE SUBFOLDERS)';
+            : (isLb
+                ? 'DROP LOCAL FILES OR FOLDERS TO LINK INSTANTLY (ZERO UPLOAD)'
+                : 'DROP FILES OR FOLDERS (UNCOMPRESSED ORIGINAL QUALITY · RECURSIVE SUBFOLDERS)');
         }
         dropOverlay.hidden = false;
       }
@@ -20876,11 +20979,14 @@ function initEvents() {
         runOpportunityIntake({ files: e.dataTransfer.files });
         return;
       }
+      if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+        handleLightboxLocalDrop(e.dataTransfer);
+        return;
+      }
       const captured = captureDropPayloadSynchronously(e.dataTransfer);
       handleFilesUpload(captured, {
         clientX: e.clientX,
-        clientY: e.clientY,
-        lightboxProjectId: (state.viewType === 'space' && state.activeSpaceId === 'lightbox') ? state.lightboxProjectId : undefined
+        clientY: e.clientY
       });
     }
   });
@@ -20893,6 +20999,10 @@ function initEvents() {
       e.preventDefault();
       if (isMf) {
         runOpportunityIntake({ files: e.clipboardData.files });
+        return;
+      }
+      if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+        handleLightboxLocalInputFiles(e.clipboardData.files, false);
         return;
       }
       handleFilesUpload(e.clipboardData.files);
@@ -20912,7 +21022,10 @@ function initEvents() {
   document.getElementById('btnSheetSave')?.addEventListener('click', saveInspectorChanges);
   document.getElementById('btnSheetDelete')?.addEventListener('click', () => {
     const it = vault.items.find(i => i.id === state.editingItemId);
-    if (it) requestDelete('item', it.id, it.title);
+    if (it) {
+      const isLbItem = it.parentType === 'space' && it.parentId === 'lightbox';
+      requestDelete(isLbItem ? 'lb_item' : 'item', it.id, it.title);
+    }
   });
   document.getElementById('btnSheetOpenLink')?.addEventListener('click', () => {
     const val = document.getElementById('sheetLinkInput')?.value;
@@ -21376,6 +21489,693 @@ function initMenuFocusgroupFallbackOnElement(groupEl) {
   });
 }
 
+const LB_LOCAL_MEDIA_EXT_RE = /\.(png|jpe?g|webp|gif|svg|avif|bmp|heic|heif|tif|tiff|mp4|mov|webm|m4v)$/i;
+const LB_HANDLES_DB_NAME = 'ideal_lightbox_handles_v1';
+const LB_HANDLES_STORE = 'handles';
+const lightboxLiveObjectUrls = new Map();
+const lightboxStoredHandles = new Map();
+const lightboxNeedsPermissionIds = new Set();
+let _lbHandlesDbPromise = null;
+
+function getLightboxProjects(v = vault) {
+  if (!v) return [];
+  if (!Array.isArray(v.lightboxProjects)) {
+    v.lightboxProjects = [];
+  }
+  return v.lightboxProjects;
+}
+
+function ensureLightboxCleanWorkspace(v = vault) {
+  if (!v) return;
+  v.items = Array.isArray(v.items) ? v.items : [];
+  v.lightboxProjects = Array.isArray(v.lightboxProjects) ? v.lightboxProjects : [];
+
+  if (!v.lightboxCleanV104) {
+    const now = Date.now();
+    v.lightboxCleanV104 = true;
+    v.lightboxProjects = [
+      {
+        id: 'lbproj_character_lookdev',
+        title: 'Character Lookdev',
+        createdAt: now,
+        updatedAt: now
+      }
+    ];
+    // Remove only stale Lightbox-scoped items; leave all other Ideal spaces & projects 100% untouched
+    v.items = v.items.filter(it => !(it && it.parentType === 'space' && it.parentId === 'lightbox'));
+    v.items.unshift(
+      {
+        id: 'itm_lb_char_01_clay',
+        title: 'Character_Bust_01_Clay.png',
+        originalFileName: 'Character_Bust_01_Clay.png',
+        url: 'vault_media/character_lookdev_01_clay.png',
+        kind: 'image',
+        naturalW: 896,
+        naturalH: 1200,
+        fileSize: 1368649,
+        aspectRatioKey: '3:4',
+        aspectRatioLabel: '3:4',
+        isOddRatio: false,
+        stackStem: 'Character Bust',
+        stackVersionLabel: '01 Clay',
+        lightboxKeep: false,
+        igStatus: '',
+        lightboxRoute: '',
+        parentType: 'space',
+        parentId: 'lightbox',
+        lightboxProjectId: 'lbproj_character_lookdev',
+        createdAt: now - 3000
+      },
+      {
+        id: 'itm_lb_char_02_light',
+        title: 'Character_Bust_02_BaseLight.png',
+        originalFileName: 'Character_Bust_02_BaseLight.png',
+        url: 'vault_media/character_lookdev_02_lighting.png',
+        kind: 'image',
+        naturalW: 896,
+        naturalH: 1200,
+        fileSize: 1337245,
+        aspectRatioKey: '3:4',
+        aspectRatioLabel: '3:4',
+        isOddRatio: false,
+        stackStem: 'Character Bust',
+        stackVersionLabel: '02 Base Light',
+        lightboxKeep: false,
+        igStatus: '',
+        lightboxRoute: '',
+        parentType: 'space',
+        parentId: 'lightbox',
+        lightboxProjectId: 'lbproj_character_lookdev',
+        createdAt: now - 2000
+      },
+      {
+        id: 'itm_lb_char_03_final',
+        title: 'Character_Bust_03_FinalRender.png',
+        originalFileName: 'Character_Bust_03_FinalRender.png',
+        url: 'vault_media/character_lookdev_03_final.png',
+        kind: 'image',
+        naturalW: 896,
+        naturalH: 1200,
+        fileSize: 1545096,
+        aspectRatioKey: '3:4',
+        aspectRatioLabel: '3:4',
+        isOddRatio: false,
+        stackStem: 'Character Bust',
+        stackVersionLabel: '03 Final',
+        lightboxKeep: true,
+        igStatus: '',
+        lightboxRoute: '',
+        parentType: 'space',
+        parentId: 'lightbox',
+        lightboxProjectId: 'lbproj_character_lookdev',
+        createdAt: now - 1000
+      }
+    );
+    if (typeof state !== 'undefined' && state) {
+      state.selectedCompareAssets = [];
+      state.lightboxProjectId = 'lbproj_character_lookdev';
+    }
+  }
+
+  if (typeof state !== 'undefined' && state) {
+    const curProj = state.lightboxProjectId || 'all';
+    if (curProj !== 'all' && curProj !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === curProj)) {
+      state.lightboxProjectId = v.lightboxProjects[0]?.id || 'all';
+    }
+  }
+}
+
+function openLbHandlesDb() {
+  if (_lbHandlesDbPromise) return _lbHandlesDbPromise;
+  _lbHandlesDbPromise = new Promise((resolve) => {
+    if (typeof indexedDB === 'undefined') {
+      resolve(null);
+      return;
+    }
+    try {
+      const req = indexedDB.open(LB_HANDLES_DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(LB_HANDLES_STORE)) {
+          db.createObjectStore(LB_HANDLES_STORE);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch (_) {
+      resolve(null);
+    }
+  });
+  return _lbHandlesDbPromise;
+}
+
+async function saveLbFileHandle(itemId, handle) {
+  if (!itemId || !handle) return;
+  lightboxStoredHandles.set(itemId, handle);
+  const db = await openLbHandlesDb();
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_HANDLES_STORE, 'readwrite');
+      tx.objectStore(LB_HANDLES_STORE).put(handle, itemId);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function deleteLbFileHandle(itemId) {
+  if (!itemId) return;
+  lightboxStoredHandles.delete(itemId);
+  lightboxNeedsPermissionIds.delete(itemId);
+  const db = await openLbHandlesDb();
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_HANDLES_STORE, 'readwrite');
+      tx.objectStore(LB_HANDLES_STORE).delete(itemId);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function getAllLbFileHandles() {
+  const map = new Map();
+  const db = await openLbHandlesDb();
+  if (!db) return map;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LB_HANDLES_STORE, 'readonly');
+      const store = tx.objectStore(LB_HANDLES_STORE);
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (cursor) {
+          map.set(String(cursor.key), cursor.value);
+          cursor.continue();
+        } else {
+          resolve(map);
+        }
+      };
+      req.onerror = () => resolve(map);
+    } catch (_) {
+      resolve(map);
+    }
+  });
+}
+
+function cleanupRemovedLightboxItemResources(it) {
+  if (!it) return;
+  const objUrl = lightboxLiveObjectUrls.get(it.id);
+  if (objUrl) {
+    try { URL.revokeObjectURL(objUrl); } catch (_) {}
+    lightboxLiveObjectUrls.delete(it.id);
+  }
+  deleteLbFileHandle(it.id);
+  // Only soft-trash files copied inside vault_media/ — NEVER touch user local files on Mac disk
+  const rawUrl = String(it.url || '');
+  if (rawUrl.includes('vault_media/') && !rawUrl.startsWith('/api/local-media')) {
+    fetch('/api/trash', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ storedName: rawUrl.replace(/^\/?vault_media\//, '') })
+    }).catch(() => {});
+  }
+}
+
+async function hydrateLightboxLocalHandles(requestUserPrompt = false) {
+  const dbMap = await getAllLbFileHandles();
+  dbMap.forEach((h, id) => {
+    if (!lightboxStoredHandles.has(id)) lightboxStoredHandles.set(id, h);
+  });
+
+  const lbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
+  let changed = false;
+
+  for (const it of lbItems) {
+    if (lightboxLiveObjectUrls.has(it.id)) {
+      lightboxNeedsPermissionIds.delete(it.id);
+      continue;
+    }
+    const handle = lightboxStoredHandles.get(it.id);
+    if (!handle) continue;
+    try {
+      let perm = handle.queryPermission ? await handle.queryPermission({ mode: 'read' }) : 'granted';
+      if (perm !== 'granted' && requestUserPrompt && handle.requestPermission) {
+        perm = await handle.requestPermission({ mode: 'read' });
+      }
+      if (perm === 'granted') {
+        const file = await handle.getFile();
+        const blobUrl = URL.createObjectURL(file);
+        lightboxLiveObjectUrls.set(it.id, blobUrl);
+        lightboxNeedsPermissionIds.delete(it.id);
+        changed = true;
+      } else if (String(it.url || '').startsWith('local-handle://')) {
+        if (!lightboxNeedsPermissionIds.has(it.id)) {
+          lightboxNeedsPermissionIds.add(it.id);
+          changed = true;
+        }
+      }
+    } catch (_) {
+      // Handle moved or revoked; server streamUrl remains fallback if available
+    }
+  }
+
+  if (changed && state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+    const missingDims = lbItems.filter(i => !(i.naturalW > 0 && i.naturalH > 0));
+    if (missingDims.length > 0) scanMissingLightboxDimensions(missingDims);
+    renderWorkspace();
+    renderCompareFloatingBar();
+  }
+}
+
+async function revealLightboxItemInFinder(it) {
+  if (!it) return;
+  const targetPath = it.localPath || (String(it.url || '').startsWith('/api/local-media')
+    ? decodeURIComponent((String(it.url).split('path=')[1] || '').split('&')[0])
+    : it.url);
+  if (!targetPath || String(targetPath).startsWith('local-handle://') || String(targetPath).startsWith('blob:')) {
+    showStatusToast('Local path still indexing in Spotlight — try again in a moment.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/reveal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: targetPath })
+    });
+    const data = await res.json();
+    if (data && data.ok) {
+      showStatusToast('Opened in Finder');
+    } else {
+      showStatusToast('Could not reveal file in Finder.');
+    }
+  } catch (_) {
+    showStatusToast('Could not reach local Finder helper.');
+  }
+}
+
+function isSupportedLightboxLocalFile(fileOrName) {
+  const name = typeof fileOrName === 'string' ? fileOrName : String(fileOrName?.name || '');
+  if (!name || name.startsWith('.')) return false;
+  if (LB_LOCAL_MEDIA_EXT_RE.test(name)) return true;
+  if (typeof fileOrName === 'object' && fileOrName && typeof fileOrName.type === 'string') {
+    return fileOrName.type.startsWith('image/') || fileOrName.type.startsWith('video/');
+  }
+  return false;
+}
+
+async function collectFilesFromDirectoryHandle(dirHandle, rootFolderName = '', relPrefix = '', out = []) {
+  if (!dirHandle || typeof dirHandle.values !== 'function') return out;
+  const rootName = rootFolderName || dirHandle.name || 'Folder';
+  try {
+    for await (const entry of dirHandle.values()) {
+      if (!entry || !entry.name || entry.name.startsWith('.')) continue;
+      if (entry.kind === 'file') {
+        if (!isSupportedLightboxLocalFile(entry.name)) continue;
+        try {
+          const file = await entry.getFile();
+          const relPath = relPrefix ? `${rootName}/${relPrefix}/${entry.name}` : `${rootName}/${entry.name}`;
+          out.push({
+            file,
+            handle: entry,
+            rootFolder: rootName,
+            subfolder: relPrefix || '',
+            relativePath: relPath
+          });
+        } catch (_) {}
+      } else if (entry.kind === 'directory') {
+        const nextPrefix = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
+        await collectFilesFromDirectoryHandle(entry, rootName, nextPrefix, out);
+      }
+    }
+  } catch (_) {}
+  return out;
+}
+
+async function chooseLightboxLocalFiles() {
+  if (typeof window.showOpenFilePicker === 'function') {
+    try {
+      const handles = await window.showOpenFilePicker({
+        multiple: true,
+        types: [
+          {
+            description: 'Images & Videos',
+            accept: {
+              'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif', '.bmp', '.heic', '.heif', '.tif', '.tiff'],
+              'video/*': ['.mp4', '.mov', '.webm', '.m4v']
+            }
+          }
+        ]
+      });
+      const entries = [];
+      for (const h of handles) {
+        if (!h) continue;
+        const file = await h.getFile();
+        if (!isSupportedLightboxLocalFile(file)) continue;
+        entries.push({
+          file,
+          handle: h,
+          rootFolder: '',
+          subfolder: '',
+          relativePath: file.name
+        });
+      }
+      if (entries.length > 0) {
+        await linkLocalFilesIntoLightbox(entries);
+      }
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+  }
+  document.getElementById('lbLocalFileInput')?.click();
+}
+
+async function chooseLightboxLocalFolder() {
+  if (typeof window.showDirectoryPicker === 'function') {
+    try {
+      const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+      if (!dirHandle) return;
+      const entries = await collectFilesFromDirectoryHandle(dirHandle, dirHandle.name, '', []);
+      if (entries.length === 0) {
+        showStatusToast(`No image or video files found inside "${dirHandle.name}".`);
+        return;
+      }
+      await linkLocalFilesIntoLightbox(entries, { folderName: dirHandle.name, createProjectFromFolder: true });
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+  }
+  document.getElementById('lbLocalFolderInput')?.click();
+}
+
+async function handleLightboxLocalInputFiles(fileList, fromFolderPicker = false) {
+  const rawFiles = Array.from(fileList || []);
+  if (!rawFiles.length) return;
+  const entries = [];
+  let detectedRootFolder = '';
+  for (const file of rawFiles) {
+    if (!isSupportedLightboxLocalFile(file)) continue;
+    const rel = String(file.webkitRelativePath || file.name || '').replace(/^\/+/, '');
+    const parts = rel.split('/').filter(Boolean);
+    const rootFolder = parts.length > 1 ? parts[0] : '';
+    const subfolder = parts.length > 2 ? parts.slice(1, -1).join('/') : '';
+    if (rootFolder && !detectedRootFolder) detectedRootFolder = rootFolder;
+    entries.push({
+      file,
+      handle: null,
+      rootFolder,
+      subfolder,
+      relativePath: rel || file.name
+    });
+  }
+  if (entries.length === 0) {
+    showStatusToast('No supported image or video files found in selection.');
+    return;
+  }
+  await linkLocalFilesIntoLightbox(entries, {
+    folderName: fromFolderPicker ? detectedRootFolder : '',
+    createProjectFromFolder: Boolean(fromFolderPicker && detectedRootFolder)
+  });
+}
+
+function readWebkitDirectoryEntryRecursive(dirEntry, rootFolder, relPrefix, out) {
+  return new Promise((resolve) => {
+    const reader = dirEntry.createReader();
+    const readBatch = () => {
+      reader.readEntries(async (batch) => {
+        if (!batch || batch.length === 0) {
+          resolve();
+          return;
+        }
+        for (const child of batch) {
+          if (!child || !child.name || child.name.startsWith('.')) continue;
+          if (child.isFile) {
+            if (!isSupportedLightboxLocalFile(child.name)) continue;
+            await new Promise((resFile) => {
+              child.file((file) => {
+                const relPath = relPrefix ? `${rootFolder}/${relPrefix}/${file.name}` : `${rootFolder}/${file.name}`;
+                out.push({
+                  file,
+                  handle: null,
+                  rootFolder,
+                  subfolder: relPrefix || '',
+                  relativePath: relPath
+                });
+                resFile();
+              }, () => resFile());
+            });
+          } else if (child.isDirectory) {
+            const nextRel = relPrefix ? `${relPrefix}/${child.name}` : child.name;
+            await readWebkitDirectoryEntryRecursive(child, rootFolder, nextRel, out);
+          }
+        }
+        readBatch();
+      }, () => resolve());
+    };
+    readBatch();
+  });
+}
+
+async function handleLightboxLocalDrop(dataTransfer) {
+  if (!dataTransfer) return;
+  // Snapshot handles, webkit entries, and raw files synchronously before any await
+  const rawItems = Array.from(dataTransfer.items || []).filter(i => i.kind === 'file');
+  const syncSnapshots = rawItems.map(item => ({
+    handlePromise: typeof item.getAsFileSystemHandle === 'function' ? item.getAsFileSystemHandle().catch(() => null) : Promise.resolve(null),
+    webkitEntry: typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null,
+    fallbackFile: item.getAsFile ? item.getAsFile() : null
+  }));
+  const fallbackFilesList = Array.from(dataTransfer.files || []);
+
+  const entries = [];
+  const droppedFolderNames = [];
+
+  if (syncSnapshots.length > 0) {
+    for (const snap of syncSnapshots) {
+      const handle = await snap.handlePromise;
+      if (handle && handle.kind === 'directory') {
+        droppedFolderNames.push(handle.name);
+        await collectFilesFromDirectoryHandle(handle, handle.name, '', entries);
+      } else if (handle && handle.kind === 'file') {
+        try {
+          const file = await handle.getFile();
+          if (isSupportedLightboxLocalFile(file)) {
+            entries.push({
+              file,
+              handle,
+              rootFolder: '',
+              subfolder: '',
+              relativePath: file.name
+            });
+          }
+        } catch (_) {}
+      } else if (snap.webkitEntry && snap.webkitEntry.isDirectory) {
+        droppedFolderNames.push(snap.webkitEntry.name);
+        await readWebkitDirectoryEntryRecursive(snap.webkitEntry, snap.webkitEntry.name, '', entries);
+      } else {
+        const f = snap.fallbackFile;
+        if (f && isSupportedLightboxLocalFile(f)) {
+          entries.push({
+            file: f,
+            handle: null,
+            rootFolder: '',
+            subfolder: '',
+            relativePath: f.name
+          });
+        }
+      }
+    }
+  } else {
+    for (const f of fallbackFilesList) {
+      if (f && isSupportedLightboxLocalFile(f)) {
+        entries.push({
+          file: f,
+          handle: null,
+          rootFolder: '',
+          subfolder: '',
+          relativePath: f.name
+        });
+      }
+    }
+  }
+
+  if (entries.length === 0) {
+    showStatusToast('No supported image or video files found.');
+    return;
+  }
+  const singleDroppedFolder = droppedFolderNames.length === 1 ? droppedFolderNames[0] : '';
+  await linkLocalFilesIntoLightbox(entries, {
+    folderName: singleDroppedFolder,
+    createProjectFromFolder: Boolean(singleDroppedFolder)
+  });
+}
+
+async function linkLocalFilesIntoLightbox(entries, opts = {}) {
+  ensureLightboxCleanWorkspace(vault);
+  const validEntries = (entries || []).filter(e => e && e.file && isSupportedLightboxLocalFile(e.file));
+  if (!validEntries.length) return;
+
+  validEntries.sort((a, b) => String(a.relativePath || a.file.name).localeCompare(String(b.relativePath || b.file.name), undefined, { numeric: true, sensitivity: 'base' }));
+
+  const lbProjects = getLightboxProjects(vault);
+  let targetProjId = state.lightboxProjectId || 'all';
+  const folderTitle = String(opts.folderName || '').trim();
+
+  if (folderTitle && (opts.createProjectFromFolder || targetProjId === 'all' || targetProjId === 'unsorted')) {
+    let existingProj = lbProjects.find(p => p && p.title.toLowerCase() === folderTitle.toLowerCase());
+    if (!existingProj) {
+      existingProj = {
+        id: 'lbproj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        title: folderTitle,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      lbProjects.unshift(existingProj);
+    } else {
+      existingProj.updatedAt = Date.now();
+    }
+    targetProjId = existingProj.id;
+    state.lightboxProjectId = targetProjId;
+  } else if (targetProjId === 'all') {
+    // If adding loose files while viewing All Projects, place in active/first project if only 0 exist, otherwise keep cleanly in Unsorted or create 'Local Selects'
+    targetProjId = 'unsorted';
+  }
+
+  const existingLbItems = (vault.items || []).filter(i => i && i.parentType === 'space' && i.parentId === 'lightbox');
+  const existingSigSet = new Set(
+    existingLbItems
+      .filter(i => (targetProjId === 'unsorted' ? !i.lightboxProjectId : i.lightboxProjectId === targetProjId))
+      .map(i => `${(i.originalFileName || i.title || '').toLowerCase()}::${Number(i.fileSize || 0)}::${(i.subfolderName || '').toLowerCase()}`)
+  );
+
+  const now = Date.now();
+  const createdItems = [];
+  let skippedCount = 0;
+
+  for (let idx = 0; idx < validEntries.length; idx++) {
+    const entry = validEntries[idx];
+    const file = entry.file;
+    const subf = entry.subfolder || '';
+    const sig = `${file.name.toLowerCase()}::${Number(file.size || 0)}::${subf.toLowerCase()}`;
+    if (existingSigSet.has(sig)) {
+      skippedCount++;
+      continue;
+    }
+    existingSigSet.add(sig);
+
+    const itemId = `itm_lb_local_${now}_${idx}_${Math.random().toString(36).slice(2, 6)}`;
+    const isVid = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v)$/i.test(file.name);
+    const blobUrl = URL.createObjectURL(file);
+    lightboxLiveObjectUrls.set(itemId, blobUrl);
+    lightboxNeedsPermissionIds.delete(itemId);
+
+    if (entry.handle) {
+      saveLbFileHandle(itemId, entry.handle);
+    }
+
+    const newItem = {
+      id: itemId,
+      title: file.name,
+      originalFileName: file.name,
+      url: `local-handle://${itemId}/${encodeURIComponent(file.name)}`,
+      isLocalLinked: true,
+      localPath: '',
+      subfolderName: subf,
+      relativePath: entry.relativePath || file.name,
+      kind: isVid ? 'video' : 'image',
+      fileSize: Number(file.size || 0),
+      lastModified: Number(file.lastModified || 0),
+      naturalW: 0,
+      naturalH: 0,
+      lightboxKeep: false,
+      igStatus: '',
+      lightboxRoute: '',
+      parentType: 'space',
+      parentId: 'lightbox',
+      createdAt: now + idx
+    };
+    if (targetProjId && targetProjId !== 'unsorted' && targetProjId !== 'all') {
+      newItem.lightboxProjectId = targetProjId;
+    }
+    vault.items.unshift(newItem);
+    createdItems.push(newItem);
+  }
+
+  if (createdItems.length === 0 && skippedCount > 0) {
+    showStatusToast(`All ${skippedCount} local file(s) are already linked in this view.`);
+    renderAll();
+    return;
+  }
+
+  // Ensure user sees newly linked items immediately
+  if (state.lightboxFilter && state.lightboxFilter !== 'All Assets') {
+    state.lightboxFilter = 'All Assets';
+    state.activeCategory = 'All Assets';
+  }
+
+  saveVault('LOCAL FILES LINKED');
+  scanMissingLightboxDimensions(createdItems);
+  renderAll();
+
+  const destLabel = (targetProjId && targetProjId !== 'unsorted' && targetProjId !== 'all')
+    ? (lbProjects.find(p => p.id === targetProjId)?.title || 'Lightbox')
+    : 'Lightbox';
+  const skipSuffix = skippedCount > 0 ? ` (${skippedCount} duplicate skipped)` : '';
+  const msg = `Linked ${createdItems.length} local file${createdItems.length === 1 ? '' : 's'} into ${destLabel}${skipSuffix}`;
+  showStatusToast(`✓ ${msg}`);
+  announceLightboxPolite(msg);
+
+  // Non-blocking Spotlight / filesystem path resolution on local server (zero file bytes uploaded!)
+  try {
+    const res = await fetch('/api/lightbox/resolve-local', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entries: createdItems.map(it => ({
+          id: it.id,
+          name: it.originalFileName || it.title,
+          relativePath: it.relativePath || it.title,
+          size: it.fileSize || 0,
+          lastModified: it.lastModified || 0
+        }))
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ok && data.resolved) {
+        let resolvedAny = false;
+        createdItems.forEach(it => {
+          const r = data.resolved[it.id];
+          if (!r) return;
+          if (r.localPath) {
+            it.localPath = r.localPath;
+            resolvedAny = true;
+          }
+          if (r.readableByServer && r.streamUrl) {
+            it.url = r.streamUrl;
+            lightboxNeedsPermissionIds.delete(it.id);
+            resolvedAny = true;
+          }
+        });
+        if (resolvedAny) {
+          saveVault('LOCAL PATHS INDEXED');
+          if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+            renderWorkspace();
+          }
+        }
+      }
+    }
+  } catch (_) {}
+}
+
 function moveLightboxItemsToDestination(itemIds, destProjIdOrUnsorted) {
   const ids = Array.from(new Set((itemIds || []).filter(Boolean)));
   if (!ids.length) return;
@@ -21393,18 +22193,17 @@ function moveLightboxItemsToDestination(itemIds, destProjIdOrUnsorted) {
       movedCount++;
     });
   } else {
-    const proj = (vault.projects || []).find(p => p.id === destProjIdOrUnsorted);
+    const proj = getLightboxProjects(vault).find(p => p.id === destProjIdOrUnsorted);
     if (!proj) return;
     destTitle = proj.title;
-    ids.forEach((id, idx) => {
+    proj.updatedAt = Date.now();
+    ids.forEach(id => {
       const it = vault.items.find(i => i.id === id);
       if (!it) return;
-      it.parentType = 'project';
-      it.parentId = proj.id;
-      delete it.lightboxProjectId;
+      it.parentType = 'space';
+      it.parentId = 'lightbox';
+      it.lightboxProjectId = proj.id;
       it.folderId = null;
-      if (typeof it.wallX !== 'number') it.wallX = 288 + (idx % 5) * 288;
-      if (typeof it.wallY !== 'number') it.wallY = 120 + Math.floor(idx / 5) * 240;
       movedCount++;
     });
   }
@@ -21453,7 +22252,7 @@ function renderCompareFloatingBar() {
     const moveTrig = document.getElementById('btnBatchMoveProject');
     if (moveInner) {
       const selIds = sel.map(a => a.vaultItemId || a.id).filter(Boolean);
-      const projButtons = (vault.projects || []).map(p => `
+      const projButtons = getLightboxProjects(vault).map(p => `
         <button type="button" data-batch-move-dest="${escapeHtml(p.id)}">
           <span class="lb-menu-icon" aria-hidden="true">📁</span>
           <span>${escapeHtml(p.title)}</span>
@@ -21462,7 +22261,7 @@ function renderCompareFloatingBar() {
       moveInner.innerHTML = `
         <button type="button" data-batch-move-dest="unsorted">
           <span class="lb-menu-icon" aria-hidden="true">📥</span>
-          <span>Unsorted (Lightbox)</span>
+          <span>Unsorted</span>
         </button>
         ${projButtons ? `<hr>${projButtons}` : ''}
         <hr>
@@ -21500,10 +22299,12 @@ function renderCompareFloatingBar() {
   if (thumbsEl) {
     thumbsEl.innerHTML = sel.slice(0, 6).map(a => {
       const kind = getLightboxMasterMediaKind(a);
+      const vidSrc = getLightboxMediaSrc(a);
       if (kind === 'video') {
-        return `<video src="${escapeHtml(a.url)}#t=0.05" muted playsinline preload="metadata"></video>`;
+        return vidSrc ? `<video src="${escapeHtml(vidSrc)}#t=0.05" muted playsinline preload="metadata"></video>` : '';
       }
-      return `<img src="${escapeHtml(getLightboxDisplayUrl(a))}" alt="">`;
+      const imgSrc = getLightboxDisplayUrl(a);
+      return imgSrc ? `<img src="${escapeHtml(imgSrc)}" alt="">` : '';
     }).join('');
   }
   const selCountEl = document.getElementById('compareSelCountLabel');
@@ -21680,20 +22481,37 @@ function computeExactAspectRatio(w, h) {
   return { key: shortKey, exactRawKey: exactKey, label, isOdd, decimal: dec, w: width, h: height };
 }
 
+function getLightboxMediaSrc(it) {
+  if (!it) return '';
+  const vIt = (vault.items || []).find(x => x && x.id === (it.vaultItemId || it.id)) || it;
+  const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
+  if (liveBlob) return liveBlob;
+  const raw = String(vIt.url || it.url || '');
+  if (!raw || raw.startsWith('local-handle://')) return '';
+  return raw;
+}
+
 function getLightboxDisplayUrl(it) {
   if (!it) return '';
-  const raw = String(it.url || '');
-  if (!raw) return '';
-  if (/\.(heic|heif|tif|tiff)$/i.test(raw)) {
-    return `/api/heic-preview?url=${encodeURIComponent(raw)}`;
+  const vIt = (vault.items || []).find(x => x && x.id === (it.vaultItemId || it.id)) || it;
+  const nameProbe = String(vIt.originalFileName || vIt.localPath || vIt.url || it.url || '');
+  if (/\.(heic|heif|tif|tiff)$/i.test(nameProbe)) {
+    if (vIt.localPath && vIt.localPath.startsWith('/')) {
+      return `/api/heic-preview?path=${encodeURIComponent(vIt.localPath)}`;
+    }
+    const rawUrl = String(vIt.url || it.url || '');
+    if (rawUrl && !rawUrl.startsWith('local-handle://') && !rawUrl.startsWith('blob:')) {
+      return `/api/heic-preview?url=${encodeURIComponent(rawUrl)}`;
+    }
   }
-  return raw;
+  return getLightboxMediaSrc(vIt);
 }
 
 function getLightboxMasterMediaKind(it) {
   if (!it) return 'image';
-  const url = String(it.url || '').toLowerCase();
-  if (it.kind === 'video' || /\.(mp4|mov|webm|m4v)$/i.test(url)) {
+  if (it.kind === 'video') return 'video';
+  const probe = String(it.originalFileName || it.localPath || it.url || it.title || '').toLowerCase();
+  if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(probe)) {
     return 'video';
   }
   return 'image';
@@ -21810,19 +22628,22 @@ function buildLightboxStacks(items) {
 }
 
 function getLightboxAssetsForActiveProject() {
+  ensureLightboxCleanWorkspace(vault);
   const projId = state.lightboxProjectId || 'all';
+  const validProjs = getLightboxProjects(vault);
+  if (projId !== 'all' && projId !== 'unsorted' && !validProjs.some(p => p.id === projId)) {
+    state.lightboxProjectId = validProjs[0]?.id || 'all';
+  }
+  const activeProj = state.lightboxProjectId || 'all';
   return (vault.items || []).filter(it => {
     if (!it || !it.url) return false;
+    if (it.parentType !== 'space' || it.parentId !== 'lightbox') return false;
     if (it.kind === 'audio' || it.kind === 'note' || it.kind === 'checklist' || it.kind === 'todo' || it.kind === 'link' || it.kind === 'folder') {
       return false;
     }
-    if (projId === 'all') {
-      return it.parentType === 'project' || (it.parentType === 'space' && (it.parentId === 'lightbox' || it.parentId === 'incubator'));
-    }
-    if (projId === 'unsorted') {
-      return it.parentType === 'space' && (it.parentId === 'lightbox' || it.parentId === 'incubator') && !it.lightboxProjectId;
-    }
-    return (it.parentType === 'project' && it.parentId === projId) || (it.parentType === 'space' && it.parentId === 'lightbox' && it.lightboxProjectId === projId);
+    if (activeProj === 'all') return true;
+    if (activeProj === 'unsorted') return !it.lightboxProjectId;
+    return it.lightboxProjectId === activeProj;
   });
 }
 
@@ -21956,7 +22777,8 @@ function buildFloatingSpecsHtml(assetObj, isVisible, layerIndex = null, totalLay
   const sizeBytes = Number(it.fileSize || 0);
   const sizeText = sizeBytes > 0 ? formatBytes(sizeBytes) : '';
   const createdText = it.createdAt ? new Date(it.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-  const cleanUrl = String(it.url || assetObj.url || '').replace(/^\//, '');
+  const mediaSrc = getLightboxMediaSrc(it);
+  const dlHref = mediaSrc ? (mediaSrc.startsWith('blob:') || mediaSrc.startsWith('/') || mediaSrc.startsWith('http') ? mediaSrc : '/' + mediaSrc) : '';
   const dlName = it.originalFileName || it.title || 'original_asset';
   const showLayerHeader = typeof layerIndex === 'number' && typeof totalLayers === 'number' && totalLayers > 0;
 
@@ -21972,7 +22794,7 @@ function buildFloatingSpecsHtml(assetObj, isVisible, layerIndex = null, totalLay
       <span class="cmp-spec-chip ${ratioInfo?.isOdd ? 'is-odd-ratio' : ''}"><strong>RATIO</strong> ${ratioInfo?.isOdd ? '✦ ' : ''}${escapeHtml(ratioText)}</span>
       ${sizeText ? `<span class="cmp-spec-sep">·</span><span class="cmp-spec-chip"><strong>SIZE</strong> ${escapeHtml(sizeText)}</span>` : ''}
       ${createdText ? `<span class="cmp-spec-sep">·</span><span class="cmp-spec-chip">${escapeHtml(createdText)}</span>` : ''}
-      ${cleanUrl ? `<a href="/${escapeHtml(cleanUrl)}" download="${escapeHtml(dlName)}" class="cmp-spec-download-btn" title="Download Original File">⬇ Download</a>` : ''}
+      ${dlHref ? `<a href="${escapeHtml(dlHref)}" download="${escapeHtml(dlName)}" class="cmp-spec-download-btn" title="Download Original File">⬇ Download</a>` : ''}
     </div>
   `;
 }
@@ -22227,7 +23049,7 @@ function renderCompareModal() {
       'cargo-grid': '⊞ Cargo 12-Col'
     };
     const activeOverlayLabel = overlayLabels[cs.overlayMode] || '';
-    optionsTrigger.textContent = activeOverlayLabel || '⊞ View';
+    optionsTrigger.textContent = activeOverlayLabel || '⊞ Guides & Info';
     optionsTrigger.classList.toggle('has-active-option', Boolean(activeOverlayLabel || cs.showSpecs));
   }
 
@@ -22365,8 +23187,9 @@ function renderCompareModal() {
       const isDiff = cs.diffBlend && idx === prevIdx && idx !== cs.activeIndex && isVisible;
       const cls = `cmp-stack-layer ${isAct ? 'is-active-layer' : ''} ${isDiff ? 'is-diff-blend' : ''} ${!isVisible ? 'is-layer-muted' : ''}`;
       const dispUrl = getLightboxDisplayUrl(a);
+      const vidSrc = getLightboxMediaSrc(a);
       const mediaHtml = a.kind === 'video'
-        ? `<video src="${escapeHtml(a.url)}" ${autoPlayAttr} preload="auto" loop muted playsinline crossorigin="anonymous"></video>`
+        ? `<video src="${escapeHtml(vidSrc)}" ${autoPlayAttr} preload="auto" loop muted playsinline crossorigin="anonymous"></video>`
         : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(a.title)}" draggable="false" crossorigin="anonymous" data-pin-nopin="true">`;
       return `<div class="${cls}" data-layer-idx="${idx}">${mediaHtml}</div>`;
     }).join('');
@@ -22391,8 +23214,9 @@ function renderCompareModal() {
     const rows = Math.max(1, Math.ceil(sel.length / cols));
     const cellsHtml = sel.map((a, idx) => {
       const dispUrl = getLightboxDisplayUrl(a);
+      const vidSrc = getLightboxMediaSrc(a);
       const mediaHtml = a.kind === 'video'
-        ? `<video src="${escapeHtml(a.url)}" ${autoPlayAttr} preload="auto" loop muted playsinline></video>`
+        ? `<video src="${escapeHtml(vidSrc)}" ${autoPlayAttr} preload="auto" loop muted playsinline></video>`
         : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(a.title)}" draggable="false" data-pin-nopin="true">`;
       return `
         <div class="cmp-split-cell" data-cell-idx="${idx}">
@@ -22402,9 +23226,9 @@ function renderCompareModal() {
           </span>
           <div class="cmp-split-cell-actions">
             <button type="button" class="cmp-cell-action-btn is-keep ${a.lightboxKeep ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.lightboxKeep ? 'true' : 'false'}" title="Mark as Keep">★ Keep</button>
-            <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Route to Portfolio">Portfolio</button>
-            <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Route to Instagram">IG</button>
-            <button type="button" class="cmp-cell-action-btn is-danger" data-trash-idx="${idx}" aria-label="Move ${escapeHtml(a.title)} to Trash" title="Move to Trash">Trash…</button>
+            <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Stage for Portfolio">Portfolio</button>
+            <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Stage for Instagram">Instagram</button>
+            <button type="button" class="cmp-cell-action-btn is-danger" data-trash-idx="${idx}" aria-label="Remove ${escapeHtml(a.title)}" title="Remove from Lightbox (keeps original file on Mac)">Remove…</button>
           </div>
           <div class="cmp-split-media-wrap" style="transform:${transformCss};">
             ${mediaHtml}
@@ -22464,7 +23288,9 @@ function renderCompareModal() {
         const a = sel[parseInt(btn.dataset.trashIdx, 10)];
         if (!a) return;
         const itemId = a.vaultItemId || a.id;
-        requestDelete('item', itemId, a.title || 'Asset');
+        const vIt = vault.items.find(x => x.id === itemId);
+        const delKind = (vIt && vIt.parentType === 'space' && vIt.parentId === 'lightbox') ? 'lb_item' : 'item';
+        requestDelete(delKind, itemId, a.title || 'Asset');
       });
     });
   }
@@ -22615,7 +23441,9 @@ function initCompareDialogEvents() {
     const active = sel[state.compareState.activeIndex] || sel[0];
     if (!active) return;
     const itemId = active.vaultItemId || active.id;
-    requestDelete('item', itemId, active.title || 'Asset');
+    const vIt = vault.items.find(x => x.id === itemId);
+    const delKind = (vIt && vIt.parentType === 'space' && vIt.parentId === 'lightbox') ? 'lb_item' : 'item';
+    requestDelete(delKind, itemId, active.title || 'Asset');
   });
 
   // Synchronized Master Video Timeline Controls (isolated from stage drag/pan)
@@ -22876,7 +23704,10 @@ function initCompareDialogEvents() {
       e.preventDefault();
       const active = sel[state.compareState.activeIndex] || sel[0];
       if (active) {
-        requestDelete('item', active.vaultItemId || active.id, active.title || 'Asset');
+        const itemId = active.vaultItemId || active.id;
+        const vIt = vault.items.find(x => x.id === itemId);
+        const delKind = (vIt && vIt.parentType === 'space' && vIt.parentId === 'lightbox') ? 'lb_item' : 'item';
+        requestDelete(delKind, itemId, active.title || 'Asset');
       }
     } else if (!inControl && e.key.toLowerCase() === 's' && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
@@ -22906,11 +23737,13 @@ function scanMissingLightboxDimensions(items) {
 
   items.forEach(it => {
     if (!it || !it.url || (it.naturalW > 0 && it.naturalH > 0) || it._dimScanFailed) return;
+    const kind = getLightboxMasterMediaKind(it);
+    const mediaSrc = kind === 'video' ? getLightboxMediaSrc(it) : getLightboxDisplayUrl(it);
+    if (!mediaSrc) return;
     if (_scanningAssetIds.has(it.id)) return;
     _scanningAssetIds.add(it.id);
     pending++;
 
-    const kind = getLightboxMasterMediaKind(it);
     const done = (w, h) => {
       _scanningAssetIds.delete(it.id);
       if (w > 0 && h > 0) {
@@ -22940,12 +23773,12 @@ function scanMissingLightboxDimensions(items) {
       v.muted = true;
       v.onloadedmetadata = () => done(v.videoWidth, v.videoHeight);
       v.onerror = () => done(0, 0);
-      v.src = it.url;
+      v.src = mediaSrc;
     } else {
       const img = new Image();
       img.onload = () => done(img.naturalWidth, img.naturalHeight);
       img.onerror = () => done(0, 0);
-      img.src = getLightboxDisplayUrl(it);
+      img.src = mediaSrc;
     }
   });
 }
@@ -22956,14 +23789,15 @@ async function exportLightboxSelectedFolder(itemsToExport, projectName = 'Studio
     return;
   }
   const filesPayload = itemsToExport
-    .filter(it => it && it.url)
+    .filter(it => it && (it.url || it.localPath))
     .map(it => ({
-      url: it.url,
-      title: it.originalFileName || it.title || it.url.split('/').pop()
+      url: it.url || '',
+      localPath: it.localPath || '',
+      title: it.originalFileName || it.title || String(it.url || '').split('/').pop()
     }));
 
   if (filesPayload.length === 0) {
-    showStatusToast('No downloadable media files in current selection.');
+    showStatusToast('No exportable media files in current selection.');
     return;
   }
 
@@ -23139,11 +23973,13 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
   _lbMenuOpenedViaKeyboard = Boolean(fromKeyboard);
 
   const targetIds = isPile ? pile.items.map(x => x.id) : [it.id];
-  const cleanUrl = String(it.url || '').replace(/^\//, '');
+  const mediaSrc = getLightboxMediaSrc(it);
+  const dlHref = mediaSrc ? (mediaSrc.startsWith('blob:') || mediaSrc.startsWith('/') || mediaSrc.startsWith('http') ? mediaSrc : '/' + mediaSrc) : '';
   const dlName = it.originalFileName || it.title || 'original_file';
-  const currentProjId = it.parentType === 'project' ? it.parentId : 'unsorted';
+  const currentProjId = it.lightboxProjectId || 'unsorted';
+  const lbProjects = getLightboxProjects(vault);
 
-  const projItemsHtml = (vault.projects || []).map(p => {
+  const projItemsHtml = lbProjects.map(p => {
     const isCurrent = currentProjId === p.id;
     return `
       <button type="button" data-lb-menu-move="${escapeHtml(p.id)}" ${isCurrent ? 'aria-disabled="true" disabled' : ''}>
@@ -23157,15 +23993,15 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
     ? `
       <button type="button" data-lb-menu-act="compare-pile-stack">
         <span class="lb-menu-icon" aria-hidden="true">⧉</span>
-        <span>Stack 1:1 (${pile.items.length} passes)</span>
+        <span>Compare 1:1 Overlay (${pile.items.length})</span>
       </button>
       <button type="button" data-lb-menu-act="compare-pile-split">
-        <span class="lb-menu-icon" aria-hidden="true">⇄</span>
-        <span>Side-by-Side (${pile.items.length} passes)</span>
+        <span class="lb-menu-icon" aria-hidden="true">◫</span>
+        <span>Side-by-Side (${pile.items.length})</span>
       </button>
       <button type="button" data-lb-menu-act="select-pile">
         <span class="lb-menu-icon" aria-hidden="true">✓</span>
-        <span>Select All ${pile.items.length} Passes</span>
+        <span>Select All ${pile.items.length} Versions</span>
       </button>
       <hr>
       <button type="button" data-lb-menu-move="unsorted" ${currentProjId === 'unsorted' ? 'aria-disabled="true" disabled' : ''}>
@@ -23179,8 +24015,8 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
       </button>
       <hr>
       <button type="button" class="is-danger-item" data-lb-menu-act="trash-pile">
-        <span class="lb-menu-icon" aria-hidden="true">🗑</span>
-        <span>Move Stack (${pile.items.length}) to Trash…</span>
+        <span class="lb-menu-icon" aria-hidden="true">✕</span>
+        <span>Remove Stack (${pile.items.length}) from Lightbox…</span>
       </button>
     `
     : `
@@ -23190,15 +24026,15 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
       </button>
       <button type="button" data-lb-menu-act="select-toggle">
         <span class="lb-menu-icon" aria-hidden="true">${isAssetCompareSelected(it.id) ? '✕' : '✓'}</span>
-        <span>${isAssetCompareSelected(it.id) ? 'Deselect' : 'Select for Batch Action'}</span>
+        <span>${isAssetCompareSelected(it.id) ? 'Deselect' : 'Select'}</span>
       </button>
       <button type="button" data-lb-menu-act="rename">
         <span class="lb-menu-icon" aria-hidden="true">✎</span>
         <span>Rename…</span>
       </button>
-      <button type="button" data-lb-menu-act="details">
-        <span class="lb-menu-icon" aria-hidden="true">ⓘ</span>
-        <span>Edit Details &amp; Notes…</span>
+      <button type="button" data-lb-menu-act="reveal-finder">
+        <span class="lb-menu-icon" aria-hidden="true">📂</span>
+        <span>Reveal in Finder</span>
       </button>
       <hr>
       <button type="button" data-lb-menu-move="unsorted" ${currentProjId === 'unsorted' ? 'aria-disabled="true" disabled' : ''}>
@@ -23211,13 +24047,15 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         <span>Move to New Project…</span>
       </button>
       <hr>
-      <a href="/${escapeHtml(cleanUrl)}" download="${escapeHtml(dlName)}" data-lb-menu-download="1">
-        <span class="lb-menu-icon" aria-hidden="true">↓</span>
-        <span>Download Original</span>
-      </a>
+      ${dlHref ? `
+        <a href="${escapeHtml(dlHref)}" download="${escapeHtml(dlName)}" data-lb-menu-download="1">
+          <span class="lb-menu-icon" aria-hidden="true">↓</span>
+          <span>Download Copy</span>
+        </a>
+      ` : ''}
       <button type="button" class="is-danger-item" data-lb-menu-act="trash-item">
-        <span class="lb-menu-icon" aria-hidden="true">🗑</span>
-        <span>Move to Trash…</span>
+        <span class="lb-menu-icon" aria-hidden="true">✕</span>
+        <span>Remove from Lightbox…</span>
         <span class="hint" aria-hidden="true">⌫</span>
       </button>
     `;
@@ -23280,6 +24118,8 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         });
       } else if (act === 'rename') {
         requestAnimationFrame(() => startInlineLightboxCardRename(it.id));
+      } else if (act === 'reveal-finder') {
+        revealLightboxItemInFinder(it);
       } else if (act === 'details') {
         openItemInspector(it.id);
       } else if (act === 'move-new-proj') {
@@ -23288,7 +24128,7 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         renderWorkspace();
         requestAnimationFrame(() => document.getElementById('lbInlineNewProjInput')?.focus());
       } else if (act === 'trash-item') {
-        requestDelete('item', it.id, it.title || 'Asset');
+        requestDelete('lb_item', it.id, it.title || 'Asset');
       } else if (act === 'compare-pile-stack' || act === 'compare-pile-split') {
         if (!pile) return;
         state.selectedCompareAssets = pile.items.map(pIt => ({
@@ -23325,7 +24165,7 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         renderCompareFloatingBar();
       } else if (act === 'trash-pile') {
         if (!pile) return;
-        requestDelete('batch_items', targetIds, `${pile.items.length} passes in stack "${pile.displayStem}"`);
+        requestDelete('lb_batch_items', targetIds, `${pile.items.length} versions in "${pile.displayStem}"`);
       }
     });
   });
@@ -23359,17 +24199,25 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
   const isIg = it.igStatus === 'queued' || it.igStatus === 'published' || it.lightboxRoute === 'instagram';
   const isCompared = isAssetCompareSelected(it.id);
   const dispUrl = getLightboxDisplayUrl(it);
+  const vidSrc = getLightboxMediaSrc(it);
   const titleText = it.title || 'Untitled Asset';
-  const projObj = it.parentType === 'project' ? vault.projects.find(p => p.id === it.parentId) : null;
+  const lbProjects = getLightboxProjects(vault);
+  const projObj = it.lightboxProjectId ? lbProjects.find(p => p.id === it.lightboxProjectId) : null;
   const subf = it.subfolderName || it.sourceSubfolder || '';
   const subLabel = (w > 0 && h > 0)
     ? `${w}×${h}`
     : (it.fileSize ? formatBytes(it.fileSize) : mediaKind.toUpperCase());
   const fitMode = state.lightboxFitMode === 'cover' ? 'is-cover-fit' : 'is-contain-fit';
+  const isUnresolved = String(it.url || '').startsWith('local-handle://') && !vidSrc;
 
-  const mediaHtml = mediaKind === 'video'
-    ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1"></video>`
-    : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}">`;
+  let mediaHtml = '';
+  if (isUnresolved) {
+    mediaHtml = `<div class="lb-reconnect-card-box"><button type="button" class="lb-reconnect-card-btn" data-lb-reconnect="1">↻ Reconnect File</button></div>`;
+  } else if (mediaKind === 'video') {
+    mediaHtml = `<video src="${escapeHtml(vidSrc)}#t=0.05" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1"></video>`;
+  } else {
+    mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}">`;
+  }
 
   return `
     <article class="lb-studio-card ${isKeep ? 'is-kept' : ''} ${isCompared ? 'is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" draggable="true">
@@ -23408,7 +24256,7 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
           <span aria-hidden="true">${isPortfolio ? '✓ ' : ''}</span>Portfolio<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
         </button>
         <button type="button" class="lb-action-pill is-ig" aria-pressed="${isIg ? 'true' : 'false'}" data-lb-route-ig="${escapeHtml(it.id)}" title="Stage for Instagram">
-          <span aria-hidden="true">${isIg ? '✓ ' : ''}</span>IG<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+          <span aria-hidden="true">${isIg ? '✓ ' : ''}</span>Instagram<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
         </button>
       </footer>
     </article>
@@ -23418,88 +24266,71 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
 function buildLightboxPileCardHtml(pile) {
   const lead = pile.leadItem;
   const count = pile.items.length;
-  const isExpanded = Boolean(state.lightboxExpandedStacks && state.lightboxExpandedStacks[pile.stackKey]);
-  const mediaKind = pile.mediaGroup;
+  const isCollapsed = Boolean(state.lightboxCollapsedStacks && state.lightboxCollapsedStacks[pile.stackKey]);
   const w = Number(lead.naturalW || 0);
   const h = Number(lead.naturalH || 0);
   const ratioInfo = (w > 0 && h > 0) ? computeExactAspectRatio(w, h) : { key: 'Auto', isOdd: false };
   const keptInPile = pile.items.filter(i => i.lightboxKeep).length;
-
-  const previewSlice = pile.items.slice(0, 4);
-  const splitCellsHtml = previewSlice.map((pIt, idx) => {
-    const pDisp = getLightboxDisplayUrl(pIt);
-    const lbl = pile.labels[idx] || `v${idx + 1}`;
-    const cellMedia = mediaKind === 'video'
-      ? `<video src="${escapeHtml(pIt.url)}#t=0.05" preload="metadata" loop muted playsinline data-lb-video="1"></video>`
-      : `<img src="${escapeHtml(pDisp)}" alt="${escapeHtml(pIt.title || lbl)}" loading="lazy" decoding="async" data-pin-nopin="true">`;
-    return `
-      <div class="lb-pile-cell">
-        ${cellMedia}
-        <span class="lb-pile-cell-badge">${escapeHtml(lbl)}</span>
-      </div>
-    `;
-  }).join('');
-
+  const fitMode = state.lightboxFitMode === 'cover' ? 'is-cover-fit' : 'is-contain-fit';
+  const leadDisp = getLightboxDisplayUrl(lead);
   const passChipsHtml = pile.labels.slice(0, 4).map(lbl => `<span class="lb-pass-mini-chip">${escapeHtml(lbl)}</span>`).join('');
 
-  const expandedCardsHtml = isExpanded
-    ? `
-      <div class="lb-pile-drawer">
-        <div class="lb-pile-drawer-header">
-          <div class="lb-pile-drawer-title">
-            <span class="lb-pile-badge-strong">Stack · ${escapeHtml(pile.displayStem)}</span>
-            <span class="lb-pile-drawer-count">${count} passes</span>
+  if (!isCollapsed) {
+    return `
+      <section class="lb-stack-group" data-lb-pile-key="${escapeHtml(pile.stackKey)}">
+        <div class="lb-stack-group-head">
+          <div class="lb-stack-group-title">
+            <span class="lb-stack-icon" aria-hidden="true">⧉</span>
+            <strong class="lb-stack-stem-text">${escapeHtml(pile.displayStem)}</strong>
+            <span class="lb-stack-count-badge">${count} versions</span>
+            ${keptInPile > 0 ? `<span class="lb-tag-pill is-kept-count">★ ${keptInPile} Kept</span>` : ''}
           </div>
-          <div class="lb-pile-drawer-actions">
-            <button type="button" class="lb-tool-btn is-primary" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack">Stack 1:1 (${count})</button>
-            <button type="button" class="lb-tool-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="split">Side-by-Side (${count})</button>
-            <button type="button" class="lb-tool-btn" data-lb-select-pile="${escapeHtml(pile.stackKey)}">Select All</button>
-            <button type="button" class="lb-tool-btn is-danger-ghost" data-lb-trash-pile="${escapeHtml(pile.stackKey)}">Trash Stack…</button>
+          <div class="lb-stack-group-actions">
+            <button type="button" class="lb-tool-btn is-primary" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack">⇄ Compare 1:1</button>
+            <button type="button" class="lb-tool-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="split">◫ Side-by-Side</button>
             <button type="button" class="lb-tool-btn is-ghost" data-lb-toggle-pile="${escapeHtml(pile.stackKey)}">Collapse</button>
+            <button type="button" class="lb-card-menu-btn" aria-haspopup="menu" aria-expanded="false" data-lb-pile-menu="${escapeHtml(pile.stackKey)}" aria-label="Stack actions for ${escapeHtml(pile.displayStem)}" title="Stack actions">⋯</button>
           </div>
         </div>
-        <div class="lb-studio-grid is-pile-subgrid" data-scale-step="${state.lightboxScaleStep || 3}">
+        <div class="lb-studio-grid lb-stack-inner-grid" data-scale-step="${state.lightboxScaleStep || 3}">
           ${pile.items.map((it, idx) => buildLightboxAssetCardHtml(it, pile.labels[idx] || `v${idx + 1}`)).join('')}
         </div>
-      </div>
-    `
-    : '';
+      </section>
+    `;
+  }
 
   return `
-    <article class="lb-studio-card is-render-pile ${isExpanded ? 'is-expanded' : ''}" data-lb-pile-key="${escapeHtml(pile.stackKey)}" data-lb-item-id="${escapeHtml(lead.id)}" draggable="true">
-      <div class="lb-studio-stage lb-pile-stage">
-        <div class="lb-pile-grid count-${previewSlice.length}">
-          ${splitCellsHtml}
-        </div>
+    <article class="lb-studio-card is-render-pile is-collapsed-pile" data-lb-pile-key="${escapeHtml(pile.stackKey)}" data-lb-item-id="${escapeHtml(lead.id)}" draggable="true">
+      <div class="lb-studio-stage">
+        <img src="${escapeHtml(leadDisp)}" alt="${escapeHtml(pile.displayStem)}" loading="lazy" decoding="async" class="lb-studio-media ${fitMode}">
         <div class="lb-stage-top-row">
           <div class="lb-stage-tags-left">
-            <span class="lb-tag-pill is-stack">${count} Passes</span>
+            <span class="lb-tag-pill is-stack">${count} Versions</span>
             ${keptInPile > 0 ? `<span class="lb-tag-pill is-kept-count">★ ${keptInPile} Kept</span>` : ''}
           </div>
           <div class="lb-stage-tags-right">
             <span class="lb-tag-pill is-ratio ${ratioInfo.isOdd ? 'is-odd' : ''}">${ratioInfo.isOdd ? '✦ ' : ''}${escapeHtml(ratioInfo.key)}</span>
-            <button type="button" class="lb-card-menu-btn" aria-haspopup="menu" aria-expanded="false" data-lb-pile-menu="${escapeHtml(pile.stackKey)}" aria-label="Stack actions for ${escapeHtml(pile.displayStem)}" title="Stack actions (Move, Select All, Trash Stack)">⋯</button>
+            <button type="button" class="lb-card-menu-btn" aria-haspopup="menu" aria-expanded="false" data-lb-pile-menu="${escapeHtml(pile.stackKey)}" aria-label="Stack actions for ${escapeHtml(pile.displayStem)}" title="Stack actions">⋯</button>
           </div>
         </div>
       </div>
       <header class="lb-studio-card-header">
         <h4 class="lb-studio-card-title">
-          <button type="button" class="lb-card-primary-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack" title="Compare all ${count} passes of ${escapeHtml(pile.displayStem)} in 1:1 Layer Stack">
+          <button type="button" class="lb-card-primary-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack" title="Compare all ${count} versions of ${escapeHtml(pile.displayStem)}">
             ${escapeHtml(pile.displayStem)}
           </button>
         </h4>
         <div class="lb-pile-chips-wrap">${passChipsHtml}</div>
       </header>
       <footer class="lb-studio-card-footer">
-        <button type="button" class="lb-action-pill is-pile-open-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack" title="Open all ${count} passes in 1:1 Layer Stack">
-          Stack 1:1 (${count})<span class="cmp-sr-only"> ${escapeHtml(pile.displayStem)}</span>
+        <button type="button" class="lb-action-pill is-pile-open-btn" data-lb-compare-pile="${escapeHtml(pile.stackKey)}" data-lb-pile-mode="stack" title="Open all ${count} versions in 1:1 Layer Stack">
+          ⇄ Compare (${count})
         </button>
-        <button type="button" class="lb-action-pill" aria-expanded="${isExpanded ? 'true' : 'false'}" data-lb-toggle-pile="${escapeHtml(pile.stackKey)}" title="Unfold or collapse individual passes">
-          ${isExpanded ? 'Collapse' : `Unfold (${count})`}<span class="cmp-sr-only"> ${escapeHtml(pile.displayStem)}</span>
+        <button type="button" class="lb-action-pill" aria-expanded="false" data-lb-toggle-pile="${escapeHtml(pile.stackKey)}" title="Expand stack">
+          Show ${count}
         </button>
       </footer>
     </article>
-    ${expandedCardsHtml}
   `;
 }
 

@@ -14,7 +14,7 @@
   <noscript>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;600;700&display=swap">
   </noscript>
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="stylesheet" href="style.css?v=104">
   <style>
     html, body {
       background-color: var(--bg);
@@ -485,15 +485,15 @@
           <span id="compareActionCount">⇄ Compare (2)</span>
         </button>
         <div class="compare-bar-divider"></div>
-        <button type="button" class="compare-status-btn is-keep" id="btnBatchMarkKeep" title="Mark selected as Keep (★ Selected)">★ Keep</button>
-        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Route selected to Portfolio">Portfolio</button>
-        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Route selected to Instagram">IG</button>
+        <button type="button" class="compare-status-btn is-keep" id="btnBatchMarkKeep" title="Mark selected as Keep">★ Keep</button>
+        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Stage selected for Portfolio">Portfolio</button>
+        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Stage selected for Instagram">Instagram</button>
         <button type="button" class="compare-status-btn is-published" id="btnBatchMarkPublished" title="Mark selected as Published (IG Live)" hidden>● IG Live</button>
         <button type="button" class="compare-status-btn lb-only-bar-btn" id="btnBatchMoveProject" aria-haspopup="menu" aria-expanded="false" commandfor="lbBatchMovePopover" command="toggle-popover" title="Move selected files to another project" hidden>Move to… <span aria-hidden="true">▾</span></button>
         <div id="lbBatchMovePopover" popover="auto" class="lb-move-popover">
           <div id="lbBatchMoveInner" focusgroup="menu nomemory" aria-labelledby="btnBatchMoveProject"></div>
         </div>
-        <button type="button" class="compare-status-btn is-danger lb-only-bar-btn" id="btnBatchTrashSelected" title="Move selected files to Trash (Delete)" hidden>Trash…</button>
+        <button type="button" class="compare-status-btn is-danger lb-only-bar-btn" id="btnBatchTrashSelected" title="Remove selected files from Lightbox (Delete)" hidden>Remove…</button>
         <button type="button" class="compare-clear-btn" id="btnClearCompareSelection" aria-label="Clear selection" title="Clear Selection (Esc)">✕</button>
       </div>
     </div>
@@ -511,19 +511,19 @@
 
         <div class="compare-hud-left">
           <div class="compare-mode-toggle" role="group" aria-label="Comparison mode">
-            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" aria-pressed="true" autofocus title="Layer Stack (S)">
-              Stack
+            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" aria-pressed="true" autofocus title="1:1 Overlay — flip versions with keys 1-9 or ← → (S)">
+              1:1 Overlay
             </button>
-            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" aria-pressed="false" title="Side-by-Side (S)">
-              Split
+            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" aria-pressed="false" title="Side-by-Side Split (S)">
+              Side-by-Side
             </button>
           </div>
 
           <!-- Contextual Stack-Only Controls (Hidden in Split Mode) -->
           <div class="cmp-stack-inline-controls" id="cmpStackInlineControls" role="group" aria-label="Stack layers">
             <div class="compare-layers-strip" id="compareLayerPills"></div>
-            <button type="button" class="cmp-ghost-pill" id="btnCmpDiffToggle" aria-pressed="false" title="Pixel Difference Map (D)">
-              ◐ Diff
+            <button type="button" class="cmp-ghost-pill" id="btnCmpDiffToggle" aria-pressed="false" title="Highlight pixel differences between versions (D)">
+              ◐ Pixel Diff
             </button>
           </div>
         </div>
@@ -532,18 +532,18 @@
           <!-- Contextual Stack-Only Curation (Hidden in Split Mode where each pane has quiet hover actions) -->
           <div class="compare-active-ig-group" id="compareActiveIgGroup" role="group" aria-label="Curate active layer">
             <button type="button" class="cmp-ig-btn is-keep" id="btnCmpToggleKeep" aria-pressed="false" title="Mark as Keep">★ Keep</button>
-            <button type="button" class="cmp-ig-btn is-website" id="btnCmpToggleWebsite" aria-pressed="false" title="Send to Portfolio">Portfolio</button>
-            <button type="button" class="cmp-ig-btn is-queued" id="btnCmpToggleQueued" aria-pressed="false" title="Send to Instagram">IG</button>
+            <button type="button" class="cmp-ig-btn is-website" id="btnCmpToggleWebsite" aria-pressed="false" title="Stage for Portfolio">Portfolio</button>
+            <button type="button" class="cmp-ig-btn is-queued" id="btnCmpToggleQueued" aria-pressed="false" title="Stage for Instagram">Instagram</button>
             <button type="button" class="cmp-ig-btn is-published" id="btnCmpTogglePublished" aria-pressed="false" hidden>IG Live</button>
-            <button type="button" class="cmp-ig-btn is-danger" id="btnCmpDeleteActive" aria-label="Move active asset to Trash" title="Move active asset to Trash (Delete)">Trash…</button>
+            <button type="button" class="cmp-ig-btn is-danger" id="btnCmpDeleteActive" aria-label="Remove active file" title="Remove active file (Delete)">Remove…</button>
           </div>
 
           <!-- Appears ONLY when zoomed != 100% -->
           <button type="button" class="cmp-zoom-pill" id="btnCmpZoomReset" title="Reset zoom to 100%" hidden>100%</button>
 
           <!-- Clean Popover Trigger for Safe Zones, Diff Tuning, File Info & Zoom -->
-          <button type="button" class="cmp-ghost-pill" id="btnCmpOptionsTrigger" popovertarget="cmpOptionsPopover" title="Safe zones, file info &amp; view options">
-            ⊞ View
+          <button type="button" class="cmp-ghost-pill" id="btnCmpOptionsTrigger" popovertarget="cmpOptionsPopover" title="Crop guides, file info &amp; zoom">
+            ⊞ Guides &amp; Info
           </button>
 
           <button type="button" class="cmp-close-btn" id="btnCloseCompareDialog" aria-label="Close comparison" title="Close (Esc)">✕</button>
@@ -1094,11 +1094,13 @@
     </div>
   </dialog>
 
-  <!-- THE LIGHTBOX — SHARED CARD CONTEXT MENU POPOVER & POLITE STATUS -->
+  <!-- THE LIGHTBOX — SHARED CARD CONTEXT MENU POPOVER, LOCAL PICKER INPUTS & POLITE STATUS -->
   <div id="lbContextPointAnchor" class="lb-context-point-anchor" aria-hidden="true"></div>
   <div id="lbSharedCardMenu" popover="auto" class="lb-card-menu-popover">
     <div id="lbSharedCardMenuInner" focusgroup="menu nomemory" aria-label="Asset actions"></div>
   </div>
+  <input type="file" id="lbLocalFileInput" multiple accept="image/*,video/*,.heic,.heif,.tif,.tiff,.mkv,.avi,.mov,.mp4,.webm" hidden>
+  <input type="file" id="lbLocalFolderInput" webkitdirectory directory multiple hidden>
   <p class="cmp-sr-only" id="lbPoliteAnnouncer" role="status" aria-live="polite"></p>
 
   <!-- THE LIGHTBOX — EXACT DUPLICATE DETECTION & VISIBLE PROOF DIALOG -->
@@ -1124,6 +1126,6 @@
       import("https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js");
     }
   </script>
-  <script src="app.js?v=103"></script>
+  <script src="app.js?v=104"></script>
 </body>
 </html>
