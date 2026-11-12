@@ -1579,7 +1579,6 @@ function createSeedVault() {
 /* ==========================================================================
    RUNTIME STATE & PERSISTENCE
    ========================================================================== */
-let vault = loadVault();
 const NAV_STATE_KEY = 'ideal_nav_state_v1';
 
 let state = {
@@ -1681,6 +1680,10 @@ let state = {
     showAccountModal: false
   }
 };
+if (typeof window !== 'undefined') window.state = state;
+
+let vault = loadVault();
+if (typeof window !== 'undefined') window.vault = vault;
 
 function saveNavState() {
   try {
@@ -21591,16 +21594,18 @@ function ensureLightboxCleanWorkspace(v = vault) {
         createdAt: now - 1000
       }
     );
-    if (typeof state !== 'undefined' && state) {
-      state.selectedCompareAssets = [];
-      state.lightboxProjectId = 'lbproj_character_lookdev';
+    const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
+    if (st) {
+      st.selectedCompareAssets = [];
+      st.lightboxProjectId = 'lbproj_character_lookdev';
     }
   }
 
-  if (typeof state !== 'undefined' && state) {
-    const curProj = state.lightboxProjectId || 'all';
+  const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
+  if (st) {
+    const curProj = st.lightboxProjectId || 'all';
     if (curProj !== 'all' && curProj !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === curProj)) {
-      state.lightboxProjectId = v.lightboxProjects[0]?.id || 'all';
+      st.lightboxProjectId = v.lightboxProjects[0]?.id || 'all';
     }
   }
 }
