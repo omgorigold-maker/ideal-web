@@ -22257,8 +22257,9 @@ function toggleCompareSelect(assetObj) {
     state.selectedCompareAssets.push(assetObj);
   }
   if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
-    const card = document.querySelector(`#lightboxMainShell .lb-studio-card[data-lb-item-id="${CSS.escape(assetObj.id)}"]`);
-    if (card) card.classList.toggle('is-compared', idx === -1);
+    document.querySelectorAll(`#lightboxMainShell [data-lb-item-id="${CSS.escape(assetObj.id)}"]`).forEach(el => {
+      el.classList.toggle('is-compared', idx === -1);
+    });
     const cnt = state.selectedCompareAssets.length;
     const selGroup = document.querySelector('#lightboxMainShell #lbSelActionsGroup');
     if (!selGroup) {
@@ -26327,8 +26328,8 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
       ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
-      <article class="lb-ig-cell" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
-        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-grid" aria-label="Check 4:5 crop for ${escapeHtml(titleText)}" title="Drag to reorder · Click to inspect 4:5 crop"></button>
+      <article class="lb-ig-cell${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
+        <button type="button" class="lb-ig-cell-open-btn" aria-label="Select or compare ${escapeHtml(titleText)}" title="Click to select · Double-click to compare · Drag to reorder"></button>
         ${mediaHtml}
         <span class="lb-ig-cell-badge">#${idx + 1}${kind === 'video' ? ' · Reel' : ''}</span>
         <div class="lb-ig-cell-controls">
@@ -26350,8 +26351,8 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
       ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
-      <article class="lb-ig-reel-card" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
-        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-story" aria-label="Check 9:16 safe zone for ${escapeHtml(titleText)}" title="Drag to reorder · Click to inspect 9:16 safe zone"></button>
+      <article class="lb-ig-reel-card${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
+        <button type="button" class="lb-ig-cell-open-btn" aria-label="Select or compare ${escapeHtml(titleText)}" title="Click to select · Double-click to compare · Drag to reorder"></button>
         ${mediaHtml}
         <span class="lb-ig-cell-badge">#${idx + 1} · 9:16</span>
         <div class="lb-ig-cell-controls">
@@ -27387,6 +27388,66 @@ function renderLightboxView(ws, spaceObj) {
       if (draggedCard) draggedCard.classList.remove('is-dragging');
       draggedCard = null;
       clearDropHighlight();
+    });
+
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('.lb-ig-cell-controls')) return;
+      const card = e.target.closest(cardSelector);
+      if (!card || !container.contains(card)) return;
+      const clickedId = card.dataset.lbItemId;
+      const it = vault.items.find(i => i.id === clickedId);
+      if (!it) return;
+      state._lastLbSelectedId = clickedId;
+      toggleCompareSelect({
+        id: it.id,
+        title: it.title || 'Asset',
+        url: it.url,
+        kind: getLightboxMasterMediaKind(it),
+        igStatus: it.igStatus || '',
+        lightboxKeep: Boolean(it.lightboxKeep),
+        vaultItemId: it.id,
+        notes: it.notes || ''
+      });
+    });
+
+    container.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.lb-ig-cell-controls')) return;
+      const card = e.target.closest(cardSelector);
+      if (!card || !container.contains(card)) return;
+      const clickedId = card.dataset.lbItemId;
+      const it = vault.items.find(i => i.id === clickedId);
+      if (!it) return;
+      const otherSelected = (state.selectedCompareAssets || []).filter(a => a.id !== it.id && a.vaultItemId !== it.id);
+      if (otherSelected.length === 0) {
+        state.selectedCompareAssets = [{
+          id: it.id,
+          title: it.title || 'Asset',
+          url: it.url,
+          kind: getLightboxMasterMediaKind(it),
+          igStatus: it.igStatus || '',
+          lightboxKeep: Boolean(it.lightboxKeep),
+          vaultItemId: it.id,
+          notes: it.notes || ''
+        }];
+        renderCompareFloatingBar();
+        openCompareDialog(it.id, { singleOnly: true });
+      } else {
+        if (!isAssetCompareSelected(it.id)) {
+          state.selectedCompareAssets.push({
+            id: it.id,
+            title: it.title || 'Asset',
+            url: it.url,
+            kind: getLightboxMasterMediaKind(it),
+            igStatus: it.igStatus || '',
+            lightboxKeep: Boolean(it.lightboxKeep),
+            vaultItemId: it.id,
+            notes: it.notes || ''
+          });
+          card.classList.add('is-compared');
+          renderCompareFloatingBar();
+        }
+        openCompareDialog(it.id);
+      }
     });
 
     container.querySelectorAll(`[${moveBtnAttr}]`).forEach(btn => {

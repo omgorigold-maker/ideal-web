@@ -14710,6 +14710,13 @@ progress.lb-progress-el::-moz-progress-bar {
   outline-offset: -2px;
 }
 
+.lb-ig-cell.is-compared,
+.lb-ig-reel-card.is-compared {
+  outline: 3px solid #2563eb;
+  outline-offset: -3px;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
 .lb-ig-move-btns {
   display: flex;
   align-items: center;
