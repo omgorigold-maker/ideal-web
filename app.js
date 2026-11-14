@@ -950,7 +950,7 @@ function createSeedVault() {
         title: 'The Lightbox',
         kicker: '03 / CURATION, COMPARISON & ROUTING HUB',
         heading: 'The Lightbox — Curation, Comparison & Routing Hub',
-        categories: ['All Assets', 'Stacked Piles', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'],
+        categories: ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'],
         ui: {
           layoutMode: 'wall',
           cardSize: 280,
@@ -1807,11 +1807,14 @@ function restoreNavState() {
         if (typeof saved.lightboxProjectId === 'string' && saved.lightboxProjectId) {
           state.lightboxProjectId = saved.lightboxProjectId;
         }
-        if (typeof saved.lightboxFilter === 'string' && saved.lightboxFilter) {
-          state.lightboxFilter = saved.lightboxFilter;
-        }
         if (typeof saved.lightboxMediaKind === 'string' && saved.lightboxMediaKind) {
           state.lightboxMediaKind = saved.lightboxMediaKind;
+        }
+        if (typeof saved.lightboxFilter === 'string' && saved.lightboxFilter) {
+          // One-time conversion of retired filter names
+          if (saved.lightboxFilter === 'Images') state.lightboxMediaKind = 'image';
+          if (saved.lightboxFilter === 'Videos') state.lightboxMediaKind = 'video';
+          state.lightboxFilter = ['Images', 'Videos', 'Stacked Piles'].includes(saved.lightboxFilter) ? 'All Assets' : saved.lightboxFilter;
         }
         if (typeof saved.sidebarOpen === 'boolean') {
           state.sidebarOpen = saved.sidebarOpen;
@@ -2664,7 +2667,7 @@ function ensureVaultSleekAndGDrive(v) {
       title: keepTitle('lightbox', 'The Lightbox'),
       kicker: 'II. LAB & ASSETS / 03',
       heading: keepHeading('lightbox', 'The Lightbox — Curation, Comparison & Routing Hub'),
-      categories: ['All Assets', 'Stacked Piles', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'],
+      categories: ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'],
       ui: {
         ...(oldSpacesMap.lightbox?.ui || {}),
         layoutMode: 'wall',
@@ -5783,15 +5786,6 @@ function renderFilterActionRow() {
     'Instagram Board': 'Instagram'
   };
   if (isLightboxSpace) {
-    if (state.lightboxFilter === 'Images') {
-      state.lightboxMediaKind = 'image';
-      state.lightboxFilter = 'All Assets';
-    } else if (state.lightboxFilter === 'Videos') {
-      state.lightboxMediaKind = 'video';
-      state.lightboxFilter = 'All Assets';
-    } else if (state.lightboxFilter === 'Stacked Piles') {
-      state.lightboxFilter = 'All Assets';
-    }
     list = ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
@@ -6156,12 +6150,9 @@ function getCategoryCount(type, obj, cat, isFirstAll) {
   if (type === 'space' && obj.id === 'lightbox') {
     const items = getLightboxAssetsForActiveProject();
     if (isFirstAll || cat === 'All Assets') return items.length;
-    if (cat === 'Images') return items.filter(i => getLightboxMasterMediaKind(i) === 'image').length;
-    if (cat === 'Videos') return items.filter(i => getLightboxMasterMediaKind(i) === 'video').length;
-    if (cat === 'Stacked Piles') return buildLightboxStacks(items).pilesCount;
     if (cat === '★ Keep Selected') return items.filter(i => Boolean(i.lightboxKeep)).length;
-    if (cat === 'Portfolio Staging') return items.filter(i => i.igStatus === 'website' || i.lightboxRoute === 'portfolio').length;
-    if (cat === 'Instagram Board') return items.filter(i => i.igStatus === 'queued' || i.igStatus === 'published' || i.lightboxRoute === 'instagram').length;
+    if (cat === 'Portfolio Staging') return items.filter(i => isLightboxPortfolioRouted(i)).length;
+    if (cat === 'Instagram Board') return items.filter(i => isLightboxInstagramRouted(i)).length;
     return items.length;
   }
   if (type === 'project') {
@@ -21997,6 +21988,14 @@ const lightboxNeedsPermissionIds = new Set();
 const lightboxResolveAttemptedIds = new Set(); // searched once per session; Reconnect clears it
 let _lbHandlesDbPromise = null;
 
+function isLightboxPortfolioRouted(it) {
+  return Boolean(it) && (it.igStatus === 'website' || it.lightboxRoute === 'portfolio');
+}
+
+function isLightboxInstagramRouted(it) {
+  return Boolean(it) && (it.igStatus === 'queued' || it.igStatus === 'published' || it.lightboxRoute === 'instagram');
+}
+
 function getLightboxProjects(v = vault) {
   if (!v) return [];
   if (!Array.isArray(v.lightboxProjects)) {
@@ -23609,7 +23608,6 @@ function buildLightboxStacks(items) {
 }
 
 function getLightboxAssetsForActiveProject() {
-  ensureLightboxCleanWorkspace(vault);
   const projId = state.lightboxProjectId || 'all';
   const validProjs = getLightboxProjects(vault);
   if (projId !== 'all' && projId !== 'unsorted' && !validProjs.some(p => p.id === projId)) {
@@ -25176,8 +25174,8 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
   const h = Number(it.naturalH || 0);
   const ratioInfo = (w > 0 && h > 0) ? computeExactAspectRatio(w, h) : { key: 'Auto', label: 'Native Ratio', isOdd: false };
   const isKeep = Boolean(it.lightboxKeep);
-  const isPortfolio = it.igStatus === 'website' || it.lightboxRoute === 'portfolio';
-  const isIg = it.igStatus === 'queued' || it.igStatus === 'published' || it.lightboxRoute === 'instagram';
+  const isPortfolio = isLightboxPortfolioRouted(it);
+  const isIg = isLightboxInstagramRouted(it);
   const isCompared = isAssetCompareSelected(it.id);
   const dispUrl = getLightboxDisplayUrl(it);
   const vidSrc = getLightboxMediaSrc(it);
@@ -25795,14 +25793,6 @@ function renderLightboxView(ws, spaceObj) {
   const { step: scaleStep } = getContainerScaleContext('space', spaceObj || vault.spaces.find(s => s.id === 'lightbox'));
   state.lightboxScaleStep = scaleStep;
 
-  if (state.lightboxFilter === 'Images') {
-    state.lightboxMediaKind = 'image';
-    state.lightboxFilter = 'All Assets';
-  } else if (state.lightboxFilter === 'Videos') {
-    state.lightboxMediaKind = 'video';
-    state.lightboxFilter = 'All Assets';
-  }
-
   const activeFilter = state.lightboxFilter || 'All Assets';
   const mediaKindFilter = state.lightboxMediaKind || 'all';
   const activeRatio = state.lightboxRatioFilter || 'all';
@@ -25814,7 +25804,7 @@ function renderLightboxView(ws, spaceObj) {
   const fitMode = state.lightboxFitMode || 'contain';
 
   function itIsIgRouted(i) {
-    return i.igStatus === 'queued' || i.igStatus === 'published' || i.lightboxRoute === 'instagram';
+    return isLightboxInstagramRouted(i);
   }
 
   // Compute unique exact aspect ratios + media kind counts across the active project workspace
@@ -25850,7 +25840,7 @@ function renderLightboxView(ws, spaceObj) {
       if (rKey !== activeRatio) return false;
     }
     if (activeFilter === '★ Keep Selected') return Boolean(it.lightboxKeep);
-    if (activeFilter === 'Portfolio Staging') return it.igStatus === 'website' || it.lightboxRoute === 'portfolio';
+    if (activeFilter === 'Portfolio Staging') return isLightboxPortfolioRouted(it);
     if (activeFilter === 'Instagram Board') return itIsIgRouted(it);
     return true;
   });
@@ -26766,7 +26756,7 @@ function renderLightboxView(ws, spaceObj) {
       e.stopPropagation();
       const it = vault.items.find(i => i.id === btn.dataset.lbRouteWeb);
       if (!it) return;
-      const isCurrentlyWeb = it.igStatus === 'website' || it.lightboxRoute === 'portfolio';
+      const isCurrentlyWeb = isLightboxPortfolioRouted(it);
       const next = isCurrentlyWeb ? '' : 'website';
       const prevIgStatus = it.igStatus || '';
       const prevRoute = it.lightboxRoute || '';
