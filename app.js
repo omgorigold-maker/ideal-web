@@ -26445,9 +26445,9 @@ function renderLightboxView(ws, spaceObj) {
         <div class="lb-bright-empty-state">
           <div class="lb-empty-icon" aria-hidden="true">${activeRoom === 'instagram' ? '◈' : '⊞'}</div>
           <h3>Nothing in ${roomName} yet</h3>
-          <p>Go to Pick and click ★ Keep on the files you want for ${activeRoom === 'instagram' ? 'Instagram' : 'your Website'}.</p>
+          <p>Go to All Files and click ★ Keep on the files you want for ${activeRoom === 'instagram' ? 'Instagram' : 'your Website'}.</p>
           <div class="lb-empty-actions">
-            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Go to Pick (${roomVisibleItems.length})</button>
+            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Go to All Files (${roomVisibleItems.length})</button>
           </div>
         </div>
       `;
@@ -26458,7 +26458,7 @@ function renderLightboxView(ws, spaceObj) {
           <h3>Nothing hidden in this room</h3>
           <p>Files you hide from ${activeRoom === 'instagram' ? 'Instagram' : 'Website'} appear here so you can unhide them anytime.</p>
           <div class="lb-empty-actions">
-            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Back to Pick</button>
+            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Back to All Files</button>
           </div>
         </div>
       `;
@@ -26532,7 +26532,7 @@ function renderLightboxView(ws, spaceObj) {
 
     inlineModeControlsHtml = `
       <div class="lb-inline-mode-tabs" role="group" aria-label="Room view">
-        <button type="button" class="lb-inline-mode-tab" data-lb-subview="pick" aria-pressed="${activeSubView === 'pick' ? 'true' : 'false'}">Pick (${roomVisibleItems.length})</button>
+        <button type="button" class="lb-inline-mode-tab" data-lb-subview="pick" aria-pressed="${activeSubView === 'pick' ? 'true' : 'false'}">All Files (${roomVisibleItems.length})</button>
         <button type="button" class="lb-inline-mode-tab" data-lb-subview="ready" aria-pressed="${activeSubView === 'ready' ? 'true' : 'false'}">${readyLabel} (${roomKeptItems.length})</button>
         ${(roomHiddenItems.length > 0 || activeSubView === 'hidden') ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="hidden" aria-pressed="${activeSubView === 'hidden' ? 'true' : 'false'}">Hidden (${roomHiddenItems.length})</button>` : ''}
       </div>
@@ -26609,16 +26609,20 @@ function renderLightboxView(ws, spaceObj) {
   const canCompare = filteredItems.length >= 2 || (activeFilter === 'All Assets' && keptItems.length >= 2);
 
   ws.innerHTML = `
-    <div class="lb-studio-tool ${hasSelectionNow ? 'has-selection' : ''}" id="lightboxMainShell">
+    <div class="lb-studio-tool ${hasSelectionNow ? 'has-selection' : ''}" id="lightboxMainShell" data-lb-room="${activeRoom}">
       <!-- Frameless Single-Line Studio Header (Zero Stacked Toolbars) -->
       <div class="lb-canvas-head">
         <div class="lb-head-left">
+          <span class="lb-room-badge is-${activeRoom}" title="${activeRoom === 'instagram' ? 'Instagram Room — Keeping or hiding here only affects Instagram' : (activeRoom === 'website' ? 'Website Room — Keeping or hiding here only affects Website' : 'Source Files — Master project files (Local Mac files protected)')}">
+            <span aria-hidden="true">${activeRoom === 'instagram' ? '◈' : (activeRoom === 'website' ? '⊞' : '📁')}</span>
+            <span>${activeRoom === 'instagram' ? 'Instagram' : (activeRoom === 'website' ? 'Website' : 'Source Files')}</span>
+          </span>
           ${leftHeadHtml}
           <div class="lb-undo-group" role="group" aria-label="Lightbox History">
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbUndo" title="Undo (⌘Z)" ${state.lightboxUndoStack?.length ? '' : 'disabled'}>↶ Undo</button>
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbRedo" title="Redo (⇧⌘Z)" ${state.lightboxRedoStack?.length ? '' : 'disabled'}>↷ Redo</button>
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbUndo" title="Undo (⌘Z)" ${state.lightboxUndoStack?.length ? '' : 'disabled'}>↶</button>
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbRedo" title="Redo (⇧⌘Z)" ${state.lightboxRedoStack?.length ? '' : 'disabled'}>↷</button>
           </div>
-          <span class="lb-safety-badge" title="Local Mac disk files are untouched. Lightbox actions are strictly sandboxed inside Ideal.">🛡️ Local Files Protected</span>
+          <span class="lb-safety-icon" title="Local Mac disk files are untouched. Lightbox actions are strictly sandboxed inside Ideal.">🛡️</span>
         </div>
 
         <div class="lb-head-right">
