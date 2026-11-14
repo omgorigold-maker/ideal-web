@@ -21994,6 +21994,7 @@ const LB_DIRS_STORE = 'dirs';
 const lightboxLiveObjectUrls = new Map();
 const lightboxStoredHandles = new Map();
 const lightboxNeedsPermissionIds = new Set();
+const lightboxResolveAttemptedIds = new Set(); // searched once per session; Reconnect clears it
 let _lbHandlesDbPromise = null;
 
 function getLightboxProjects(v = vault) {
@@ -22272,6 +22273,7 @@ function cleanupRemovedLightboxItemResources(it) {
 }
 
 async function reconnectActiveLightboxFolder() {
+  lightboxResolveAttemptedIds.clear();
   const activeProjId = state.lightboxProjectId;
   let dirHandle = activeProjId ? await getLbDirHandle(activeProjId) : null;
   if (dirHandle) {
@@ -22494,6 +22496,16 @@ function undoLightboxAction() {
       setItemIgStatus(it.id, it.igStatus);
     }
     saveVault('UNDO ROUTE');
+  } else if (action.type === 'route_batch') {
+    (action.entries || []).forEach(en => {
+      const it = (vault.items || []).find(i => i.id === en.id);
+      if (!it) return;
+      it.igStatus = en.prevIgStatus || '';
+      it.lightboxRoute = en.prevRoute || '';
+      it.status = en.prevStatus || it.status;
+      (state.selectedCompareAssets || []).forEach(a => { if (a.id === it.id || a.vaultItemId === it.id) a.igStatus = it.igStatus; });
+    });
+    saveVault('UNDO BATCH ROUTE');
   } else if (action.type === 'move_project') {
     const ids = new Set(action.itemIds || []);
     (vault.items || []).forEach(it => {
@@ -22561,6 +22573,16 @@ function redoLightboxAction() {
       setItemIgStatus(it.id, it.igStatus);
     }
     saveVault('REDO ROUTE');
+  } else if (action.type === 'route_batch') {
+    (action.entries || []).forEach(en => {
+      const it = (vault.items || []).find(i => i.id === en.id);
+      if (!it) return;
+      it.igStatus = action.nextIgStatus || '';
+      it.lightboxRoute = action.nextRoute || '';
+      it.status = action.nextStatus || it.status;
+      (state.selectedCompareAssets || []).forEach(a => { if (a.id === it.id || a.vaultItemId === it.id) a.igStatus = it.igStatus; });
+    });
+    saveVault('REDO BATCH ROUTE');
   } else if (action.type === 'move_project') {
     const ids = new Set(action.itemIds || []);
     (vault.items || []).forEach(it => {
@@ -22586,9 +22608,11 @@ async function autoResolveLightboxLocalMedia() {
   if (state._resolvingLightboxLocalMedia) return;
   const unresolvedItems = (vault.items || []).filter(it =>
     it && it.parentType === 'space' && it.parentId === 'lightbox' &&
-    (!it.localPath || String(it.url || '').startsWith('local-handle://'))
+    (!it.localPath || String(it.url || '').startsWith('local-handle://')) &&
+    !lightboxResolveAttemptedIds.has(it.id)
   );
   if (!unresolvedItems.length) return;
+  unresolvedItems.forEach(it => lightboxResolveAttemptedIds.add(it.id));
   state._resolvingLightboxLocalMedia = true;
   try {
     const res = await fetch('/api/lightbox/resolve-local', {
@@ -26466,23 +26490,33 @@ function renderLightboxView(ws, spaceObj) {
   const selectsRoutePop = ws.querySelector('#lbSelectsRoutePopover');
   ws.querySelector('#btnLbRouteAllKeptWeb')?.addEventListener('click', (e) => {
     selectsRoutePop?._closeMenu?.(e.detail !== 0);
-    filteredItems.forEach(it => {
+    const keptItems = allProjectItems.filter(it => Boolean(it.lightboxKeep));
+    const entries = keptItems.map(it => ({ id: it.id, prevIgStatus: it.igStatus || '', prevRoute: it.lightboxRoute || '', prevStatus: it.status || '' }));
+    keptItems.forEach(it => {
       it.igStatus = 'website';
       it.status = '🌐 On Site';
       it.lightboxRoute = 'portfolio';
     });
-    saveVault(`STAGED ${filteredItems.length} SELECTS TO PORTFOLIO`);
+    if (entries.length) {
+      pushLightboxUndo({ type: 'route_batch', desc: `Staged ${entries.length} selects to Portfolio`, entries, nextIgStatus: 'website', nextRoute: 'portfolio', nextStatus: '🌐 On Site' });
+    }
+    saveVault(`STAGED ${keptItems.length} SELECTS TO PORTFOLIO`);
     renderWorkspace();
   });
 
   ws.querySelector('#btnLbRouteAllKeptIg')?.addEventListener('click', (e) => {
     selectsRoutePop?._closeMenu?.(e.detail !== 0);
-    filteredItems.forEach(it => {
+    const keptItems = allProjectItems.filter(it => Boolean(it.lightboxKeep));
+    const entries = keptItems.map(it => ({ id: it.id, prevIgStatus: it.igStatus || '', prevRoute: it.lightboxRoute || '', prevStatus: it.status || '' }));
+    keptItems.forEach(it => {
       it.igStatus = 'queued';
       it.status = '◈ IG Ready';
       it.lightboxRoute = 'instagram';
     });
-    saveVault(`STAGED ${filteredItems.length} SELECTS TO INSTAGRAM`);
+    if (entries.length) {
+      pushLightboxUndo({ type: 'route_batch', desc: `Staged ${entries.length} selects to Instagram`, entries, nextIgStatus: 'queued', nextRoute: 'instagram', nextStatus: '◈ IG Ready' });
+    }
+    saveVault(`STAGED ${keptItems.length} SELECTS TO INSTAGRAM`);
     renderWorkspace();
   });
 
@@ -26734,7 +26768,10 @@ function renderLightboxView(ws, spaceObj) {
       if (!it) return;
       const isCurrentlyWeb = it.igStatus === 'website' || it.lightboxRoute === 'portfolio';
       const next = isCurrentlyWeb ? '' : 'website';
+      const prevIgStatus = it.igStatus || '';
+      const prevRoute = it.lightboxRoute || '';
       it.lightboxRoute = next === 'website' ? 'portfolio' : '';
+      pushLightboxUndo({ type: 'route_change', desc: `Routed "${it.title || 'asset'}"`, itemId: it.id, prevIgStatus, prevRoute, nextIgStatus: next, nextRoute: it.lightboxRoute });
       setItemIgStatus(it.id, next);
     });
   });
@@ -26746,7 +26783,10 @@ function renderLightboxView(ws, spaceObj) {
       if (!it) return;
       const isCurrentlyIg = itIsIgRouted(it);
       const next = isCurrentlyIg ? '' : 'queued';
+      const prevIgStatus = it.igStatus || '';
+      const prevRoute = it.lightboxRoute || '';
       it.lightboxRoute = next === 'queued' ? 'instagram' : '';
+      pushLightboxUndo({ type: 'route_change', desc: `Routed "${it.title || 'asset'}"`, itemId: it.id, prevIgStatus, prevRoute, nextIgStatus: next, nextRoute: it.lightboxRoute });
       setItemIgStatus(it.id, next);
     });
   });
