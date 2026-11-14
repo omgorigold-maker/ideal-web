@@ -4020,6 +4020,47 @@ function saveVault(statusMsg = 'SAVED') {
   }, 220);
 }
 
+let _gdriveSeedPromise = null;
+function ensureGDriveSeedLoaded() {
+  if (typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+    return Promise.resolve(window._IDEAL_GDRIVE_SEED);
+  }
+  if (_gdriveSeedPromise) return _gdriveSeedPromise;
+  _gdriveSeedPromise = new Promise((resolve) => {
+    try {
+      const s = document.createElement('script');
+      s.src = 'seed_cache.js?v=112';
+      s.async = true;
+      s.onload = () => resolve(window._IDEAL_GDRIVE_SEED || null);
+      s.onerror = () => resolve(null);
+      document.head.appendChild(s);
+    } catch (e) {
+      resolve(null);
+    }
+  });
+  return _gdriveSeedPromise;
+}
+
+function getSnakeLoaderHtml() {
+  return `
+    <div class="ideal-snake-loader" aria-label="Loading">
+      <div class="ideal-snake-track"></div>
+      <svg class="ideal-snake-svg" viewBox="0 0 200 36" fill="none">
+        <g class="ideal-snake-rig">
+          <g class="ideal-snake-body">
+            <path d="M 4 18 C 14 11, 22 25, 32 18 C 42 11, 50 25, 60 18 C 68 13, 73 16, 77 18" stroke="var(--accent, #C84B31)" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 0 18 L 6 18" stroke="var(--accent, #C84B31)" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+          <path class="ideal-snake-tongue" d="M 86 18 L 92 18 M 92 18 L 95 15.5 M 92 18 L 95 20.5" stroke="var(--accent, #C84B31)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="80" cy="18" rx="6.5" ry="4.6" fill="var(--accent, #C84B31)"/>
+          <circle cx="81.8" cy="16.1" r="1.15" fill="var(--bg, #F6F4EF)"/>
+          <circle cx="81.8" cy="19.9" r="1.15" fill="var(--bg, #F6F4EF)"/>
+        </g>
+      </svg>
+    </div>
+  `;
+}
+
 async function fetchGDriveAssets(forceRefresh = false) {
   if (state.gdriveStats.loading) return;
   const now = Date.now();
@@ -4030,8 +4071,11 @@ async function fetchGDriveAssets(forceRefresh = false) {
     if (res.ok) {
       let data = await res.json();
       if (data && Array.isArray(data.batches)) {
-        if ((data.batches.length === 0 || !Array.isArray(data.enclosingFolders) || data.enclosingFolders.length === 0) && typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
-          data = window._IDEAL_GDRIVE_SEED;
+        if (data.batches.length === 0 || !Array.isArray(data.enclosingFolders) || data.enclosingFolders.length === 0) {
+          await ensureGDriveSeedLoaded();
+          if (typeof window !== 'undefined' && window._IDEAL_GDRIVE_SEED) {
+            data = window._IDEAL_GDRIVE_SEED;
+          }
         }
         if (data.batches.length === 0 && state.gdriveBatches && state.gdriveBatches.length > 0) {
           console.warn('[Assets] 0 batches returned; holding previous asset configuration intact.');
@@ -8021,7 +8065,7 @@ function renderGDriveAssetsView(ws, spaceObj) {
   if (state.gdriveStats.loading && state.gdriveBatches.length === 0) {
     ws.innerHTML = `
       <div style="padding:80px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
-        <div class="ideal-subtle-loader-bar"></div>
+        ${getSnakeLoaderHtml()}
       </div>
     `;
     return;
@@ -29660,6 +29704,21 @@ function renderGmailView(ws, spaceObj) {
   }
 }
 
+function finishBootReveal() {
+  try {
+    if (window.__idealBootFallbackTimer) {
+      clearTimeout(window.__idealBootFallbackTimer);
+      window.__idealBootFallbackTimer = null;
+    }
+    document.documentElement.classList.remove('ideal-booting');
+    const ov = document.getElementById('idealBootOverlay');
+    if (ov) {
+      ov.classList.add('is-done');
+      setTimeout(() => { try { ov.remove(); } catch (e) {} }, 240);
+    }
+  } catch (e) {}
+}
+
 function bootIdealApp() {
   state.custSavedSnapshot = captureCustomizationSnapshot(vault);
   state.custDirty = false;
@@ -29668,6 +29727,14 @@ function bootIdealApp() {
   hydrateLightboxLocalHandles(false);
   renderAll();
   syncFromServerOnBoot();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(finishBootReveal);
+  });
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(() => ensureGDriveSeedLoaded(), { timeout: 2500 });
+  } else {
+    setTimeout(() => ensureGDriveSeedLoaded(), 1200);
+  }
 }
 
 if (document.readyState === 'loading') {
