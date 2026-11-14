@@ -26635,11 +26635,11 @@ function renderLightboxView(ws, spaceObj) {
     `;
   } else {
     leftHeadHtml = `
-      <button type="button" class="lb-scope-heading-btn" id="btnLbProjectMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbProjectMenuPopover" command="toggle-popover" title="Switch project or create a new project">
-        <span class="lb-scope-heading-icon" aria-hidden="true">📁</span>
-        <span class="lb-scope-heading-text">${escapeHtml(currentScopeTitle)}</span>
-        <span class="lb-scope-heading-count">${filteredItems.length}</span>
-        <span class="lb-scope-heading-chev" aria-hidden="true">▾</span>
+      <h2 class="lb-room-title">${activeRoom === 'instagram' ? 'Instagram' : (activeRoom === 'website' ? 'Website' : 'All Files')}</h2>
+      <button type="button" class="lb-tool-btn is-ghost lb-proj-picker-btn" id="btnLbProjectMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbProjectMenuPopover" command="toggle-popover" title="Switch folder / project">
+        <span aria-hidden="true">📁</span>
+        <span>${escapeHtml(currentScopeTitle)}</span>
+        <span aria-hidden="true">▾</span>
       </button>
       <div id="lbProjectMenuPopover" popover="auto" class="lb-card-menu-popover">
         <div focusgroup="menu nomemory" id="lbProjectMenuInner" aria-labelledby="btnLbProjectMenuTrigger">
