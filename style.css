@@ -16464,48 +16464,38 @@ dialog.compare-dialog::backdrop {
   contain-intrinsic-size: 260px 320px;
 }
 
-/* Clean Toggleable 3x3 Grid & Accurate Safe Crop Boxes */
+
+/* Clean Toggleable 4x4 Grey Grid & Accurate Centered Safe Crop Boxes */
 .cmp-context-overlay {
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .cmp-general-grid-lines {
   inline-size: 100%;
   block-size: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  border: 1px solid rgba(115, 115, 115, 0.75);
 }
 .cmp-general-grid-lines > div {
-  border: 0.5px solid rgba(255, 255, 255, 0.35);
+  border-right: 1px solid rgba(128, 128, 128, 0.65);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.65);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
 }
-.cmp-safe-crop-box {
+.cmp-general-grid-lines > div:nth-child(4n) {
+  border-right: none;
+}
+.cmp-general-grid-lines > div:nth-child(n+13) {
+  border-bottom: none;
+}
+.cmp-safe-crop-box,
+.cmp-ig-story-frame {
   position: relative;
-  max-inline-size: 100%;
-  max-block-size: 100%;
-  block-size: 100%;
-  inline-size: auto;
+  flex-shrink: 0;
   border: 2px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.52);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
   border-radius: 2px;
-}
-.cmp-safe-crop-box.is-4x5 {
-  aspect-ratio: 4 / 5;
-}
-.cmp-safe-crop-box.is-1x1 {
-  aspect-ratio: 1 / 1;
-}
-
-/* Solid, gap-free Sticky Lightbox Header (covers behind the floating top bar too) */
-#workspace:has(> .lb-studio-tool) {
-  padding-top: 0 !important;
-}
-.lb-canvas-head {
-  position: sticky;
-  top: 0;
-  z-index: 25;
-  background: var(--lb-bg, #f6f7f9);
-  padding: 66px 28px 12px;
-  margin: 0 -28px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }

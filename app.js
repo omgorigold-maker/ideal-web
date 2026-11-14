@@ -24208,14 +24208,85 @@ function openCompareDialog(preferredAssetId = null, { singleOnly = false, keepOv
   if (!dlg.open) dlg.showModal();
 }
 
+function syncCompareOverlayBounds() {
+  const stage = document.getElementById('compareStage');
+  if (!stage) return;
+  const containers = stage.querySelectorAll('.cmp-stack-viewport, .cmp-split-media-wrap');
+  containers.forEach(wrap => {
+    const activeLayer = wrap.querySelector('.cmp-layer.active') || wrap;
+    const media = activeLayer.querySelector('img, video');
+    if (!media) return;
+
+    const applyBounds = () => {
+      const natW = media.tagName === 'VIDEO' ? (media.videoWidth || 0) : (media.naturalWidth || 0);
+      const natH = media.tagName === 'VIDEO' ? (media.videoHeight || 0) : (media.naturalHeight || 0);
+      const boxW = media.clientWidth || wrap.clientWidth;
+      const boxH = media.clientHeight || wrap.clientHeight;
+      if (!boxW || !boxH) return;
+
+      let renW = boxW;
+      let renH = boxH;
+      if (natW > 0 && natH > 0) {
+        const mediaAspect = natW / natH;
+        const boxAspect = boxW / boxH;
+        if (mediaAspect > boxAspect) {
+          renW = boxW;
+          renH = boxW / mediaAspect;
+        } else {
+          renH = boxH;
+          renW = boxH * mediaAspect;
+        }
+      }
+      const offLeft = (media.offsetLeft || 0) + (boxW - renW) / 2;
+      const offTop = (media.offsetTop || 0) + (boxH - renH) / 2;
+
+      wrap.querySelectorAll('.cmp-context-overlay').forEach(ov => {
+        ov.style.left = `${offLeft.toFixed(1)}px`;
+        ov.style.top = `${offTop.toFixed(1)}px`;
+        ov.style.right = 'auto';
+        ov.style.bottom = 'auto';
+        ov.style.width = `${renW.toFixed(1)}px`;
+        ov.style.height = `${renH.toFixed(1)}px`;
+
+        const cropBox = ov.querySelector('.cmp-safe-crop-box, .cmp-ig-story-frame');
+        if (cropBox) {
+          let targetRatio = 4 / 5;
+          if (cropBox.classList.contains('is-1x1')) targetRatio = 1;
+          else if (cropBox.classList.contains('cmp-ig-story-frame')) targetRatio = 9 / 16;
+          const curRatio = renW / renH;
+          let cw = renW;
+          let ch = renH;
+          if (curRatio > targetRatio) {
+            ch = renH;
+            cw = renH * targetRatio;
+          } else {
+            cw = renW;
+            ch = renW / targetRatio;
+          }
+          cropBox.style.width = `${cw.toFixed(1)}px`;
+          cropBox.style.height = `${ch.toFixed(1)}px`;
+        }
+      });
+    };
+
+    applyBounds();
+    if (media.tagName === 'IMG' && !media.complete) {
+      media.addEventListener('load', applyBounds, { once: true });
+    } else if (media.tagName === 'VIDEO' && !media.videoWidth) {
+      media.addEventListener('loadedmetadata', applyBounds, { once: true });
+    }
+  });
+}
+
 function buildContextOverlayHtml(overlayMode) {
   const showGrid = Boolean(state.compareState && state.compareState.showGrid);
   const gridHtml = showGrid ? `
     <div class="cmp-context-overlay is-general-grid" aria-hidden="true">
       <div class="cmp-general-grid-lines">
-        <div></div><div></div><div></div>
-        <div></div><div></div><div></div>
-        <div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
       </div>
     </div>
   ` : '';
@@ -24717,6 +24788,7 @@ function renderCompareModal() {
       </div>
       ${buildFloatingSpecsHtml(activeAsset, Boolean(cs.showSpecs), cs.activeIndex, sel.length)}
     `;
+    requestAnimationFrame(() => syncCompareOverlayBounds());
 
     if (cs.diffBlend) {
       setTimeout(() => renderHighContrastDiffCanvas(), 45);
@@ -24764,6 +24836,7 @@ function renderCompareModal() {
       </div>
     `;
 
+    requestAnimationFrame(() => syncCompareOverlayBounds());
     stage.querySelectorAll('.cmp-split-cell').forEach(cell => {
       cell.addEventListener('click', (e) => {
         if (e.target.closest('button') || e.target.closest('a')) return;
