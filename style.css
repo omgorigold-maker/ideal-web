@@ -12860,12 +12860,12 @@ body.in-studio-projects .node-ig-quick-btn {
 body[data-stage-pattern="dots"] #workspace:has(> .lb-studio-tool),
 body[data-stage-pattern="grid"] #workspace:has(> .lb-studio-tool) {
   background-image: none !important;
-  background-color: #f6f7f9 !important;
+  background-color: var(--bg, #f6f7f9) !important;
   padding-block-start: 68px !important;
 }
 
 .lb-studio-tool {
-  --lb-bg: #f6f7f9;
+  --lb-bg: var(--bg, #f6f7f9);
   --lb-surface: #ffffff;
   --lb-stage-bg: #f1f4f8;
   --lb-border: #e4e8ef;
