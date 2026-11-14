@@ -148,9 +148,13 @@
       <!-- SINGLE WHISPER-CLEAN FRAMELESS FLOATING TOP BAR -->
       <header class="floating-hud-top" id="topSingleRow">
         <div class="hud-top-row">
-          <!-- LEFT: Sidebar Toggle + Breadcrumb / Board Title + Inline Quiet Category Links -->
+          <!-- LEFT: Back/Forward History + Sidebar Toggle + Breadcrumb / Board Title + Inline Quiet Category Links -->
           <div class="hud-cluster hud-cluster-left">
             <div class="hud-pill hud-nav-pill">
+              <div class="hud-history-nav" role="group" aria-label="Page History">
+                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavBack" title="No previous page" aria-label="Back" disabled>←</button>
+                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavForward" title="No forward page" aria-label="Forward" disabled>→</button>
+              </div>
               <button type="button" class="hud-icon-btn" id="btnToggleSidebar" title="Toggle Sidebar">
                 <span>☰</span>
                 <span class="hud-code-tag" id="menuCurrentCode" hidden>01</span>

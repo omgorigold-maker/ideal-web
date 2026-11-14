@@ -1749,6 +1749,9 @@ function saveNavState() {
         history.replaceState(null, '', window.location.pathname + window.location.search + targetHash);
       }
     }
+    if (typeof recordNavHistory === 'function') {
+      recordNavHistory();
+    }
   } catch (e) {}
 }
 
@@ -1869,6 +1872,316 @@ function restoreNavState() {
 }
 
 restoreNavState();
+
+const NAV_HISTORY_KEY = 'ideal_nav_history_v1';
+const NAV_HISTORY_MAX = 50;
+let navHistory = { stack: [], index: -1 };
+let _isApplyingNavHistory = false;
+
+function buildNavSnapshotKey(snap) {
+  if (!snap) return '';
+  if (snap.viewType === 'project') {
+    return `project:${snap.activeProjectId || ''}:${snap.activeFolderId || ''}`;
+  }
+  return `space:${snap.activeSpaceId || 'projects'}:${snap.activeFolderId || ''}:${snap.activeLeadId || ''}:${snap.activeGDriveEnclosingFolder || ''}:${snap.activeGDriveBatchId || ''}`;
+}
+
+function getNavSnapshotLabel(snap) {
+  if (!snap) return 'Page';
+  if (snap.viewType === 'project') {
+    if (snap.activeFolderId) {
+      const fItem = Array.isArray(vault?.items) ? vault.items.find(i => i.id === snap.activeFolderId) : null;
+      if (fItem?.title) return fItem.title;
+    }
+    const proj = Array.isArray(vault?.projects) ? vault.projects.find(p => p.id === snap.activeProjectId) : null;
+    if (proj?.title) return proj.title;
+    return snap.label || 'Project Board';
+  }
+  if (snap.activeLeadId) {
+    const cards = vault?.pitchEngine?.cards;
+    const card = Array.isArray(cards) ? cards.find(c => c.id === snap.activeLeadId) : null;
+    if (card && (card.title || card.name || card.organization)) {
+      return card.title || card.name || card.organization;
+    }
+    return snap.label || 'Lead Detail';
+  }
+  if (snap.activeGDriveBatchId) {
+    const batches = state?.gdriveStats?.batches;
+    const batch = Array.isArray(batches) ? batches.find(b => b.id === snap.activeGDriveBatchId) : null;
+    if (batch?.name) return batch.name;
+    return snap.label || 'Batch';
+  }
+  if (snap.activeGDriveEnclosingFolder) {
+    return snap.activeGDriveEnclosingFolder;
+  }
+  if (snap.activeFolderId) {
+    const fItem = Array.isArray(vault?.items) ? vault.items.find(i => i.id === snap.activeFolderId) : null;
+    if (fItem?.title) return fItem.title;
+    return snap.label || 'Folder';
+  }
+  const spaceId = snap.activeSpaceId || 'projects';
+  if (typeof getSpaceTopBarTitle === 'function') {
+    const t = getSpaceTopBarTitle(spaceId);
+    if (t) return t;
+  }
+  const sp = Array.isArray(vault?.spaces) ? vault.spaces.find(s => s.id === spaceId) : null;
+  return sp?.title || snap.label || 'Projects';
+}
+
+function captureCurrentNavSnapshot() {
+  const snap = {
+    viewType: state.viewType === 'project' ? 'project' : 'space',
+    activeSpaceId: state.activeSpaceId || 'projects',
+    activeProjectId: state.viewType === 'project' ? (state.activeProjectId || null) : null,
+    activeFolderId: state.activeFolderId || null,
+    activeLeadId: state.activeLeadId || null,
+    activeGDriveEnclosingFolder: state.activeGDriveEnclosingFolder || null,
+    activeGDriveBatchId: state.activeGDriveBatchId || null
+  };
+  snap.key = buildNavSnapshotKey(snap);
+  snap.label = getNavSnapshotLabel(snap);
+  return snap;
+}
+
+function getParentNavSnapshot(snap) {
+  if (!snap) return null;
+  let parent = null;
+  if (snap.viewType === 'project') {
+    if (snap.activeFolderId) {
+      const curFolder = Array.isArray(vault?.items) ? vault.items.find(i => i.id === snap.activeFolderId) : null;
+      parent = {
+        viewType: 'project',
+        activeSpaceId: snap.activeSpaceId || 'projects',
+        activeProjectId: snap.activeProjectId,
+        activeFolderId: curFolder?.folderId || null,
+        activeLeadId: null,
+        activeGDriveEnclosingFolder: null,
+        activeGDriveBatchId: null
+      };
+    } else {
+      parent = {
+        viewType: 'space',
+        activeSpaceId: 'projects',
+        activeProjectId: null,
+        activeFolderId: null,
+        activeLeadId: null,
+        activeGDriveEnclosingFolder: null,
+        activeGDriveBatchId: null
+      };
+    }
+  } else if (snap.activeLeadId) {
+    parent = {
+      viewType: 'space',
+      activeSpaceId: snap.activeSpaceId || 'residencies',
+      activeProjectId: null,
+      activeFolderId: null,
+      activeLeadId: null,
+      activeGDriveEnclosingFolder: null,
+      activeGDriveBatchId: null
+    };
+  } else if (snap.activeGDriveBatchId) {
+    parent = {
+      viewType: 'space',
+      activeSpaceId: 'gdrive_assets',
+      activeProjectId: null,
+      activeFolderId: null,
+      activeLeadId: null,
+      activeGDriveEnclosingFolder: snap.activeGDriveEnclosingFolder || null,
+      activeGDriveBatchId: null
+    };
+  } else if (snap.activeGDriveEnclosingFolder) {
+    parent = {
+      viewType: 'space',
+      activeSpaceId: 'gdrive_assets',
+      activeProjectId: null,
+      activeFolderId: null,
+      activeLeadId: null,
+      activeGDriveEnclosingFolder: null,
+      activeGDriveBatchId: null
+    };
+  } else if (snap.activeFolderId) {
+    const curFolder = Array.isArray(vault?.items) ? vault.items.find(i => i.id === snap.activeFolderId) : null;
+    parent = {
+      viewType: 'space',
+      activeSpaceId: snap.activeSpaceId || 'projects',
+      activeProjectId: null,
+      activeFolderId: curFolder?.folderId || null,
+      activeLeadId: null,
+      activeGDriveEnclosingFolder: null,
+      activeGDriveBatchId: null
+    };
+  }
+  if (!parent) return null;
+  parent.key = buildNavSnapshotKey(parent);
+  parent.label = getNavSnapshotLabel(parent);
+  return parent;
+}
+
+function persistNavHistory() {
+  try {
+    sessionStorage.setItem(NAV_HISTORY_KEY, JSON.stringify(navHistory));
+  } catch (e) {}
+}
+
+function restoreNavHistory() {
+  try {
+    const raw = sessionStorage.getItem(NAV_HISTORY_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.stack) && parsed.stack.length > 0) {
+      const cleaned = parsed.stack
+        .filter(s => s && typeof s === 'object' && (s.viewType === 'space' || s.viewType === 'project'))
+        .slice(-NAV_HISTORY_MAX);
+      if (cleaned.length > 0) {
+        const maxIdx = cleaned.length - 1;
+        const idx = typeof parsed.index === 'number' ? Math.max(0, Math.min(maxIdx, parsed.index)) : maxIdx;
+        navHistory = { stack: cleaned, index: idx };
+      }
+    }
+  } catch (e) {}
+}
+
+function recordNavHistory() {
+  if (_isApplyingNavHistory || state._pendingNavProject) return;
+  const snap = captureCurrentNavSnapshot();
+  if (navHistory.stack.length === 0) {
+    navHistory.stack = [snap];
+    navHistory.index = 0;
+  } else {
+    const cur = navHistory.stack[navHistory.index];
+    if (cur && cur.key === snap.key) {
+      cur.label = snap.label;
+      persistNavHistory();
+      updateNavHistoryButtons();
+      return;
+    }
+    navHistory.stack = navHistory.stack.slice(0, navHistory.index + 1);
+    navHistory.stack.push(snap);
+    if (navHistory.stack.length > NAV_HISTORY_MAX) {
+      navHistory.stack = navHistory.stack.slice(navHistory.stack.length - NAV_HISTORY_MAX);
+    }
+    navHistory.index = navHistory.stack.length - 1;
+  }
+  persistNavHistory();
+  updateNavHistoryButtons();
+}
+
+function updateNavHistoryButtons() {
+  const btnBack = document.getElementById('btnNavBack');
+  const btnForward = document.getElementById('btnNavForward');
+  if (!btnBack || !btnForward) return;
+
+  let backTarget = null;
+  if (navHistory.index > 0) {
+    backTarget = navHistory.stack[navHistory.index - 1];
+  } else {
+    const cur = navHistory.stack[0] || captureCurrentNavSnapshot();
+    backTarget = getParentNavSnapshot(cur);
+  }
+
+  if (backTarget) {
+    const label = getNavSnapshotLabel(backTarget);
+    btnBack.disabled = false;
+    btnBack.title = `Back to ${label}`;
+  } else {
+    btnBack.disabled = true;
+    btnBack.title = 'No previous page';
+  }
+
+  const forwardTarget = (navHistory.index >= 0 && navHistory.index < navHistory.stack.length - 1)
+    ? navHistory.stack[navHistory.index + 1]
+    : null;
+
+  if (forwardTarget) {
+    const label = getNavSnapshotLabel(forwardTarget);
+    btnForward.disabled = false;
+    btnForward.title = `Forward to ${label}`;
+  } else {
+    btnForward.disabled = true;
+    btnForward.title = 'No forward page';
+  }
+}
+
+function applyNavSnapshot(snap) {
+  if (!snap) return;
+  _isApplyingNavHistory = true;
+  try {
+    state.viewType = snap.viewType === 'project' ? 'project' : 'space';
+    state.activeSpaceId = snap.activeSpaceId || 'projects';
+    state.activeProjectId = state.viewType === 'project' ? (snap.activeProjectId || null) : null;
+    state.activeFolderId = snap.activeFolderId || null;
+    state.activeLeadId = snap.activeLeadId || null;
+    state.activeGDriveEnclosingFolder = snap.activeGDriveEnclosingFolder || null;
+    state.activeGDriveBatchId = snap.activeGDriveBatchId || null;
+
+    if (state.viewType === 'project' && state.activeProjectId) {
+      const proj = Array.isArray(vault?.projects) ? vault.projects.find(p => p.id === state.activeProjectId) : null;
+      if (proj) {
+        state.activeCategory = (proj.sections && proj.sections[0]) || 'All';
+        state.giantWallZoom = (typeof proj.ui?.cameraZoom === 'number' && proj.ui.cameraZoom > 0) ? proj.ui.cameraZoom : 1;
+        state.giantWallPanX = (typeof proj.ui?.cameraPanX === 'number') ? proj.ui.cameraPanX : 0;
+        state.giantWallPanY = (typeof proj.ui?.cameraPanY === 'number') ? proj.ui.cameraPanY : 0;
+      } else {
+        state.viewType = 'space';
+        state.activeSpaceId = 'projects';
+        state.activeProjectId = null;
+        state.activeFolderId = null;
+      }
+    } else {
+      const sp = Array.isArray(vault?.spaces) ? vault.spaces.find(s => s.id === state.activeSpaceId) : null;
+      state.activeCategory = (sp?.categories && sp.categories[0]) || 'All';
+    }
+
+    renderAll();
+  } finally {
+    _isApplyingNavHistory = false;
+    updateNavHistoryButtons();
+  }
+}
+
+function navigateHistoryBack() {
+  const performBack = () => {
+    if (navHistory.index > 0) {
+      navHistory.index -= 1;
+      const target = navHistory.stack[navHistory.index];
+      persistNavHistory();
+      applyNavSnapshot(target);
+      return;
+    }
+    const cur = navHistory.stack[0] || captureCurrentNavSnapshot();
+    const parent = getParentNavSnapshot(cur);
+    if (!parent) return;
+    navHistory.stack = [parent, cur, ...navHistory.stack.slice(1)].slice(0, NAV_HISTORY_MAX);
+    navHistory.index = 0;
+    persistNavHistory();
+    applyNavSnapshot(parent);
+  };
+
+  if (state.viewType === 'space' && state.activeSpaceId === 'customize' && typeof guardLeaveCustomize === 'function') {
+    guardLeaveCustomize(performBack);
+  } else {
+    performBack();
+  }
+}
+
+function navigateHistoryForward() {
+  if (navHistory.index < 0 || navHistory.index >= navHistory.stack.length - 1) return;
+  const performForward = () => {
+    if (navHistory.index >= navHistory.stack.length - 1) return;
+    navHistory.index += 1;
+    const target = navHistory.stack[navHistory.index];
+    persistNavHistory();
+    applyNavSnapshot(target);
+  };
+
+  if (state.viewType === 'space' && state.activeSpaceId === 'customize' && typeof guardLeaveCustomize === 'function') {
+    guardLeaveCustomize(performForward);
+  } else {
+    performForward();
+  }
+}
+
+restoreNavHistory();
 
 function isValidV5Vault(v) {
   return Boolean(
@@ -5477,6 +5790,7 @@ function renderHeaderAndToolbar() {
 
   const codeEl = document.getElementById('menuCurrentCode');
   const backBtn = document.getElementById('btnBackToProjects');
+  if (typeof updateNavHistoryButtons === 'function') updateNavHistoryButtons();
   const crumbEl = document.getElementById('boardBreadcrumbTrail');
   const titleEl = document.getElementById('viewTitle');
   const mainStage = document.getElementById('mainStage');
@@ -20978,6 +21292,14 @@ function initEvents() {
       saveVault('RENAMED TOP BAR TITLE');
       renderAll();
     });
+  });
+
+  // Site-wide Back / Forward history buttons
+  document.getElementById('btnNavBack')?.addEventListener('click', () => {
+    navigateHistoryBack();
+  });
+  document.getElementById('btnNavForward')?.addEventListener('click', () => {
+    navigateHistoryForward();
   });
 
   // Back to Projects / Parent Folder button
