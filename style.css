@@ -14688,6 +14688,34 @@ progress.lb-progress-el::-moz-progress-bar {
   border: 1px solid var(--lb-border);
 }
 
+.lb-ig-cell[draggable="true"] .lb-ig-cell-open-btn,
+.lb-ig-reel-card[draggable="true"] .lb-ig-cell-open-btn {
+  cursor: grab;
+}
+
+.lb-ig-cell[draggable="true"] .lb-ig-cell-open-btn:active,
+.lb-ig-reel-card[draggable="true"] .lb-ig-cell-open-btn:active {
+  cursor: grabbing;
+}
+
+.lb-ig-cell.is-dragging,
+.lb-ig-reel-card.is-dragging {
+  opacity: 0.42;
+  transform: scale(0.97);
+}
+
+.lb-ig-cell.is-drop-target,
+.lb-ig-reel-card.is-drop-target {
+  outline: 2.5px solid var(--lb-accent, #111827);
+  outline-offset: -2px;
+}
+
+.lb-ig-move-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
 /* Bright Context-Aware Empty State */
 .lb-bright-empty-state {
   padding: 56px 24px;

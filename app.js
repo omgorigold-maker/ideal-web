@@ -26308,6 +26308,7 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
       feedItems.push(it);
     }
   });
+  reelItems.sort((a, b) => (Number(a.igReelOrder ?? a.igBoardOrder ?? 9999) - Number(b.igReelOrder ?? b.igBoardOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
 
   // If only 9:16 items exist, show them in the Reels panel cleanly; if feed items exist, render 3x3 grid + optional Reels lane
   const feedCellsHtml = feedItems.map((it, idx) => {
@@ -26316,16 +26317,16 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
     const titleText = it.title || `Post ${idx + 1}`;
     const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
       ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
-      : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true">`;
+      : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
-      <article class="lb-ig-cell" data-lb-item-id="${escapeHtml(it.id)}">
-        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-grid" aria-label="Check 4:5 crop for ${escapeHtml(titleText)}" title="Click to inspect 4:5 crop in Compare"></button>
+      <article class="lb-ig-cell" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
+        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-grid" aria-label="Check 4:5 crop for ${escapeHtml(titleText)}" title="Drag to reorder · Click to inspect 4:5 crop"></button>
         ${mediaHtml}
         <span class="lb-ig-cell-badge">#${idx + 1}${kind === 'video' ? ' · Reel' : ''}</span>
         <div class="lb-ig-cell-controls">
-          <div>
-            ${idx > 0 ? `<button type="button" class="lb-mini-stage-btn" data-lb-ig-move="${escapeHtml(it.id)}" data-dir="-1" aria-label="Move ${escapeHtml(titleText)} earlier">←</button>` : ''}
-            ${idx < feedItems.length - 1 ? `<button type="button" class="lb-mini-stage-btn" data-lb-ig-move="${escapeHtml(it.id)}" data-dir="1" aria-label="Move ${escapeHtml(titleText)} later">→</button>` : ''}
+          <div class="lb-ig-move-btns">
+            <button type="button" class="lb-mini-stage-btn" data-lb-ig-move="${escapeHtml(it.id)}" data-dir="-1" aria-label="Move ${escapeHtml(titleText)} earlier"${idx === 0 ? ' hidden' : ''}>←</button>
+            <button type="button" class="lb-mini-stage-btn" data-lb-ig-move="${escapeHtml(it.id)}" data-dir="1" aria-label="Move ${escapeHtml(titleText)} later"${idx >= feedItems.length - 1 ? ' hidden' : ''}>→</button>
           </div>
           <button type="button" class="lb-mini-stage-btn is-unstage" data-lb-route-ig="${escapeHtml(it.id)}" title="Remove from Instagram Board">✕</button>
         </div>
@@ -26339,14 +26340,17 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
     const titleText = it.title || `Story ${idx + 1}`;
     const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
       ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
-      : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true">`;
+      : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
-      <article class="lb-ig-reel-card" data-lb-item-id="${escapeHtml(it.id)}">
-        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-story" aria-label="Check 9:16 safe zone for ${escapeHtml(titleText)}" title="Click to inspect 9:16 Story/Reel safe zone"></button>
+      <article class="lb-ig-reel-card" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
+        <button type="button" class="lb-ig-cell-open-btn" data-lb-open-compare="${escapeHtml(it.id)}" data-lb-overlay="ig-story" aria-label="Check 9:16 safe zone for ${escapeHtml(titleText)}" title="Drag to reorder · Click to inspect 9:16 safe zone"></button>
         ${mediaHtml}
-        <span class="lb-ig-cell-badge">9:16</span>
+        <span class="lb-ig-cell-badge">#${idx + 1} · 9:16</span>
         <div class="lb-ig-cell-controls">
-          <span style="font-size:10px;font-weight:600;padding-inline:4px;">Safe Zone</span>
+          <div class="lb-ig-move-btns">
+            <button type="button" class="lb-mini-stage-btn" data-lb-ig-reel-move="${escapeHtml(it.id)}" data-dir="-1" aria-label="Move ${escapeHtml(titleText)} earlier"${idx === 0 ? ' hidden' : ''}>←</button>
+            <button type="button" class="lb-mini-stage-btn" data-lb-ig-reel-move="${escapeHtml(it.id)}" data-dir="1" aria-label="Move ${escapeHtml(titleText)} later"${idx >= reelItems.length - 1 ? ' hidden' : ''}>→</button>
+          </div>
           <button type="button" class="lb-mini-stage-btn is-unstage" data-lb-route-ig="${escapeHtml(it.id)}" title="Remove from Instagram Board">✕</button>
         </div>
       </article>
@@ -27280,27 +27284,122 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  ws.querySelectorAll('[data-lb-ig-move]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const feedOnly = [...filteredItems]
-        .filter(i => {
-          const w = Number(i.naturalW || 0);
-          const h = Number(i.naturalH || 0);
-          return !((w > 0 && h > 0) && (w / h <= 0.64));
-        })
-        .sort((a, b) => (Number(a.igBoardOrder ?? 9999) - Number(b.igBoardOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
-      const idx = feedOnly.findIndex(i => i.id === btn.dataset.lbIgMove);
-      const dir = parseInt(btn.dataset.dir, 10) || 0;
-      const targetIdx = idx + dir;
-      if (idx === -1 || targetIdx < 0 || targetIdx >= feedOnly.length) return;
-      const [moved] = feedOnly.splice(idx, 1);
-      feedOnly.splice(targetIdx, 0, moved);
-      feedOnly.forEach((item, i) => { item.igBoardOrder = i + 1; });
-      saveVault('IG FEED ORDER UPDATED');
-      renderWorkspace();
+  const syncIgOrderFromDom = (container, cardSelector, orderKey, isReel) => {
+    if (!container) return;
+    const itemById = new Map(filteredItems.map(i => [i.id, i]));
+    const cards = [...container.querySelectorAll(cardSelector)];
+    cards.forEach((card, idx) => {
+      const item = itemById.get(card.dataset.lbItemId);
+      if (item) item[orderKey] = idx + 1;
+      const badge = card.querySelector('.lb-ig-cell-badge');
+      if (badge) {
+        if (isReel) {
+          badge.textContent = `#${idx + 1} · 9:16`;
+        } else {
+          const kind = card.dataset.lbKind || '';
+          badge.textContent = `#${idx + 1}${kind === 'video' ? ' · Reel' : ''}`;
+        }
+      }
+      const prevBtn = card.querySelector('[data-dir="-1"]');
+      const nextBtn = card.querySelector('[data-dir="1"]');
+      if (prevBtn) prevBtn.hidden = idx === 0;
+      if (nextBtn) nextBtn.hidden = idx >= cards.length - 1;
     });
-  });
+    saveVault(isReel ? 'IG REEL ORDER UPDATED' : 'IG FEED ORDER UPDATED');
+  };
+
+  const bindIgSortableGrid = (container, cardSelector, moveBtnAttr, orderKey, isReel) => {
+    if (!container) return;
+    let draggedCard = null;
+    let dropTargetCard = null;
+
+    const clearDropHighlight = () => {
+      if (dropTargetCard) {
+        dropTargetCard.classList.remove('is-drop-target');
+        dropTargetCard = null;
+      }
+    };
+
+    container.addEventListener('dragstart', (e) => {
+      if (e.target.closest('.lb-ig-cell-controls')) {
+        e.preventDefault();
+        return;
+      }
+      const card = e.target.closest(cardSelector);
+      if (!card || !container.contains(card)) return;
+      draggedCard = card;
+      card.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', card.dataset.lbItemId || '');
+      }
+    });
+
+    container.addEventListener('dragover', (e) => {
+      if (!draggedCard) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      const target = e.target.closest(cardSelector);
+      if (!target || target === draggedCard || !container.contains(target)) {
+        clearDropHighlight();
+        return;
+      }
+      if (dropTargetCard !== target) {
+        clearDropHighlight();
+        dropTargetCard = target;
+        target.classList.add('is-drop-target');
+      }
+    });
+
+    container.addEventListener('dragleave', (e) => {
+      if (e.target === container || (e.relatedTarget && !container.contains(e.relatedTarget))) {
+        clearDropHighlight();
+      }
+    });
+
+    container.addEventListener('drop', (e) => {
+      if (!draggedCard) return;
+      e.preventDefault();
+      const target = e.target.closest(cardSelector);
+      clearDropHighlight();
+      if (!target || target === draggedCard || !container.contains(target)) return;
+      const cards = [...container.querySelectorAll(cardSelector)];
+      const fromIdx = cards.indexOf(draggedCard);
+      const toIdx = cards.indexOf(target);
+      if (fromIdx === -1 || toIdx === -1) return;
+      if (fromIdx < toIdx) {
+        target.after(draggedCard);
+      } else {
+        target.before(draggedCard);
+      }
+      syncIgOrderFromDom(container, cardSelector, orderKey, isReel);
+    });
+
+    container.addEventListener('dragend', () => {
+      if (draggedCard) draggedCard.classList.remove('is-dragging');
+      draggedCard = null;
+      clearDropHighlight();
+    });
+
+    container.querySelectorAll(`[${moveBtnAttr}]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest(cardSelector);
+        if (!card) return;
+        const dir = parseInt(btn.dataset.dir, 10) || 0;
+        if (dir < 0 && card.previousElementSibling) {
+          card.previousElementSibling.before(card);
+          syncIgOrderFromDom(container, cardSelector, orderKey, isReel);
+        } else if (dir > 0 && card.nextElementSibling) {
+          card.nextElementSibling.after(card);
+          syncIgOrderFromDom(container, cardSelector, orderKey, isReel);
+        }
+      });
+    });
+  };
+
+  bindIgSortableGrid(ws.querySelector('.lb-ig-profile-grid'), '.lb-ig-cell', 'data-lb-ig-move', 'igBoardOrder', false);
+  bindIgSortableGrid(ws.querySelector('.lb-ig-reels-grid'), '.lb-ig-reel-card', 'data-lb-ig-reel-move', 'igReelOrder', true);
 
   // Bind Main Room Switcher (Instagram | Website | Source Files)
   ws.querySelectorAll('[data-lb-room-tab]').forEach(btn => {
