@@ -22333,14 +22333,8 @@ function isLightboxHiddenInRoom(it, room) {
 }
 
 function isLightboxKeptInRoom(it, room) {
-  if (!it || isLightboxHiddenInRoom(it, room)) return false;
-  if (room === 'instagram') {
-    return it.lbIgKeep !== undefined ? Boolean(it.lbIgKeep) : isLightboxInstagramRouted(it);
-  }
-  if (room === 'website') {
-    return it.lbWebKeep !== undefined ? Boolean(it.lbWebKeep) : isLightboxPortfolioRouted(it);
-  }
-  return Boolean(it.lightboxKeep);
+  // Everything not hidden in a room is ready/kept for that room
+  return Boolean(it) && !isLightboxHiddenInRoom(it, room);
 }
 
 function syncLightboxItemLegacyRouteFields(it) {
@@ -25755,51 +25749,33 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
         ${mediaHtml}
         <div class="lb-stage-top-row">
           <div class="lb-stage-tags-left">
-            <button type="button" class="lb-select-check" aria-pressed="${isCompared ? 'true' : 'false'}" data-lb-cmp="${escapeHtml(it.id)}" aria-label="Select ${escapeHtml(titleText)}" title="Select for comparison or batch actions (Shift+Click for range)">✓</button>
             ${resolvedPassBadge ? `<span class="lb-tag-pill is-pass">${escapeHtml(resolvedPassBadge)}</span>` : ''}
-
           </div>
           <div class="lb-stage-tags-right">
             <span class="lb-tag-pill is-ratio ${ratioInfo.isOdd ? 'is-odd' : ''}" title="${ratioInfo.isOdd ? 'Unique aspect ratio preserved' : 'Aspect ratio'}">
               ${ratioInfo.isOdd ? '✦ ' : ''}${escapeHtml(ratioInfo.key)}
             </span>
-            <button type="button" class="lb-card-menu-btn" aria-haspopup="menu" aria-expanded="false" data-lb-card-menu="${escapeHtml(it.id)}" aria-label="Actions for ${escapeHtml(titleText)}" title="More actions (Move, Rename, Download, Trash)">⋯</button>
           </div>
         </div>
       </div>
 
       <header class="lb-studio-card-header">
-        <h4 class="lb-studio-card-title">
-          <button type="button" class="lb-card-primary-btn" data-lb-open-compare="${escapeHtml(it.id)}" title="${escapeHtml(titleText)} • Click to inspect &amp; compare">
-            ${escapeHtml(titleText)}
-          </button>
+        <h4 class="lb-studio-card-title" title="${escapeHtml(titleText)} • Click to select, double-click to compare">
+          <span class="lb-card-fullname">${escapeHtml(titleText)}</span>
         </h4>
         <span class="lb-studio-card-meta">${escapeHtml(subLabel)}</span>
       </header>
 
       <footer class="lb-studio-card-footer">
         ${isHiddenView ? `
-          <button type="button" class="lb-action-pill is-unhide" data-lb-room-unhide="${escapeHtml(it.id)}" title="Restore to this room (will be included in exports again)">
+          <button type="button" class="lb-action-pill is-unhide" data-lb-room-unhide="${escapeHtml(it.id)}" title="Unhide (will be included in exports again)">
             ↺ Unhide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
           </button>
-        ` : (room === 'source' ? `
-          <button type="button" class="lb-action-pill ${isIgKept ? 'is-ig' : ''}" aria-pressed="${isIgKept ? 'true' : 'false'}" data-lb-room-keep-target="instagram" data-lb-room-keep="${escapeHtml(it.id)}" title="Keep for Instagram">
-            <span aria-hidden="true">${isIgKept ? '★ ' : ''}</span>Instagram
-          </button>
-          <button type="button" class="lb-action-pill ${isWebKept ? 'is-portfolio' : ''}" aria-pressed="${isWebKept ? 'true' : 'false'}" data-lb-room-keep-target="website" data-lb-room-keep="${escapeHtml(it.id)}" title="Keep for Website">
-            <span aria-hidden="true">${isWebKept ? '★ ' : ''}</span>Website
-          </button>
-          <button type="button" class="lb-action-pill is-hide" data-lb-room-hide="${escapeHtml(it.id)}" title="Hide from All (hides from Instagram, Website, and Exports)">
-            Hide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
-          </button>
         ` : `
-          <button type="button" class="lb-action-pill is-keep" aria-pressed="${isKeep ? 'true' : 'false'}" data-lb-room-keep="${escapeHtml(it.id)}" title="${isKeep ? 'Kept for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready') : 'Keep for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready')}">
-            <span aria-hidden="true">${isKeep ? '★ ' : '☆ '}</span>${isKeep ? 'Kept' : 'Keep'}<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
-          </button>
-          <button type="button" class="lb-action-pill is-hide" data-lb-room-hide="${escapeHtml(it.id)}" title="Hide from this room (does not affect other rooms or Mac files)">
+          <button type="button" class="lb-action-pill is-hide" data-lb-room-hide="${escapeHtml(it.id)}" title="${room === 'source' ? 'Hide from All (hides everywhere & from exports)' : 'Hide from this room only (does not affect other rooms or Mac files)'}">
             Hide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
           </button>
-        `)}
+        `}
       </footer>
     </article>
   `;
@@ -27228,6 +27204,76 @@ function renderLightboxView(ws, spaceObj) {
     .map(c => c.dataset.lbItemId)
     .filter(Boolean);
 
+  // Single-click card = toggle Compare selection (Shift+click for range); Double-click card = open in Compare
+  ws.querySelectorAll('.lb-studio-card:not(.is-render-pile)[data-lb-item-id]').forEach(cardEl => {
+    cardEl.addEventListener('click', (e) => {
+      if (e.target.closest('button, a, input')) return;
+      const clickedId = cardEl.dataset.lbItemId;
+      const it = vault.items.find(i => i.id === clickedId);
+      if (!it) return;
+
+      if (e.shiftKey && state._lastLbSelectedId && visibleCardIdsOrdered.includes(state._lastLbSelectedId) && visibleCardIdsOrdered.includes(clickedId)) {
+        const aIdx = visibleCardIdsOrdered.indexOf(state._lastLbSelectedId);
+        const bIdx = visibleCardIdsOrdered.indexOf(clickedId);
+        const [lo, hi] = aIdx <= bIdx ? [aIdx, bIdx] : [bIdx, aIdx];
+        state.selectedCompareAssets = state.selectedCompareAssets || [];
+        for (let k = lo; k <= hi; k++) {
+          const rIt = vault.items.find(x => x.id === visibleCardIdsOrdered[k]);
+          if (rIt && !isAssetCompareSelected(rIt.id)) {
+            state.selectedCompareAssets.push({
+              id: rIt.id,
+              title: rIt.title || 'Asset',
+              url: rIt.url,
+              kind: getLightboxMasterMediaKind(rIt),
+              igStatus: rIt.igStatus || '',
+              lightboxKeep: Boolean(rIt.lightboxKeep),
+              vaultItemId: rIt.id,
+              notes: rIt.notes || ''
+            });
+          }
+        }
+        state._lastLbSelectedId = clickedId;
+        renderWorkspace();
+        renderCompareFloatingBar();
+        return;
+      }
+
+      state._lastLbSelectedId = clickedId;
+      toggleCompareSelect({
+        id: it.id,
+        title: it.title || 'Asset',
+        url: it.url,
+        kind: getLightboxMasterMediaKind(it),
+        igStatus: it.igStatus || '',
+        lightboxKeep: Boolean(it.lightboxKeep),
+        vaultItemId: it.id,
+        notes: it.notes || ''
+      });
+    });
+
+    cardEl.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button, a, input')) return;
+      const clickedId = cardEl.dataset.lbItemId;
+      const it = vault.items.find(i => i.id === clickedId);
+      if (!it) return;
+      if (!isAssetCompareSelected(it.id)) {
+        state.selectedCompareAssets = state.selectedCompareAssets || [];
+        state.selectedCompareAssets.push({
+          id: it.id,
+          title: it.title || 'Asset',
+          url: it.url,
+          kind: getLightboxMasterMediaKind(it),
+          igStatus: it.igStatus || '',
+          lightboxKeep: Boolean(it.lightboxKeep),
+          vaultItemId: it.id,
+          notes: it.notes || ''
+        });
+      }
+      renderCompareFloatingBar();
+      openCompareDialog(it.id);
+    });
+  });
+
   ws.querySelectorAll('[data-lb-cmp]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -27364,14 +27410,14 @@ function renderLightboxView(ws, spaceObj) {
   ws.querySelectorAll('[data-lb-route-web]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleLightboxRoomKeep(btn.dataset.lbRouteWeb, 'website');
+      toggleLightboxRoomHide(btn.dataset.lbRouteWeb, 'website', true);
     });
   });
 
   ws.querySelectorAll('[data-lb-route-ig]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleLightboxRoomKeep(btn.dataset.lbRouteIg, 'instagram');
+      toggleLightboxRoomHide(btn.dataset.lbRouteIg, 'instagram', true);
     });
   });
 
