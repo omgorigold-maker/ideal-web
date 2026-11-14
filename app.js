@@ -27894,8 +27894,8 @@ function renderLightboxView(ws, spaceObj) {
       }
     });
 
-    // Drag-and-Drop Card / Pile / Multi-Selection onto Project Pills
-    if (card.getAttribute('draggable') === 'true') {
+    // Drag-and-Drop Card / Pile / Multi-Selection onto Project Pills (skip IG feed/reel reorder cards)
+    if (card.getAttribute('draggable') === 'true' && !card.classList.contains('lb-ig-cell') && !card.classList.contains('lb-ig-reel-card')) {
       card.addEventListener('dragstart', (e) => {
         if (!e.dataTransfer) return;
         let dragIds = [itemId];
