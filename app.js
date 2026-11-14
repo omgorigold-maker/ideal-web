@@ -5782,8 +5782,8 @@ function renderFilterActionRow() {
   const LIGHTBOX_SHORT_LABELS = {
     'All Assets': 'All',
     '★ Keep Selected': '★ Keep',
-    'Portfolio Staging': 'Portfolio',
-    'Instagram Board': 'Instagram'
+    'Portfolio Staging': 'Website Ready',
+    'Instagram Board': 'IG Ready'
   };
   if (isLightboxSpace) {
     list = ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'];
@@ -24205,8 +24205,8 @@ function renderCompareModal() {
           </span>
           <div class="cmp-split-cell-actions">
             <button type="button" class="cmp-cell-action-btn is-keep ${a.lightboxKeep ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.lightboxKeep ? 'true' : 'false'}" title="Mark as Keep">★ Keep</button>
-            <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Stage for Portfolio">Portfolio</button>
-            <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Stage for Instagram">Instagram</button>
+            <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Mark as Website Ready">Website Ready</button>
+            <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Mark as IG Ready">IG Ready</button>
             <button type="button" class="cmp-cell-action-btn is-danger" data-trash-idx="${idx}" aria-label="Remove ${escapeHtml(a.title)}" title="Remove from Lightbox (keeps original file on Mac)">Remove…</button>
           </div>
           <div class="cmp-split-media-wrap" style="transform:${transformCss};">
@@ -25249,11 +25249,11 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
         <button type="button" class="lb-action-pill is-keep" aria-pressed="${isKeep ? 'true' : 'false'}" data-lb-keep="${escapeHtml(it.id)}" title="Mark as Keep">
           <span aria-hidden="true">${isKeep ? '★ ' : ''}</span>Keep<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
         </button>
-        <button type="button" class="lb-action-pill is-portfolio" aria-pressed="${isPortfolio ? 'true' : 'false'}" data-lb-route-web="${escapeHtml(it.id)}" title="Stage for Portfolio">
-          <span aria-hidden="true">${isPortfolio ? '✓ ' : ''}</span>Portfolio<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+        <button type="button" class="lb-action-pill is-portfolio" aria-pressed="${isPortfolio ? 'true' : 'false'}" data-lb-route-web="${escapeHtml(it.id)}" title="Mark as Website Ready">
+          <span aria-hidden="true">${isPortfolio ? '✓ ' : ''}</span>Website Ready<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
         </button>
-        <button type="button" class="lb-action-pill is-ig" aria-pressed="${isIg ? 'true' : 'false'}" data-lb-route-ig="${escapeHtml(it.id)}" title="Stage for Instagram">
-          <span aria-hidden="true">${isIg ? '✓ ' : ''}</span>Instagram<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+        <button type="button" class="lb-action-pill is-ig" aria-pressed="${isIg ? 'true' : 'false'}" data-lb-route-ig="${escapeHtml(it.id)}" title="Mark as IG Ready">
+          <span aria-hidden="true">${isIg ? '✓ ' : ''}</span>IG Ready<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
         </button>
       </footer>
     </article>
@@ -25920,13 +25920,13 @@ function renderLightboxView(ws, spaceObj) {
         },
         'Portfolio Staging': {
           icon: '⊞',
-          title: 'Nothing staged for Portfolio yet',
-          desc: 'Click Portfolio on any asset (or inside Compare) to preview it on a clean 12-column editorial layout before exporting.'
+          title: 'Nothing marked Website Ready yet',
+          desc: 'Click Website Ready on any asset (or inside Compare) to preview it on a clean 12-column editorial layout before exporting.'
         },
         'Instagram Board': {
           icon: '◈',
-          title: 'Nothing staged for Instagram yet',
-          desc: 'Click Instagram on any photo or video to test how it flows in your 3-column profile grid and 9:16 Reels queue.'
+          title: 'Nothing marked IG Ready yet',
+          desc: 'Click IG Ready on any photo or video to test how it flows in your 3-column profile grid and 9:16 Reels queue.'
         }
       };
       const meta = emptyCopyBySubpage[activeFilter] || { icon: '✦', title: 'No assets in this view', desc: 'Switch back to All to browse your workspace.' };
@@ -26017,11 +26017,11 @@ function renderLightboxView(ws, spaceObj) {
       `;
     } else if (activeFilter === '★ Keep Selected') {
       inlineModeControlsHtml = `
-        <button type="button" class="lb-tool-btn is-ghost" id="btnLbSelectsRouteTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbSelectsRoutePopover" command="toggle-popover" title="Stage all selects to Portfolio or Instagram">Stage All ▾</button>
+        <button type="button" class="lb-tool-btn is-ghost" id="btnLbSelectsRouteTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbSelectsRoutePopover" command="toggle-popover" title="Mark all selects as Website Ready or IG Ready">Stage All ▾</button>
         <div id="lbSelectsRoutePopover" popover="auto" class="lb-card-menu-popover is-align-end">
           <div focusgroup="menu nomemory" id="lbSelectsRouteInner" aria-labelledby="btnLbSelectsRouteTrigger">
-            <button type="button" id="btnLbRouteAllKeptWeb"><span class="lb-menu-icon" aria-hidden="true">⊞</span><span>All → Portfolio</span></button>
-            <button type="button" id="btnLbRouteAllKeptIg"><span class="lb-menu-icon" aria-hidden="true">◈</span><span>All → Instagram</span></button>
+            <button type="button" id="btnLbRouteAllKeptWeb"><span class="lb-menu-icon" aria-hidden="true">⊞</span><span>All → Website Ready</span></button>
+            <button type="button" id="btnLbRouteAllKeptIg"><span class="lb-menu-icon" aria-hidden="true">◈</span><span>All → IG Ready</span></button>
           </div>
         </div>
       `;
