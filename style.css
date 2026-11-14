@@ -16360,160 +16360,27 @@ dialog.compare-dialog::backdrop {
 
 
 
-/* Unmistakable Room Indicator Badge & Subtle Accent */
-.lb-studio-tool[data-lb-room="instagram"] .lb-canvas-head {
-  border-top: 3px solid #E1306C;
-}
-.lb-studio-tool[data-lb-room="website"] .lb-canvas-head {
-  border-top: 3px solid #2563EB;
-}
-.lb-studio-tool[data-lb-room="source"] .lb-canvas-head {
-  border-top: 3px solid #64748B;
-}
-.lb-room-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-.lb-room-badge.is-instagram {
-  background: rgba(225, 48, 108, 0.12);
-  color: #BE185D;
-}
-.lb-room-badge.is-website {
-  background: rgba(37, 99, 235, 0.12);
-  color: #1D4ED8;
-}
-.lb-room-badge.is-source {
-  background: rgba(100, 116, 139, 0.14);
-  color: #334155;
-}
-.lb-safety-icon {
-  font-size: 13px;
-  opacity: 0.7;
-  cursor: help;
-}
 
-/* Clean 2-Level Lightbox Header & Unmistakable Room Switcher */
-.lb-canvas-head-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+/* Clean Top-Bar Room Pills for Lightbox */
+.filter-pill.lb-room-pill {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
 }
-
-.lb-canvas-head-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+.filter-pill.lb-room-pill.active {
+  background: #18181B;
+  color: #FFFFFF;
+  border-color: #18181B;
 }
-
-.lb-canvas-head-sub {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+.filter-pill.lb-room-pill.active .filter-pill-count {
+  color: rgba(255, 255, 255, 0.78);
 }
-
-.lb-sub-left,
-.lb-sub-right {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .lb-scope-heading-chev {
-  font-size: 16px !important;
-  color: var(--lb-text) !important;
+  font-size: 14px;
+  color: var(--lb-text);
   background: rgba(15, 23, 42, 0.06);
   border-radius: 6px;
   padding: 2px 6px;
   line-height: 1;
-}
-
-.lb-room-switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.06);
-}
-
-.lb-room-tab {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--lb-text-muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.lb-room-tab:hover {
-  color: var(--lb-text);
-  background: rgba(255, 255, 255, 0.55);
-}
-
-.lb-room-tab-count {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.08);
-}
-
-.lb-room-tab.is-instagram[aria-selected="true"] {
-  background: #E1306C;
-  color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(225, 48, 108, 0.28);
-}
-
-.lb-room-tab.is-website[aria-selected="true"] {
-  background: #2563EB;
-  color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
-}
-
-.lb-room-tab.is-source[aria-selected="true"] {
-  background: #1E293B;
-  color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.22);
-}
-
-.lb-room-tab[aria-selected="true"] .lb-room-tab-count {
-  background: rgba(255, 255, 255, 0.22);
-  color: #FFFFFF;
-}
-
-.lb-studio-tool[data-lb-room="instagram"] .lb-canvas-head-stack {
-  border-top: 3px solid #E1306C;
-  padding-top: 8px;
-}
-
-.lb-studio-tool[data-lb-room="website"] .lb-canvas-head-stack {
-  border-top: 3px solid #2563EB;
-  padding-top: 8px;
-}
-
-.lb-studio-tool[data-lb-room="source"] .lb-canvas-head-stack {
-  border-top: 3px solid #1E293B;
-  padding-top: 8px;
 }

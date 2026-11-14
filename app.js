@@ -6115,7 +6115,7 @@ function renderFilterActionRow() {
     state.activeCategory = list[0] || 'All';
   }
 
-  const pillsHtml = isLightboxSpace ? '' : list.map((cat, idx) => {
+  const pillsHtml = list.map((cat, idx) => {
     const count = getCategoryCount(type, obj, cat, idx === 0);
     const isActive = isLightboxSpace ? (state.lightboxFilter === cat) : (state.activeCategory === cat);
     const shortCat = isLightboxSpace
@@ -6129,7 +6129,7 @@ function renderFilterActionRow() {
     const showCountSpan = isLightboxSpace ? (Number(count) > 0) : !(isGmailSpace && count === '');
     const ariaPressedAttr = isLightboxSpace ? ` aria-pressed="${isActive ? 'true' : 'false'}"` : '';
     return `
-      <button type="button" class="filter-pill ${isActive ? 'active' : ''}" data-cat="${escapeHtml(cat)}"${ariaPressedAttr} title="${escapeHtml(cat)}${count !== '' ? ` (${count})` : ''} • Click to switch view">
+      <button type="button" class="filter-pill ${isLightboxSpace ? 'lb-room-pill ' : ''}${isActive ? 'active' : ''}" data-cat="${escapeHtml(cat)}"${ariaPressedAttr} title="${escapeHtml(cat)}${count !== '' ? ` (${count})` : ''} • Click to switch view">
         <span>${escapeHtml(shortCat)}</span>
         ${showCountSpan ? `<span class="filter-pill-count">${count}</span>` : ''}
         ${canDeleteTab ? `<span class="pill-del-btn" data-del-cat="${escapeHtml(cat)}" title="Delete tab (contents stay safe as Untagged)">×</span>` : ''}
@@ -25693,8 +25693,7 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
           <div class="lb-stage-tags-left">
             <button type="button" class="lb-select-check" aria-pressed="${isCompared ? 'true' : 'false'}" data-lb-cmp="${escapeHtml(it.id)}" aria-label="Select ${escapeHtml(titleText)}" title="Select for comparison or batch actions (Shift+Click for range)">✓</button>
             ${resolvedPassBadge ? `<span class="lb-tag-pill is-pass">${escapeHtml(resolvedPassBadge)}</span>` : ''}
-            ${subf ? `<span class="lb-tag-pill is-folder" title="Subfolder: ${escapeHtml(subf)}">${escapeHtml(String(subf).split('/').pop().slice(0, 14))}</span>` : ''}
-            ${!subf && projObj && state.lightboxProjectId === 'all' ? `<span class="lb-tag-pill is-project">${escapeHtml(projObj.title.slice(0, 14))}</span>` : ''}
+
           </div>
           <div class="lb-stage-tags-right">
             <span class="lb-tag-pill is-ratio ${ratioInfo.isOdd ? 'is-odd' : ''}" title="${ratioInfo.isOdd ? 'Unique aspect ratio preserved' : 'Aspect ratio'}">
@@ -26605,48 +26604,14 @@ function renderLightboxView(ws, spaceObj) {
 
   ws.innerHTML = `
     <div class="lb-studio-tool ${hasSelectionNow ? 'has-selection' : ''}" id="lightboxMainShell" data-lb-room="${activeRoom}">
-      <!-- Clear 2-Level Lightbox Header -->
-      <div class="lb-canvas-head-stack">
-        <div class="lb-canvas-head-top">
-          <div class="lb-head-left">
-            ${leftHeadHtml}
-          </div>
-
-          <div class="lb-room-switcher" role="tablist" aria-label="Lightbox Room">
-            <button type="button" role="tab" class="lb-room-tab is-instagram" data-lb-room-tab="Instagram Board" aria-selected="${activeRoom === 'instagram' ? 'true' : 'false'}">
-              <span aria-hidden="true">◈</span>
-              <span>Instagram</span>
-              <span class="lb-room-tab-count">${allProjectItems.filter(i => isLightboxKeptInRoom(i, 'instagram')).length}</span>
-            </button>
-            <button type="button" role="tab" class="lb-room-tab is-website" data-lb-room-tab="Portfolio Staging" aria-selected="${activeRoom === 'website' ? 'true' : 'false'}">
-              <span aria-hidden="true">⊞</span>
-              <span>Website</span>
-              <span class="lb-room-tab-count">${allProjectItems.filter(i => isLightboxKeptInRoom(i, 'website')).length}</span>
-            </button>
-            <button type="button" role="tab" class="lb-room-tab is-source" data-lb-room-tab="All Assets" aria-selected="${activeRoom === 'source' ? 'true' : 'false'}">
-              <span aria-hidden="true">📁</span>
-              <span>Source Files</span>
-              <span class="lb-room-tab-count">${allProjectItems.length}</span>
-            </button>
-          </div>
-
-          <div class="lb-head-add-wrap">
-            <button type="button" class="lb-tool-btn is-primary" id="btnLbAddMediaTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbAddMediaPopover" command="toggle-popover" title="Link local files or folders from your Mac">+ Add ▾</button>
-            <div id="lbAddMediaPopover" popover="auto" class="lb-card-menu-popover is-align-end">
-              <div focusgroup="menu nomemory" id="lbAddMediaInner" aria-labelledby="btnLbAddMediaTrigger">
-                <button type="button" id="btnLbChooseFiles"><span class="lb-menu-icon" aria-hidden="true">📄</span><span>Choose Files…</span></button>
-                <button type="button" id="btnLbChooseFolder"><span class="lb-menu-icon" aria-hidden="true">📁</span><span>Choose Folder…</span></button>
-              </div>
-            </div>
-          </div>
+      <!-- Single Clean Lightbox Header -->
+      <div class="lb-canvas-head">
+        <div class="lb-head-left">
+          ${leftHeadHtml}
+          ${inlineModeControlsHtml}
         </div>
-
-        <div class="lb-canvas-head-sub">
-          <div class="lb-sub-left">
-            ${inlineModeControlsHtml}
-          </div>
-          <div class="lb-sub-right">
-            <div class="lb-filter-trigger-wrap">
+        <div class="lb-head-right">
+          <div class="lb-filter-trigger-wrap">
             <button type="button" class="lb-tool-btn ${hasActiveViewFilter ? 'is-filter-active' : 'is-ghost'}" id="btnLbFilterTrigger" popovertarget="lbFilterPopover" title="Filter by media type, aspect ratio, or grid framing">
               <span>${escapeHtml(filterButtonLabel)}</span>
             </button>
@@ -26710,6 +26675,14 @@ function renderLightboxView(ws, spaceObj) {
             </button>
           ` : '')}
 
+          <div class="lb-head-add-wrap">
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbAddMediaTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbAddMediaPopover" command="toggle-popover" title="Link local files or folders from your Mac">+ Add ▾</button>
+            <div id="lbAddMediaPopover" popover="auto" class="lb-card-menu-popover is-align-end">
+              <div focusgroup="menu nomemory" id="lbAddMediaInner" aria-labelledby="btnLbAddMediaTrigger">
+                <button type="button" id="btnLbChooseFiles"><span class="lb-menu-icon" aria-hidden="true">📄</span><span>Choose Files…</span></button>
+                <button type="button" id="btnLbChooseFolder"><span class="lb-menu-icon" aria-hidden="true">📁</span><span>Choose Folder…</span></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
