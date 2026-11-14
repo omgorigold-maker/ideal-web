@@ -1738,6 +1738,32 @@ function saveNavState() {
       lightboxProjectId: state.lightboxProjectId || 'all',
       lightboxFilter: state.lightboxFilter || 'All Assets',
       lightboxMediaKind: state.lightboxMediaKind || 'all',
+      lightboxIgPreviewOn: Boolean(state.lightboxIgPreviewOn),
+      lightboxWebPreviewOn: Boolean(state.lightboxWebPreviewOn),
+      lightboxIgViewMode: state.lightboxIgViewMode || 'profile',
+      lightboxIgCropMode: state.lightboxIgCropMode || '4:5',
+      lightboxPortfolioViewMode: state.lightboxPortfolioViewMode || 'layout',
+      lightboxScaleStep: Number(state.lightboxScaleStep ?? 3),
+      lightboxHiddenCollapsed: state.lightboxHiddenCollapsed !== false,
+      lightboxIgSubView: state.lightboxIgSubView || 'pick',
+      lightboxWebSubView: state.lightboxWebSubView || 'pick',
+      workspaceScrollTop: document.getElementById('workspace')?.scrollTop || 0,
+      compareRestore: (() => {
+        const cmpDlg = document.getElementById('compareDialog');
+        if (!cmpDlg || !cmpDlg.open || !(state.selectedCompareAssets || []).length) return null;
+        return {
+          open: true,
+          selectedIds: (state.selectedCompareAssets || []).map(a => a.vaultItemId || a.id).filter(Boolean),
+          mode: state.compareState?.mode || 'stack',
+          activeIndex: Number(state.compareState?.activeIndex || 0),
+          showGrid: Boolean(state.compareState?.showGrid),
+          overlayMode: state.compareState?.overlayMode || 'none',
+          diffBlend: Boolean(state.compareState?.diffBlend),
+          showSpecs: Boolean(state.compareState?.showSpecs),
+          diffColor: state.compareState?.diffColor || 'pink',
+          diffGain: Number(state.compareState?.diffGain || 4)
+        };
+      })(),
       sidebarOpen: Boolean(state.sidebarOpen)
     };
     const serialized = JSON.stringify(payload);
@@ -1815,6 +1841,39 @@ function restoreNavState() {
         }
         if (typeof saved.lightboxMediaKind === 'string' && saved.lightboxMediaKind) {
           state.lightboxMediaKind = saved.lightboxMediaKind;
+        }
+        if (typeof saved.lightboxIgPreviewOn === 'boolean') {
+          state.lightboxIgPreviewOn = saved.lightboxIgPreviewOn;
+        }
+        if (typeof saved.lightboxWebPreviewOn === 'boolean') {
+          state.lightboxWebPreviewOn = saved.lightboxWebPreviewOn;
+        }
+        if (typeof saved.lightboxIgViewMode === 'string' && saved.lightboxIgViewMode) {
+          state.lightboxIgViewMode = saved.lightboxIgViewMode;
+        }
+        if (typeof saved.lightboxIgCropMode === 'string' && saved.lightboxIgCropMode) {
+          state.lightboxIgCropMode = saved.lightboxIgCropMode;
+        }
+        if (typeof saved.lightboxPortfolioViewMode === 'string' && saved.lightboxPortfolioViewMode) {
+          state.lightboxPortfolioViewMode = saved.lightboxPortfolioViewMode;
+        }
+        if (typeof saved.lightboxScaleStep === 'number' && !Number.isNaN(saved.lightboxScaleStep)) {
+          state.lightboxScaleStep = saved.lightboxScaleStep;
+        }
+        if (typeof saved.lightboxHiddenCollapsed === 'boolean') {
+          state.lightboxHiddenCollapsed = saved.lightboxHiddenCollapsed;
+        }
+        if (typeof saved.lightboxIgSubView === 'string' && saved.lightboxIgSubView) {
+          state.lightboxIgSubView = saved.lightboxIgSubView;
+        }
+        if (typeof saved.lightboxWebSubView === 'string' && saved.lightboxWebSubView) {
+          state.lightboxWebSubView = saved.lightboxWebSubView;
+        }
+        if (typeof saved.workspaceScrollTop === 'number' && saved.workspaceScrollTop > 0) {
+          state._pendingScrollTop = saved.workspaceScrollTop;
+        }
+        if (saved.compareRestore && saved.compareRestore.open && Array.isArray(saved.compareRestore.selectedIds) && saved.compareRestore.selectedIds.length > 0) {
+          state._pendingCompareRestore = saved.compareRestore;
         }
         if (typeof saved.lightboxFilter === 'string' && saved.lightboxFilter) {
           // One-time conversion of retired filter names
@@ -6650,6 +6709,44 @@ function renderWorkspace() {
   if (type === 'space' && obj.id === 'lightbox') {
     renderLightboxView(ws, obj);
     applyContainerScale(type, obj, false);
+    if (state._pendingScrollTop > 0 && (vault.items || []).length > 0) {
+      const targetTop = state._pendingScrollTop;
+      state._pendingScrollTop = 0;
+      requestAnimationFrame(() => { ws.scrollTop = targetTop; });
+    }
+    if (state._pendingCompareRestore && (vault.items || []).length > 0) {
+      const pendingCmp = state._pendingCompareRestore;
+      const matched = pendingCmp.selectedIds
+        .map(id => vault.items.find(i => i.id === id))
+        .filter(Boolean);
+      state._pendingCompareRestore = null;
+      if (matched.length > 0) {
+        state.selectedCompareAssets = matched.map(it => ({
+          id: it.id,
+          title: it.title || 'Asset',
+          url: it.url,
+          kind: getLightboxMasterMediaKind(it),
+          igStatus: it.igStatus || '',
+          lightboxKeep: Boolean(it.lightboxKeep),
+          vaultItemId: it.id,
+          notes: it.notes || ''
+        }));
+        state.compareState.mode = pendingCmp.mode || 'stack';
+        state.compareState.activeIndex = Math.min(Math.max(0, pendingCmp.activeIndex || 0), matched.length - 1);
+        state.compareState.showGrid = Boolean(pendingCmp.showGrid);
+        state.compareState.overlayMode = pendingCmp.overlayMode || 'none';
+        state.compareState.diffBlend = Boolean(pendingCmp.diffBlend);
+        state.compareState.showSpecs = Boolean(pendingCmp.showSpecs);
+        state.compareState.diffColor = pendingCmp.diffColor || 'pink';
+        state.compareState.diffGain = Number(pendingCmp.diffGain || 4);
+        const cmpDlg = document.getElementById('compareDialog');
+        if (cmpDlg) {
+          renderCompareModal();
+          if (!cmpDlg.open) cmpDlg.showModal();
+          requestAnimationFrame(() => syncCompareOverlayBounds());
+        }
+      }
+    }
     return;
   }
 
@@ -24955,6 +25052,8 @@ function initCompareDialogEvents() {
   }
 
   document.getElementById('btnCloseCompareDialog')?.addEventListener('click', () => dlg.close());
+  dlg.addEventListener('close', () => saveNavState());
+  window.addEventListener('beforeunload', () => { try { saveNavState(); } catch (e) {} });
 
   document.getElementById('btnCmpModeStack')?.addEventListener('click', () => {
     state.compareState.mode = 'stack';
@@ -27477,7 +27576,7 @@ function renderLightboxView(ws, spaceObj) {
       if (!nextFilter || state.lightboxFilter === nextFilter) return;
       state.lightboxFilter = nextFilter;
       state.activeCategory = nextFilter;
-      saveState();
+      saveNavState();
       renderWorkspace();
     });
   });
