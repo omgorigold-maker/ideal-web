@@ -6096,12 +6096,12 @@ function renderFilterActionRow() {
 
   let list = type === 'project' ? (obj.sections = obj.sections || ['All']) : (obj.categories = obj.categories || ['All']);
   const LIGHTBOX_SHORT_LABELS = {
+    'All Assets': 'All',
     'Instagram Board': 'Instagram',
-    'Portfolio Staging': 'Website',
-    'All Assets': 'Source Files'
+    'Portfolio Staging': 'Website'
   };
   if (isLightboxSpace) {
-    list = ['Instagram Board', 'Portfolio Staging', 'All Assets'];
+    list = ['All Assets', 'Instagram Board', 'Portfolio Staging'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
       state.lightboxFilter = 'Instagram Board';
@@ -6129,7 +6129,7 @@ function renderFilterActionRow() {
     const showCountSpan = isLightboxSpace ? (Number(count) > 0) : !(isGmailSpace && count === '');
     const ariaPressedAttr = isLightboxSpace ? ` aria-pressed="${isActive ? 'true' : 'false'}"` : '';
     return `
-      <button type="button" class="filter-pill ${isLightboxSpace ? 'lb-room-pill ' : ''}${isActive ? 'active' : ''}" data-cat="${escapeHtml(cat)}"${ariaPressedAttr} title="${escapeHtml(cat)}${count !== '' ? ` (${count})` : ''} • Click to switch view">
+      <button type="button" class="filter-pill ${isActive ? 'active' : ''}" data-cat="${escapeHtml(cat)}"${ariaPressedAttr} title="${escapeHtml(cat)}${count !== '' ? ` (${count})` : ''} • Click to switch view">
         <span>${escapeHtml(shortCat)}</span>
         ${showCountSpan ? `<span class="filter-pill-count">${count}</span>` : ''}
         ${canDeleteTab ? `<span class="pill-del-btn" data-del-cat="${escapeHtml(cat)}" title="Delete tab (contents stay safe as Untagged)">×</span>` : ''}
@@ -24983,8 +24983,10 @@ function initCompareDialogEvents() {
       wasPlayingBeforeScrub = false;
     };
 
+    scrubberEl.addEventListener('mousedown', (e) => e.stopPropagation());
     scrubberEl.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
+      try { scrubberEl.setPointerCapture(e.pointerId); } catch (_) {}
       const videos = Array.from(stage.querySelectorAll('video'));
       if (!videos.length) return;
       wasPlayingBeforeScrub = state.compareState.videoPlaying !== false && !videos[0].paused;
@@ -25013,6 +25015,8 @@ function initCompareDialogEvents() {
     scrubberEl.addEventListener('change', finishScrubGesture);
     scrubberEl.addEventListener('pointerup', finishScrubGesture);
     scrubberEl.addEventListener('pointercancel', finishScrubGesture);
+    window.addEventListener('pointerup', finishScrubGesture);
+    window.addEventListener('pointercancel', finishScrubGesture);
     window.addEventListener('pointerup', finishScrubGesture);
   }
 
@@ -25251,27 +25255,74 @@ async function exportLightboxSelectedFolder(itemsToExport, projectName = 'Studio
     return;
   }
 
-  try {
-    showStatusToast(`Exporting ${filesPayload.length} untouched original file(s)…`);
-    const res = await fetch('/api/lightbox/export-folder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectName,
-        files: filesPayload
-      })
-    });
-    const data = await res.json();
-    if (data && data.ok) {
-      const cnt = data.copiedCount || data.exportedCount || filesPayload.length;
-      showStatusToast(`✓ Exported ${cnt} original file(s) to ~/Desktop/${data.folderName}`);
-    } else {
-      showStatusToast('Export failed: ' + (data?.error || 'Server error'));
-    }
-  } catch (err) {
-    console.error('Export folder error:', err);
-    showStatusToast('Could not reach local export server.');
+  const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
+  if (!isStaticWeb) {
+    try {
+      showStatusToast(`Exporting ${filesPayload.length} untouched original file(s)…`);
+      const res = await fetch('/api/lightbox/export-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectName,
+          files: filesPayload
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ok) {
+          const cnt = data.copiedCount || data.exportedCount || filesPayload.length;
+          showStatusToast(`✓ Exported ${cnt} original file(s) to ~/Desktop/${data.folderName}`);
+          return;
+        }
+      }
+    } catch (_) {}
   }
+
+  // Browser fallback (works on github.io/ideal-web too) via Mac folder picker
+  if (typeof window.showDirectoryPicker === 'function') {
+    try {
+      const rootDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+      const safeProj = String(projectName || 'Lightbox_Export').replace(/[^a-zA-Z0-9._-]+/g, '_');
+      const exportDir = await rootDir.getDirectoryHandle(`Lightbox_Export_${safeProj}`, { create: true });
+      let copied = 0;
+      const used = new Set();
+      for (const it of itemsToExport) {
+        if (!it) continue;
+        let fileBlob = null;
+        let fileName = it.originalFileName || it.title || `asset_${copied + 1}`;
+        const handle = lightboxStoredHandles.get(it.id);
+        if (handle && typeof handle.getFile === 'function') {
+          try {
+            fileBlob = await handle.getFile();
+            fileName = fileBlob.name || fileName;
+          } catch (_) {}
+        }
+        if (!fileBlob && it.url) {
+          try {
+            const resp = await fetch(getLightboxMediaSrc(it) || it.url);
+            if (resp.ok) fileBlob = await resp.blob();
+          } catch (_) {}
+        }
+        if (!fileBlob) continue;
+        let outName = fileName.replace(/[/\\:]/g, '_');
+        if (used.has(outName)) {
+          const dot = outName.lastIndexOf('.');
+          outName = dot > 0 ? `${outName.slice(0, dot)}_${copied + 1}${outName.slice(dot)}` : `${outName}_${copied + 1}`;
+        }
+        used.add(outName);
+        const fh = await exportDir.getFileHandle(outName, { create: true });
+        const writable = await fh.createWritable();
+        await writable.write(fileBlob);
+        await writable.close();
+        copied++;
+      }
+      showStatusToast(copied > 0 ? `✓ Exported ${copied} file(s) into Lightbox_Export_${safeProj}` : 'No readable files could be exported.');
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+  }
+  showStatusToast('Export needs either the local Ideal app or Chrome folder permission.');
 }
 
 let _lbMenuReturnFocusEl = null;
