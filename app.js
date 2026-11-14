@@ -9874,8 +9874,10 @@ function openSpacebarPreview(asset) {
   if (!dlg || !stage) return;
 
   const isGDrivePage = state.viewType === 'space' && state.activeSpaceId === 'gdrive_assets';
-  const fullPreviewUrl = asset.previewUrl || (asset.thumbSrc ? `${asset.thumbSrc}&preview=1` : (asset.thumbSrc || asset.url || ''));
   const thumbPreviewUrl = asset.thumbSrc || asset.url || '';
+  const canAppendPreviewParam = thumbPreviewUrl && !/^(blob:|data:)/i.test(thumbPreviewUrl) && !thumbPreviewUrl.includes('/vault_media/') && !thumbPreviewUrl.includes('/api/local-media');
+  const fullPreviewUrl = asset.previewUrl || (canAppendPreviewParam ? `${thumbPreviewUrl}${thumbPreviewUrl.includes('?') ? '&' : '?'}preview=1` : thumbPreviewUrl);
+  const videoPreviewUrl = asset.videoSrc || thumbPreviewUrl;
   const fallbackThumb = asset.fallbackSrc || asset.thumbSrc || '';
 
   if (isGDrivePage) {
@@ -9901,7 +9903,7 @@ function openSpacebarPreview(asset) {
   } else if (asset.driveEmbedUrl) {
     stage.innerHTML = `<iframe src="${escapeHtml(asset.driveEmbedUrl)}" class="gdrive-embed-frame" allow="autoplay" allowfullscreen></iframe>`;
   } else if (asset.kind === 'video') {
-    stage.innerHTML = `<video src="${escapeHtml(thumbPreviewUrl)}" controls autoplay loop playsinline></video>`;
+    stage.innerHTML = `<video src="${escapeHtml(videoPreviewUrl)}" poster="${escapeHtml(thumbPreviewUrl)}" controls autoplay loop playsinline></video>`;
   } else {
     stage.innerHTML = `<img src="${escapeHtml(fullPreviewUrl)}" data-fallback="${escapeHtml(thumbPreviewUrl)}" alt="${escapeHtml(asset.title || '')}" style="max-height:80vh;max-width:92vw;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.35);">`;
     const previewImg = stage.querySelector('img');
@@ -10090,6 +10092,7 @@ function openSpacebarPreview(asset) {
       const list = state.currentEagleAssetList || [];
       if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && list.length > 1 && state.currentQuickLookAsset) {
         e.preventDefault();
+        e.stopPropagation();
         const curIdx = list.findIndex(x => x.id === state.currentQuickLookAsset.id || (x.localPath && x.localPath === state.currentQuickLookAsset.localPath));
         if (curIdx !== -1) {
           const nextIdx = (curIdx + (e.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length;
@@ -10099,6 +10102,7 @@ function openSpacebarPreview(asset) {
         }
       } else if (e.code === 'Space') {
         e.preventDefault();
+        e.stopPropagation();
         dlg.close();
       }
     });
@@ -20779,6 +20783,9 @@ async function executeConfirmedDelete() {
       cleanupRemovedLightboxItemResources(it);
     }
     vault.items = (vault.items || []).filter(i => i.id !== pd.id);
+    if (Array.isArray(state.selectedCompareAssets)) {
+      state.selectedCompareAssets = state.selectedCompareAssets.filter(a => (a.vaultItemId || a.id) !== pd.id);
+    }
   } else if (pd.kind === 'lb_batch_items') {
     const ids = Array.isArray(pd.id) ? pd.id : [];
     const rmSet = new Set(ids);
@@ -20796,6 +20803,9 @@ async function executeConfirmedDelete() {
       }
     }
     vault.items = (vault.items || []).filter(i => !rmSet.has(i.id));
+    if (Array.isArray(state.selectedCompareAssets)) {
+      state.selectedCompareAssets = state.selectedCompareAssets.filter(a => !rmSet.has(a.vaultItemId || a.id));
+    }
   } else if (pd.kind === 'cust_template') {
     ensureCustomizationTemplates(vault);
     if ((vault.customizationTemplates || []).length > 1) {
@@ -21696,6 +21706,15 @@ function initEvents() {
   // Spacebar High-Res Quick-Look Preview Modal
   const spaceDlg = document.getElementById('spacebarPreviewDialog');
   document.getElementById('btnCloseSpacebarPreview')?.addEventListener('click', () => spaceDlg?.close());
+  if (spaceDlg) {
+    spaceDlg.addEventListener('close', () => {
+      const stage = document.getElementById('spacebarPreviewStage');
+      if (stage) {
+        stage.querySelectorAll('video').forEach(v => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (_) {} });
+        stage.innerHTML = '';
+      }
+    });
+  }
   if (spaceDlg && !('closedBy' in HTMLDialogElement.prototype)) {
     spaceDlg.addEventListener('click', (e) => {
       if (e.target === spaceDlg) spaceDlg.close();
@@ -22301,14 +22320,15 @@ function toggleCompareSelect(assetObj) {
       const cmpBtn = selGroup.querySelector('#btnLbCompareAllKept');
       const hideBtn = selGroup.querySelector('#btnLbHideSelected');
       const clrBtn = selGroup.querySelector('#btnLbClearSelection');
+      const canCompareDefault = cmpBtn?.dataset.canCompareDefault === '1';
       if (cnt > 0) {
         if (hideBtn) { hideBtn.hidden = false; hideBtn.textContent = `Hide (${cnt})`; }
         if (clrBtn) clrBtn.hidden = false;
-        if (cmpBtn) { cmpBtn.textContent = `Compare (${cnt})`; cmpBtn.classList.add('is-primary'); cmpBtn.classList.remove('is-ghost'); }
+        if (cmpBtn) { cmpBtn.hidden = false; cmpBtn.textContent = `Compare (${cnt})`; cmpBtn.classList.add('is-primary'); cmpBtn.classList.remove('is-ghost'); }
       } else {
         if (hideBtn) hideBtn.hidden = true;
         if (clrBtn) clrBtn.hidden = true;
-        if (cmpBtn) { cmpBtn.textContent = 'Compare'; cmpBtn.classList.remove('is-primary'); cmpBtn.classList.add('is-ghost'); }
+        if (cmpBtn) { cmpBtn.hidden = !canCompareDefault; cmpBtn.textContent = 'Compare'; cmpBtn.classList.remove('is-primary'); cmpBtn.classList.add('is-ghost'); }
       }
     }
     return;
@@ -23584,10 +23604,11 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
     return;
   }
 
-  // Ensure user sees newly linked items immediately
-  if (state.lightboxFilter && state.lightboxFilter !== 'All Assets') {
-    state.lightboxFilter = 'All Assets';
-    state.activeCategory = 'All Assets';
+  // Keep the user in their current room (Website or Instagram) when linking new files
+  const validRoomFilters = ['Portfolio Staging', 'Instagram Board'];
+  if (!validRoomFilters.includes(state.lightboxFilter)) {
+    state.lightboxFilter = 'Instagram Board';
+    state.activeCategory = 'Instagram Board';
   }
 
   saveVault('LOCAL FILES LINKED');
@@ -24366,7 +24387,7 @@ function buildContextOverlayHtml(overlayMode) {
     `;
   }
   if (overlayMode === 'ig-story') {
-    return `
+    return gridHtml + `
       <div class="cmp-context-overlay is-ig-story" aria-hidden="true">
         <div class="cmp-ig-story-frame">
           <div class="cmp-story-danger-top">
@@ -24383,7 +24404,7 @@ function buildContextOverlayHtml(overlayMode) {
     `;
   }
   if (overlayMode === 'cargo-grid') {
-    return `
+    return gridHtml + `
       <div class="cmp-context-overlay is-cargo-grid" aria-hidden="true">
         <div class="cmp-cargo-frame">
           <span class="cmp-overlay-badge">⊞ CARGO PORTFOLIO 12-COLUMN EDITORIAL GRID</span>
@@ -24441,9 +24462,11 @@ function renderHighContrastDiffCanvas() {
   const visibleIdxs = Array.from(cs.visibleLayers instanceof Set ? cs.visibleLayers : layers.map((_, i) => i))
     .filter(idx => idx >= 0 && idx < layers.length);
   const idxA = visibleIdxs.includes(cs.activeIndex) ? cs.activeIndex : (visibleIdxs[0] ?? 0);
-  let idxB = visibleIdxs.find(i => i !== idxA);
+  const idxB = visibleIdxs.find(i => i !== idxA);
   if (typeof idxB !== 'number') {
-    idxB = (idxA - 1 + layers.length) % layers.length;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
   }
 
   const mediaA = layers[idxA]?.querySelector('img, video');
@@ -24708,6 +24731,7 @@ function renderCompareModal() {
     setBtnPressed(diffToggleBtn, Boolean(cs.diffBlend) && sel.length >= 2);
   }
   setBtnPressed(document.getElementById('btnCmpSpecsToggle'), Boolean(cs.showSpecs));
+  setBtnPressed(document.getElementById('btnCmpGridToggle'), Boolean(cs.showGrid));
 
   // Contextual visibility: hide Stack-only controls cleanly in Split mode
   const stackInlineEl = document.getElementById('cmpStackInlineControls');
@@ -24720,6 +24744,7 @@ function renderCompareModal() {
   if (optionsTrigger) {
     const overlayLabels = {
       'ig-grid': '⊞ IG 4:5',
+      'ig-square': '⊞ IG 1:1',
       'ig-story': '⊞ Story 9:16',
       'cargo-grid': '⊞ Cargo 12-Col'
     };
@@ -24866,11 +24891,13 @@ function renderCompareModal() {
   const autoPlayAttr = cs.videoPlaying === false ? '' : 'autoplay';
 
   if (isStack) {
-    const prevIdx = (cs.activeIndex - 1 + sel.length) % sel.length;
+    const visibleIdxs = sel.map((_, idx) => idx).filter(idx => cs.visibleLayers.has(idx));
+    const idxA = visibleIdxs.includes(cs.activeIndex) ? cs.activeIndex : (visibleIdxs[0] ?? 0);
+    const prevIdx = visibleIdxs.find(i => i !== idxA);
     const layersHtml = sel.map((a, idx) => {
       const isVisible = cs.visibleLayers.has(idx);
       const isAct = idx === cs.activeIndex && isVisible;
-      const isDiff = cs.diffBlend && idx === prevIdx && idx !== cs.activeIndex && isVisible;
+      const isDiff = cs.diffBlend && typeof prevIdx === 'number' && idx === prevIdx && idx !== idxA && isVisible;
       const cls = `cmp-stack-layer ${isAct ? 'is-active-layer' : ''} ${isDiff ? 'is-diff-blend' : ''} ${!isVisible ? 'is-layer-muted' : ''}`;
       const dispUrl = getLightboxDisplayUrl(a);
       const vidSrc = getLightboxMediaSrc(a);
@@ -25060,7 +25087,14 @@ function initCompareDialogEvents() {
   }
 
   document.getElementById('btnCloseCompareDialog')?.addEventListener('click', () => dlg.close());
-  dlg.addEventListener('close', () => saveNavState());
+  dlg.addEventListener('close', () => {
+    const stageEl = document.getElementById('compareStage');
+    if (stageEl) {
+      stageEl.querySelectorAll('video').forEach(v => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (_) {} });
+      stageEl.innerHTML = '';
+    }
+    saveNavState();
+  });
   window.addEventListener('beforeunload', () => { try { saveNavState(); } catch (e) {} });
 
   document.getElementById('btnCmpModeStack')?.addEventListener('click', () => {
@@ -25479,6 +25513,7 @@ function initCompareDialogEvents() {
       }
       renderCompareModal();
     } else if (!inControl && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
+      if ((state.selectedCompareAssets || []).length < 2) return;
       e.preventDefault();
       state.compareState.mode = 'stack';
       state.compareState.diffBlend = !state.compareState.diffBlend;
@@ -26451,11 +26486,16 @@ function buildInstagramCarouselSubpageHtml(items) {
   const stripHtml = slides.map((it, idx) => {
     const kind = getLightboxMasterMediaKind(it);
     const thumbUrl = getLightboxDisplayUrl(it);
+    const mediaSrc = getLightboxMediaSrc(it) || thumbUrl;
+    const isVideoEl = kind === 'video' && (!thumbUrl || thumbUrl.startsWith('blob:') || thumbUrl.includes('/api/local-media?') || thumbUrl === mediaSrc);
+    const thumbHtml = isVideoEl
+      ? `<video src="${escapeHtml(mediaSrc)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
+      : `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(it.title || `Slide ${idx + 1}`)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     const titleText = it.title || `Slide ${idx + 1}`;
     return `
       <article class="lb-ig-carousel-thumb${idx === activeIdx ? ' is-active' : ''}${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-carousel-idx="${idx}" draggable="true" title="${escapeHtml(titleText)} — Click to view · Double-click to compare · Drag to reorder">
         <button type="button" class="lb-ig-carousel-thumb-btn" data-lb-carousel-goto="${idx}" aria-label="View slide ${idx + 1}: ${escapeHtml(titleText)}"></button>
-        <img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">
+        ${thumbHtml}
         <span class="lb-ig-cell-badge">#${idx + 1}${kind === 'video' ? ' · ▶' : ''}</span>
         <button type="button" class="lb-mini-stage-btn lb-ig-carousel-remove" data-lb-carousel-remove="${escapeHtml(it.id)}" title="Remove slide from Carousel">✕</button>
       </article>
@@ -26528,9 +26568,10 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
   const feedCellsHtml = feedItems.map((it, idx) => {
     const kind = getLightboxMasterMediaKind(it);
     const dispUrl = getLightboxDisplayUrl(it);
+    const vidSrc = getLightboxMediaSrc(it) || dispUrl;
     const titleText = it.title || `Post ${idx + 1}`;
-    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
-      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
+    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url || dispUrl.startsWith('blob:') || dispUrl === vidSrc))
+      ? `<video src="${escapeHtml(vidSrc)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
       <article class="lb-ig-cell${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
@@ -26551,9 +26592,10 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
   const reelCardsHtml = reelItems.map((it, idx) => {
     const kind = getLightboxMasterMediaKind(it);
     const dispUrl = getLightboxDisplayUrl(it);
+    const vidSrc = getLightboxMediaSrc(it) || dispUrl;
     const titleText = it.title || `Story ${idx + 1}`;
-    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
-      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
+    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url || dispUrl.startsWith('blob:') || dispUrl === vidSrc))
+      ? `<video src="${escapeHtml(vidSrc)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">`;
     return `
       <article class="lb-ig-reel-card${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-kind="${kind}" draggable="true">
@@ -26808,6 +26850,7 @@ function renderLightboxView(ws, spaceObj) {
     ext: (it.url || '').split('.').pop().toUpperCase(),
     kind: getLightboxMasterMediaKind(it),
     thumbSrc: getLightboxDisplayUrl(it),
+    videoSrc: getLightboxMediaSrc(it),
     fallbackSrc: getLightboxDisplayUrl(it),
     sizeLabel: it.fileSize ? formatBytes(it.fileSize) : ''
   }));
@@ -27100,11 +27143,7 @@ function renderLightboxView(ws, spaceObj) {
           <span id="lbSelActionsGroup" style="display:inline-flex;align-items:center;gap:6px;">
             <button type="button" class="lb-tool-btn is-ghost" id="btnLbHideSelected" title="Hide selected files from this room" ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? '' : 'hidden'}>Hide (${(state.selectedCompareAssets || []).length})</button>
             <button type="button" class="lb-tool-btn is-ghost" id="btnLbClearSelection" title="Clear selection" ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? '' : 'hidden'}>Clear</button>
-            ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? `
-              <button type="button" class="lb-tool-btn is-primary" id="btnLbCompareAllKept" title="Open selected files in Compare">Compare (${state.selectedCompareAssets.length})</button>
-            ` : (canCompare ? `
-              <button type="button" class="lb-tool-btn is-ghost" id="btnLbCompareAllKept" title="Open in Comparison Engine">Compare</button>
-            ` : '')}
+            <button type="button" class="lb-tool-btn ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? 'is-primary' : 'is-ghost'}" id="btnLbCompareAllKept" data-can-compare-default="${canCompare ? '1' : '0'}" title="${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? 'Open selected files in Compare' : 'Open in Comparison Engine'}" ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) || canCompare ? '' : 'hidden'}>${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? `Compare (${state.selectedCompareAssets.length})` : 'Compare'}</button>
           </span>
 
           ${(activeSubView !== 'hidden' && activeRoom !== 'source' && roomKeptItems.length > 0) ? `
@@ -27173,6 +27212,12 @@ function renderLightboxView(ws, spaceObj) {
     ws.querySelector('#lbSelectsRouteInner'),
     { alignEnd: true }
   );
+  bindLightboxCommandMenu(
+    ws.querySelector('#btnLbAddMediaTrigger'),
+    ws.querySelector('#lbAddMediaPopover'),
+    ws.querySelector('#lbAddMediaInner'),
+    { alignEnd: true }
+  );
   bindLightboxViewportDropdown(
     ws.querySelector('#btnLbFilterTrigger'),
     ws.querySelector('#lbFilterPopover'),
@@ -27235,8 +27280,9 @@ function renderLightboxView(ws, spaceObj) {
   };
 
   // Bind Direct Zero-Upload Local File & Folder Choosers + Reconnect Buttons
-  ws.querySelector('#btnLbChooseFiles')?.addEventListener('click', () => chooseLightboxLocalFiles());
-  ws.querySelector('#btnLbChooseFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
+  const addMediaPop = ws.querySelector('#lbAddMediaPopover');
+  ws.querySelector('#btnLbChooseFiles')?.addEventListener('click', () => { addMediaPop?._closeMenu?.(false); chooseLightboxLocalFiles(); });
+  ws.querySelector('#btnLbChooseFolder')?.addEventListener('click', () => { addMediaPop?._closeMenu?.(false); chooseLightboxLocalFolder(); });
   ws.querySelector('#btnLbEmptyAddFiles')?.addEventListener('click', () => chooseLightboxLocalFiles());
   ws.querySelector('#btnLbEmptyAddFolder')?.addEventListener('click', () => chooseLightboxLocalFolder());
   ws.querySelector('#btnLbReconnectAll')?.addEventListener('click', () => reconnectActiveLightboxFolder());
@@ -27269,6 +27315,8 @@ function renderLightboxView(ws, spaceObj) {
       state.lightboxRatioFilter = 'all';
       state.lightboxCreatingProject = false;
       state.lightboxRenamingProjId = null;
+      state.selectedCompareAssets = [];
+      state._lastLbSelectedId = null;
       saveNavState();
       renderFilterActionRow();
       renderWorkspace();
@@ -27720,6 +27768,10 @@ function renderLightboxView(ws, spaceObj) {
         mediaSlot.innerHTML = kind === 'video'
           ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}#t=0.05" controls playsinline preload="auto" data-lb-item-id="${escapeHtml(it.id)}"></video>`
           : `<img id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" alt="${escapeHtml(title)}" decoding="async" draggable="false" data-lb-item-id="${escapeHtml(it.id)}" data-pin-nopin="true">`;
+        const newMediaEl = mediaSlot.querySelector('#lbCarouselActiveMedia');
+        if (newMediaEl && carouselStudio._bindSlideTarget) {
+          carouselStudio._bindSlideTarget(newMediaEl);
+        }
       }
       if (counterEl) counterEl.textContent = `${clamped + 1} / ${slides.length}`;
       if (pillBadgeEl) pillBadgeEl.textContent = `${clamped + 1}/${slides.length}`;
@@ -27743,6 +27795,20 @@ function renderLightboxView(ws, spaceObj) {
 
     prevBtn?.addEventListener('click', () => goToCarouselSlide((state.lightboxIgCarouselIdx || 0) - 1));
     nextBtn?.addEventListener('click', () => goToCarouselSlide((state.lightboxIgCarouselIdx || 0) + 1));
+    carouselStudio._goToSlide = goToCarouselSlide;
+    if (!window._lbCarouselKeyBound) {
+      window._lbCarouselKeyBound = true;
+      window.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable)) return;
+        if (document.querySelector('dialog[open]')) return;
+        const studio = document.getElementById('lbIgCarouselStudio');
+        if (!studio || typeof studio._goToSlide !== 'function') return;
+        e.preventDefault();
+        studio._goToSlide((state.lightboxIgCarouselIdx || 0) + (e.key === 'ArrowRight' ? 1 : -1));
+      });
+    }
 
     dotsWrap?.addEventListener('click', (e) => {
       const dot = e.target.closest('[data-lb-carousel-goto]');
@@ -27992,10 +28058,6 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  const visibleCardIdsOrdered = Array.from(ws.querySelectorAll('.lb-studio-card:not(.is-render-pile)[data-lb-item-id]'))
-    .map(c => c.dataset.lbItemId)
-    .filter(Boolean);
-
   // Single-click card = toggle Compare selection (Shift+click for range); Double-click card = open in Compare
   ws.querySelectorAll('.lb-studio-card:not(.is-render-pile)[data-lb-item-id]').forEach(cardEl => {
     cardEl.addEventListener('click', (e) => {
@@ -28003,6 +28065,10 @@ function renderLightboxView(ws, spaceObj) {
       const clickedId = cardEl.dataset.lbItemId;
       const it = vault.items.find(i => i.id === clickedId);
       if (!it) return;
+
+      const visibleCardIdsOrdered = Array.from(ws.querySelectorAll('.lb-studio-card:not(.is-render-pile)[data-lb-item-id]'))
+        .map(c => c.dataset.lbItemId)
+        .filter(Boolean);
 
       if (e.shiftKey && state._lastLbSelectedId && visibleCardIdsOrdered.includes(state._lastLbSelectedId) && visibleCardIdsOrdered.includes(clickedId)) {
         const aIdx = visibleCardIdsOrdered.indexOf(state._lastLbSelectedId);
@@ -28040,6 +28106,7 @@ function renderLightboxView(ws, spaceObj) {
           if (hideBtn) { hideBtn.hidden = cnt === 0; hideBtn.textContent = `Hide (${cnt})`; }
           if (clrBtn) clrBtn.hidden = cnt === 0;
           if (cmpBtn) {
+            cmpBtn.hidden = cnt === 0 && cmpBtn.dataset.canCompareDefault !== '1';
             cmpBtn.textContent = cnt > 0 ? `Compare (${cnt})` : 'Compare';
             cmpBtn.classList.toggle('is-primary', cnt > 0);
             cmpBtn.classList.toggle('is-ghost', cnt === 0);
@@ -28143,6 +28210,7 @@ function renderLightboxView(ws, spaceObj) {
           if (hideBtn) { hideBtn.hidden = cnt === 0; hideBtn.textContent = `Hide (${cnt})`; }
           if (clrBtn) clrBtn.hidden = cnt === 0;
           if (cmpBtn) {
+            cmpBtn.hidden = cnt === 0 && cmpBtn.dataset.canCompareDefault !== '1';
             cmpBtn.textContent = cnt > 0 ? `Compare (${cnt})` : 'Compare';
             cmpBtn.classList.toggle('is-primary', cnt > 0);
             cmpBtn.classList.toggle('is-ghost', cnt === 0);
@@ -28354,10 +28422,11 @@ function renderLightboxView(ws, spaceObj) {
   });
 
   // Hover video preview + Mouse & Keyboard Spacebar Quick-Look tracking across all Lightbox cards/cells
-  ws.querySelectorAll('[data-lb-item-id]').forEach(card => {
+  const bindLbItemTarget = (card) => {
+    if (!card || card.dataset.lbTargetBound) return;
+    card.dataset.lbTargetBound = '1';
     const itemId = card.dataset.lbItemId;
     const it = vault.items.find(i => i.id === itemId);
-    const vids = Array.from(card.querySelectorAll('video[data-lb-video]'));
     const setQuickLookTarget = () => {
       if (!it) return;
       const disp = getLightboxDisplayUrl(it);
@@ -28369,11 +28438,18 @@ function renderLightboxView(ws, spaceObj) {
         ext: (it.url || '').split('.').pop().toUpperCase(),
         kind: getLightboxMasterMediaKind(it),
         thumbSrc: disp,
+        videoSrc: getLightboxMediaSrc(it),
         fallbackSrc: disp,
         sizeLabel: it.fileSize ? formatBytes(it.fileSize) : ''
       };
     };
+    const clearQuickLookTarget = () => {
+      if (state.hoveredAssetForQuickLook && state.hoveredAssetForQuickLook.id === itemId) {
+        state.hoveredAssetForQuickLook = null;
+      }
+    };
     card.addEventListener('mouseenter', setQuickLookTarget);
+    card.addEventListener('mouseleave', clearQuickLookTarget);
     card.addEventListener('focusin', setQuickLookTarget);
 
     // Right-click Context Menu on any Lightbox card, pile, IG cell, or Portfolio block
@@ -28394,7 +28470,9 @@ function renderLightboxView(ws, spaceObj) {
         openLightboxCardContextMenu(itemId, { x: e.clientX, y: e.clientY }, { fromKeyboard: false });
       }
     });
-  });
+  };
+  if (carouselStudio) carouselStudio._bindSlideTarget = bindLbItemTarget;
+  ws.querySelectorAll('[data-lb-item-id]').forEach(bindLbItemTarget);
 
   // Strict Per-Ratio-Bucket Drag-and-Drop Reorder in Grid/Cards View (Images/Videos & Ratios stay strictly isolated)
   let activeGridDragCard = null;
