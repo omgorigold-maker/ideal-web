@@ -1662,7 +1662,9 @@ let state = {
     panY: 0
   },
   lightboxProjectId: 'all', // 'all' | 'unsorted' | project.id
-  lightboxFilter: 'All Assets', // 'All Assets' | 'Stacked Piles' | '★ Keep Selected' | 'Portfolio Staging' | 'Instagram Board'
+  lightboxFilter: 'Instagram Board', // 'Instagram Board' (Instagram room) | 'Portfolio Staging' (Website room) | 'All Assets' (Source Files)
+  lightboxIgSubView: 'pick', // 'pick' | 'ready' | 'hidden'
+  lightboxWebSubView: 'pick', // 'pick' | 'ready' | 'hidden'
   lightboxMediaKind: 'all', // 'all' | 'image' | 'video'
   lightboxRatioFilter: 'all', // 'all' | exact ratio string e.g. '16:9', '4:5', '1:1'
   lightboxExpandedStacks: {}, // { [stackKey]: true }
@@ -6094,16 +6096,15 @@ function renderFilterActionRow() {
 
   let list = type === 'project' ? (obj.sections = obj.sections || ['All']) : (obj.categories = obj.categories || ['All']);
   const LIGHTBOX_SHORT_LABELS = {
-    'All Assets': 'All',
-    '★ Keep Selected': '★ Keep',
-    'Portfolio Staging': 'Website Ready',
-    'Instagram Board': 'IG Ready'
+    'Instagram Board': 'Instagram',
+    'Portfolio Staging': 'Website',
+    'All Assets': 'Source Files'
   };
   if (isLightboxSpace) {
-    list = ['All Assets', '★ Keep Selected', 'Portfolio Staging', 'Instagram Board'];
+    list = ['Instagram Board', 'Portfolio Staging', 'All Assets'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
-      state.lightboxFilter = 'All Assets';
+      state.lightboxFilter = 'Instagram Board';
     }
     state.activeCategory = state.lightboxFilter;
   }
@@ -6463,10 +6464,8 @@ function renderFilterActionRow() {
 function getCategoryCount(type, obj, cat, isFirstAll) {
   if (type === 'space' && obj.id === 'lightbox') {
     const items = getLightboxAssetsForActiveProject();
-    if (isFirstAll || cat === 'All Assets') return items.length;
-    if (cat === '★ Keep Selected') return items.filter(i => Boolean(i.lightboxKeep)).length;
-    if (cat === 'Portfolio Staging') return items.filter(i => isLightboxPortfolioRouted(i)).length;
-    if (cat === 'Instagram Board') return items.filter(i => isLightboxInstagramRouted(i)).length;
+    if (cat === 'Instagram Board') return items.filter(i => isLightboxKeptInRoom(i, 'instagram')).length;
+    if (cat === 'Portfolio Staging') return items.filter(i => isLightboxKeptInRoom(i, 'website')).length;
     return items.length;
   }
   if (type === 'project') {
@@ -22318,6 +22317,116 @@ function isLightboxInstagramRouted(it) {
   return Boolean(it) && (it.igStatus === 'queued' || it.igStatus === 'published' || it.lightboxRoute === 'instagram');
 }
 
+function getLightboxActiveRoom(filterVal = state.lightboxFilter) {
+  if (filterVal === 'Instagram Board') return 'instagram';
+  if (filterVal === 'Portfolio Staging') return 'website';
+  return 'source';
+}
+
+function isLightboxHiddenInRoom(it, room) {
+  if (!it) return false;
+  if (room === 'instagram') return Boolean(it.lbIgHidden);
+  if (room === 'website') return Boolean(it.lbWebHidden);
+  return false;
+}
+
+function isLightboxKeptInRoom(it, room) {
+  if (!it || isLightboxHiddenInRoom(it, room)) return false;
+  if (room === 'instagram') {
+    return it.lbIgKeep !== undefined ? Boolean(it.lbIgKeep) : isLightboxInstagramRouted(it);
+  }
+  if (room === 'website') {
+    return it.lbWebKeep !== undefined ? Boolean(it.lbWebKeep) : isLightboxPortfolioRouted(it);
+  }
+  return Boolean(it.lightboxKeep);
+}
+
+function syncLightboxItemLegacyRouteFields(it) {
+  if (!it) return;
+  const igKept = isLightboxKeptInRoom(it, 'instagram');
+  const webKept = isLightboxKeptInRoom(it, 'website');
+  if (igKept && !webKept) {
+    it.igStatus = it.igStatus === 'published' ? 'published' : 'queued';
+    it.lightboxRoute = 'instagram';
+    it.status = it.igStatus === 'published' ? '● IG Live' : '◈ IG Ready';
+  } else if (webKept && !igKept) {
+    it.igStatus = 'website';
+    it.lightboxRoute = 'portfolio';
+    it.status = '🌐 Website Ready';
+  } else if (!igKept && !webKept) {
+    it.igStatus = '';
+    it.lightboxRoute = '';
+    if (it.status === '● IG Live' || it.status === '◈ IG Ready' || it.status === '🌐 On Site' || it.status === '🌐 Website Ready') {
+      it.status = '✨ WIP / Edit';
+    }
+  }
+  (state.selectedCompareAssets || []).forEach(a => {
+    if (a.id === it.id || a.vaultItemId === it.id) {
+      a.igStatus = it.igStatus;
+    }
+  });
+}
+
+function toggleLightboxRoomKeep(itemId, room) {
+  const it = vault.items.find(i => i.id === itemId);
+  if (!it || (room !== 'instagram' && room !== 'website')) return;
+  const field = room === 'instagram' ? 'lbIgKeep' : 'lbWebKeep';
+  const prevVal = isLightboxKeptInRoom(it, room);
+  const nextVal = !prevVal;
+  it[field] = nextVal;
+  if (nextVal) {
+    // Keeping a file ensures it is visible in that room
+    it[room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden'] = false;
+  }
+  syncLightboxItemLegacyRouteFields(it);
+  pushLightboxUndo({
+    type: 'room_keep',
+    desc: `${nextVal ? 'Kept' : 'Unkept'} "${it.title || 'asset'}" in ${room === 'instagram' ? 'Instagram' : 'Website'}`,
+    itemId: it.id,
+    room,
+    prevVal,
+    nextVal
+  });
+  saveVault(`${nextVal ? '★ KEPT' : 'UNKEPT'} IN ${room.toUpperCase()}`);
+  renderAll();
+}
+
+function toggleLightboxRoomHide(itemId, room, forceHide = null) {
+  const it = vault.items.find(i => i.id === itemId);
+  if (!it || (room !== 'instagram' && room !== 'website')) return;
+  const field = room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+  const prevHidden = Boolean(it[field]);
+  const nextHidden = forceHide !== null ? Boolean(forceHide) : !prevHidden;
+  if (prevHidden === nextHidden) return;
+  it[field] = nextHidden;
+  pushLightboxUndo({
+    type: 'room_hide',
+    desc: `${nextHidden ? 'Hid' : 'Unhid'} "${it.title || 'asset'}" in ${room === 'instagram' ? 'Instagram' : 'Website'}`,
+    itemId: it.id,
+    room,
+    prevHidden,
+    nextHidden
+  });
+  saveVault(`${nextHidden ? 'HIDDEN' : 'UNHIDDEN'} IN ${room.toUpperCase()}`);
+  renderAll();
+}
+
+function unhideAllInLightboxRoom(room) {
+  if (room !== 'instagram' && room !== 'website') return;
+  const field = room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+  const items = getLightboxAssetsForActiveProject().filter(it => Boolean(it[field]));
+  if (!items.length) return;
+  items.forEach(it => { it[field] = false; });
+  pushLightboxUndo({
+    type: 'room_unhide_all',
+    desc: `Unhid ${items.length} files in ${room === 'instagram' ? 'Instagram' : 'Website'}`,
+    itemIds: items.map(i => i.id),
+    room
+  });
+  saveVault(`UNHID ${items.length} IN ${room.toUpperCase()}`);
+  renderAll();
+}
+
 function getLightboxProjects(v = vault) {
   if (!v) return [];
   if (!Array.isArray(v.lightboxProjects)) {
@@ -22341,9 +22450,9 @@ function ensureLightboxCleanWorkspace(v = vault) {
     if (!st.lightboxProjectId || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId !== 'all' && st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
       st.lightboxProjectId = 'all';
     }
-    // Also ensure filter is 'All Assets' so nothing is hidden by default
-    if (st.lightboxFilter === '★ Keep Selected' && !v.items.some(i => i.parentType === 'space' && i.parentId === 'lightbox' && i.lightboxKeep)) {
-      st.lightboxFilter = 'All Assets';
+    // Default into Instagram room if filter is retired
+    if (!['Instagram Board', 'Portfolio Staging', 'All Assets'].includes(st.lightboxFilter)) {
+      st.lightboxFilter = 'Instagram Board';
     }
   }
 }
@@ -22827,6 +22936,24 @@ function undoLightboxAction() {
       (state.selectedCompareAssets || []).forEach(a => { if (a.id === it.id || a.vaultItemId === it.id) a.igStatus = it.igStatus; });
     });
     saveVault('UNDO BATCH ROUTE');
+  } else if (action.type === 'room_keep') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it[action.room === 'instagram' ? 'lbIgKeep' : 'lbWebKeep'] = Boolean(action.prevVal);
+      syncLightboxItemLegacyRouteFields(it);
+    }
+    saveVault('UNDO ROOM KEEP');
+  } else if (action.type === 'room_hide') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it[action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden'] = Boolean(action.prevHidden);
+    }
+    saveVault('UNDO ROOM HIDE');
+  } else if (action.type === 'room_unhide_all') {
+    const ids = new Set(action.itemIds || []);
+    const field = action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+    (vault.items || []).forEach(it => { if (ids.has(it.id)) it[field] = true; });
+    saveVault('UNDO UNHIDE ALL');
   } else if (action.type === 'move_project') {
     const ids = new Set(action.itemIds || []);
     (vault.items || []).forEach(it => {
@@ -22904,6 +23031,24 @@ function redoLightboxAction() {
       (state.selectedCompareAssets || []).forEach(a => { if (a.id === it.id || a.vaultItemId === it.id) a.igStatus = it.igStatus; });
     });
     saveVault('REDO BATCH ROUTE');
+  } else if (action.type === 'room_keep') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it[action.room === 'instagram' ? 'lbIgKeep' : 'lbWebKeep'] = Boolean(action.nextVal);
+      syncLightboxItemLegacyRouteFields(it);
+    }
+    saveVault('REDO ROOM KEEP');
+  } else if (action.type === 'room_hide') {
+    const it = (vault.items || []).find(i => i.id === action.itemId);
+    if (it) {
+      it[action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden'] = Boolean(action.nextHidden);
+    }
+    saveVault('REDO ROOM HIDE');
+  } else if (action.type === 'room_unhide_all') {
+    const ids = new Set(action.itemIds || []);
+    const field = action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+    (vault.items || []).forEach(it => { if (ids.has(it.id)) it[field] = false; });
+    saveVault('REDO UNHIDE ALL');
   } else if (action.type === 'move_project') {
     const ids = new Set(action.itemIds || []);
     (vault.items || []).forEach(it => {
@@ -25494,14 +25639,16 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
   }
 }
 
-function buildLightboxAssetCardHtml(it, passBadgeText = '') {
+function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
+  const room = opts.room || getLightboxActiveRoom();
+  const isHiddenView = Boolean(opts.isHiddenView);
   const mediaKind = getLightboxMasterMediaKind(it);
   const w = Number(it.naturalW || 0);
   const h = Number(it.naturalH || 0);
   const ratioInfo = (w > 0 && h > 0) ? computeExactAspectRatio(w, h) : { key: 'Auto', label: 'Native Ratio', isOdd: false };
-  const isKeep = Boolean(it.lightboxKeep);
-  const isPortfolio = isLightboxPortfolioRouted(it);
-  const isIg = isLightboxInstagramRouted(it);
+  const isKeep = isLightboxKeptInRoom(it, room);
+  const isIgKept = isLightboxKeptInRoom(it, 'instagram');
+  const isWebKept = isLightboxKeptInRoom(it, 'website');
   const isCompared = isAssetCompareSelected(it.id);
   const dispUrl = getLightboxDisplayUrl(it);
   const vidSrc = getLightboxMediaSrc(it);
@@ -25568,15 +25715,25 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '') {
       </header>
 
       <footer class="lb-studio-card-footer">
-        <button type="button" class="lb-action-pill is-keep" aria-pressed="${isKeep ? 'true' : 'false'}" data-lb-keep="${escapeHtml(it.id)}" title="Mark as Keep">
-          <span aria-hidden="true">${isKeep ? '★ ' : ''}</span>Keep<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
-        </button>
-        <button type="button" class="lb-action-pill is-portfolio" aria-pressed="${isPortfolio ? 'true' : 'false'}" data-lb-route-web="${escapeHtml(it.id)}" title="Mark as Website Ready">
-          <span aria-hidden="true">${isPortfolio ? '✓ ' : ''}</span>Website Ready<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
-        </button>
-        <button type="button" class="lb-action-pill is-ig" aria-pressed="${isIg ? 'true' : 'false'}" data-lb-route-ig="${escapeHtml(it.id)}" title="Mark as IG Ready">
-          <span aria-hidden="true">${isIg ? '✓ ' : ''}</span>IG Ready<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
-        </button>
+        ${isHiddenView ? `
+          <button type="button" class="lb-action-pill is-unhide" data-lb-room-unhide="${escapeHtml(it.id)}" title="Restore to this room (will be included in exports again)">
+            ↺ Unhide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+          </button>
+        ` : (room === 'source' ? `
+          <button type="button" class="lb-action-pill ${isIgKept ? 'is-ig' : ''}" aria-pressed="${isIgKept ? 'true' : 'false'}" data-lb-room-keep-target="instagram" data-lb-room-keep="${escapeHtml(it.id)}" title="Keep for Instagram">
+            <span aria-hidden="true">${isIgKept ? '★ ' : ''}</span>Instagram
+          </button>
+          <button type="button" class="lb-action-pill ${isWebKept ? 'is-portfolio' : ''}" aria-pressed="${isWebKept ? 'true' : 'false'}" data-lb-room-keep-target="website" data-lb-room-keep="${escapeHtml(it.id)}" title="Keep for Website">
+            <span aria-hidden="true">${isWebKept ? '★ ' : ''}</span>Website
+          </button>
+        ` : `
+          <button type="button" class="lb-action-pill is-keep" aria-pressed="${isKeep ? 'true' : 'false'}" data-lb-room-keep="${escapeHtml(it.id)}" title="${isKeep ? 'Kept for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready') : 'Keep for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready')}">
+            <span aria-hidden="true">${isKeep ? '★ ' : '☆ '}</span>${isKeep ? 'Kept' : 'Keep'}<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+          </button>
+          <button type="button" class="lb-action-pill is-hide" data-lb-room-hide="${escapeHtml(it.id)}" title="Hide from this room (does not affect other rooms or Mac files)">
+            Hide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+          </button>
+        `)}
       </footer>
     </article>
   `;
@@ -26119,7 +26276,11 @@ function renderLightboxView(ws, spaceObj) {
   const { step: scaleStep } = getContainerScaleContext('space', spaceObj || vault.spaces.find(s => s.id === 'lightbox'));
   state.lightboxScaleStep = scaleStep;
 
-  const activeFilter = state.lightboxFilter || 'All Assets';
+  const activeFilter = state.lightboxFilter || 'Instagram Board';
+  const activeRoom = getLightboxActiveRoom(activeFilter);
+  const activeSubView = activeRoom === 'instagram'
+    ? (state.lightboxIgSubView || 'pick')
+    : (activeRoom === 'website' ? (state.lightboxWebSubView || 'pick') : 'pick');
   const mediaKindFilter = state.lightboxMediaKind || 'all';
   const activeRatio = state.lightboxRatioFilter || 'all';
   const activeProjId = state.lightboxProjectId || 'all';
@@ -26152,9 +26313,28 @@ function renderLightboxView(ws, spaceObj) {
     return (b.decimal || 1) - (a.decimal || 1);
   });
 
-  // Apply search query + category subpage + media kind + aspect ratio filter
+  const roomVisibleItems = activeRoom === 'source'
+    ? allProjectItems
+    : allProjectItems.filter(it => !isLightboxHiddenInRoom(it, activeRoom));
+  const roomHiddenItems = activeRoom === 'source'
+    ? []
+    : allProjectItems.filter(it => isLightboxHiddenInRoom(it, activeRoom));
+  const roomKeptItems = activeRoom === 'source'
+    ? []
+    : roomVisibleItems.filter(it => isLightboxKeptInRoom(it, activeRoom));
+
+  // Apply search query + room sub-view + media kind + aspect ratio filter
   const q = (state.searchQuery || '').trim().toLowerCase();
   let filteredItems = allProjectItems.filter(it => {
+    if (activeRoom !== 'source') {
+      const isHid = isLightboxHiddenInRoom(it, activeRoom);
+      if (activeSubView === 'hidden') {
+        if (!isHid) return false;
+      } else {
+        if (isHid) return false;
+        if (activeSubView === 'ready' && !isLightboxKeptInRoom(it, activeRoom)) return false;
+      }
+    }
     if (q) {
       const hay = `${it.title || ''} ${it.notes || ''} ${(it.tags || []).join(' ')} ${it.aspectRatioKey || ''} ${it.subfolderName || ''}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -26165,29 +26345,20 @@ function renderLightboxView(ws, spaceObj) {
       const rKey = (it.naturalW > 0 && it.naturalH > 0) ? computeExactAspectRatio(it.naturalW, it.naturalH).key : 'Auto';
       if (rKey !== activeRatio) return false;
     }
-    if (activeFilter === '★ Keep Selected') return Boolean(it.lightboxKeep);
-    if (activeFilter === 'Portfolio Staging') return isLightboxPortfolioRouted(it);
-    if (activeFilter === 'Instagram Board') return itIsIgRouted(it);
     return true;
   });
 
   const { stacks: candidateStacks } = buildLightboxStacks(filteredItems);
   const activePiles = candidateStacks.filter(s => s.isPile);
 
-  if (activeFilter === 'Stacked Piles') {
-    const piledIds = new Set();
-    activePiles.forEach(s => s.items.forEach(i => piledIds.add(i.id)));
-    filteredItems = filteredItems.filter(i => piledIds.has(i.id));
-  }
-
   const imageItems = filteredItems.filter(i => getLightboxMasterMediaKind(i) === 'image');
   const videoItems = filteredItems.filter(i => getLightboxMasterMediaKind(i) === 'video');
-  const keptItems = allProjectItems.filter(i => Boolean(i.lightboxKeep));
+  const keptItems = roomKeptItems;
 
-  const exportTargetItems = (activeFilter === 'All Assets' && keptItems.length > 0) ? keptItems : filteredItems;
-  const exportLabel = (activeFilter === 'All Assets' && keptItems.length > 0)
-    ? `Export Kept (${keptItems.length})`
-    : 'Export';
+  // Hidden items are NEVER exported
+  const exportTargetItems = (activeRoom !== 'source')
+    ? (roomKeptItems.length > 0 ? roomKeptItems : roomVisibleItems)
+    : filteredItems;
 
   // Set Spacebar Quick-Look list
   state.currentEagleAssetList = filteredItems.map(it => ({
@@ -26265,28 +26436,47 @@ function renderLightboxView(ws, spaceObj) {
     }
   }
 
-  // Main Workspace Body per Subpage
+  // Main Workspace Body per Room & Sub-view
   let mainContentHtml = '';
   if (filteredItems.length === 0) {
-    mainContentHtml = emptyStateHtml;
-  } else if (activeFilter === 'Portfolio Staging') {
+    if (allProjectItems.length > 0 && activeRoom !== 'source' && activeSubView === 'ready' && !q && activeRatio === 'all' && mediaKindFilter === 'all') {
+      const roomName = activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready';
+      mainContentHtml = `
+        <div class="lb-bright-empty-state">
+          <div class="lb-empty-icon" aria-hidden="true">${activeRoom === 'instagram' ? '◈' : '⊞'}</div>
+          <h3>Nothing in ${roomName} yet</h3>
+          <p>Go to Pick and click ★ Keep on the files you want for ${activeRoom === 'instagram' ? 'Instagram' : 'your Website'}.</p>
+          <div class="lb-empty-actions">
+            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Go to Pick (${roomVisibleItems.length})</button>
+          </div>
+        </div>
+      `;
+    } else if (allProjectItems.length > 0 && activeRoom !== 'source' && activeSubView === 'hidden') {
+      mainContentHtml = `
+        <div class="lb-bright-empty-state">
+          <div class="lb-empty-icon" aria-hidden="true">👁</div>
+          <h3>Nothing hidden in this room</h3>
+          <p>Files you hide from ${activeRoom === 'instagram' ? 'Instagram' : 'Website'} appear here so you can unhide them anytime.</p>
+          <div class="lb-empty-actions">
+            <button type="button" class="lb-tool-btn is-primary" data-lb-subview="pick">Back to Pick</button>
+          </div>
+        </div>
+      `;
+    } else {
+      mainContentHtml = emptyStateHtml;
+    }
+  } else if (activeRoom !== 'source' && activeSubView === 'hidden') {
+    mainContentHtml = `
+      <div class="lb-studio-grid" data-scale-step="${scaleStep}">
+        ${filteredItems.map(it => buildLightboxAssetCardHtml(it, '', { room: activeRoom, isHiddenView: true })).join('')}
+      </div>
+    `;
+  } else if (activeRoom === 'website' && activeSubView === 'ready') {
     mainContentHtml = buildPortfolioStagingSubpageHtml(filteredItems, scaleStep);
-  } else if (activeFilter === 'Instagram Board') {
+  } else if (activeRoom === 'instagram' && activeSubView === 'ready') {
     mainContentHtml = buildInstagramBoardSubpageHtml(filteredItems, scaleStep);
-  } else if (activeFilter === 'Stacked Piles') {
-    mainContentHtml = `
-      <div class="lb-studio-grid" data-scale-step="${scaleStep}">
-        ${activePiles.map(p => buildLightboxPileCardHtml(p)).join('')}
-      </div>
-    `;
-  } else if (activeFilter === '★ Keep Selected') {
-    mainContentHtml = `
-      <div class="lb-studio-grid" data-scale-step="${scaleStep}">
-        ${filteredItems.map(it => buildLightboxAssetCardHtml(it)).join('')}
-      </div>
-    `;
   } else {
-    const showBothHeaders = activeFilter === 'All Assets' && imageItems.length > 0 && videoItems.length > 0;
+    const showBothHeaders = imageItems.length > 0 && videoItems.length > 0;
     mainContentHtml = `
       ${renderLightboxMasterGroupHtml('Images', imageItems, scaleStep, showBothHeaders)}
       ${renderLightboxMasterGroupHtml('Videos', videoItems, scaleStep, showBothHeaders)}
@@ -26313,41 +26503,41 @@ function renderLightboxView(ws, spaceObj) {
   const hasActiveViewFilter = activeFilterTokens.length > 0;
   const filterButtonLabel = hasActiveViewFilter ? `Filter · ${activeFilterTokens.join(' · ')}` : 'Filter';
 
-  // Inline contextual mode controls
+  // Inline Room Sub-View Controls (Pick | Ready | Hidden + Preview Mode)
   let inlineModeControlsHtml = '';
-  if (filteredItems.length > 0) {
-    if (activeFilter === 'Portfolio Staging') {
-      const portMode = state.lightboxPortfolioViewMode || 'layout';
-      inlineModeControlsHtml = `
-        <div class="lb-inline-mode-tabs" id="lbPortfolioTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Portfolio view mode">
-          <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabLayout" aria-selected="${portMode === 'layout' ? 'true' : 'false'}" ${portMode === 'layout' ? 'focusgroupstart' : ''}>12-Col</button>
-          <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabGrid" aria-selected="${portMode === 'grid' ? 'true' : 'false'}" ${portMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
-        </div>
-      `;
-    } else if (activeFilter === 'Instagram Board') {
-      const igMode = state.lightboxIgViewMode || 'profile';
-      inlineModeControlsHtml = `
-        <div class="lb-inline-mode-tabs" id="lbIgTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Instagram board view mode">
-          <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabProfile" aria-selected="${igMode === 'profile' ? 'true' : 'false'}" ${igMode === 'profile' ? 'focusgroupstart' : ''}>3×3 Feed</button>
-          <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabGrid" aria-selected="${igMode === 'grid' ? 'true' : 'false'}" ${igMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
-        </div>
-      `;
-    } else if (activeFilter === 'Stacked Piles' && activePiles.length > 0) {
-      const allCollapsed = activePiles.every(p => state.lightboxCollapsedStacks && state.lightboxCollapsedStacks[p.stackKey]);
-      inlineModeControlsHtml = `
-        <button type="button" class="lb-tool-btn is-ghost" id="btnLbToggleAllStacks">${allCollapsed ? 'Unfold All' : 'Collapse All'}</button>
-      `;
-    } else if (activeFilter === '★ Keep Selected') {
-      inlineModeControlsHtml = `
-        <button type="button" class="lb-tool-btn is-ghost" id="btnLbSelectsRouteTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbSelectsRoutePopover" command="toggle-popover" title="Mark all selects as Website Ready or IG Ready">Stage All ▾</button>
-        <div id="lbSelectsRoutePopover" popover="auto" class="lb-card-menu-popover is-align-end">
-          <div focusgroup="menu nomemory" id="lbSelectsRouteInner" aria-labelledby="btnLbSelectsRouteTrigger">
-            <button type="button" id="btnLbRouteAllKeptWeb"><span class="lb-menu-icon" aria-hidden="true">⊞</span><span>All → Website Ready</span></button>
-            <button type="button" id="btnLbRouteAllKeptIg"><span class="lb-menu-icon" aria-hidden="true">◈</span><span>All → IG Ready</span></button>
+  if (activeRoom !== 'source' && allProjectItems.length > 0) {
+    const readyLabel = activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready';
+    let subToggleExtra = '';
+    if (activeSubView === 'ready' && filteredItems.length > 0) {
+      if (activeRoom === 'website') {
+        const portMode = state.lightboxPortfolioViewMode || 'layout';
+        subToggleExtra = `
+          <div class="lb-inline-mode-tabs" id="lbPortfolioTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Website preview mode">
+            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabLayout" aria-selected="${portMode === 'layout' ? 'true' : 'false'}" ${portMode === 'layout' ? 'focusgroupstart' : ''}>12-Col</button>
+            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabGrid" aria-selected="${portMode === 'grid' ? 'true' : 'false'}" ${portMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
           </div>
-        </div>
-      `;
+        `;
+      } else if (activeRoom === 'instagram') {
+        const igMode = state.lightboxIgViewMode || 'profile';
+        subToggleExtra = `
+          <div class="lb-inline-mode-tabs" id="lbIgTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Instagram preview mode">
+            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabProfile" aria-selected="${igMode === 'profile' ? 'true' : 'false'}" ${igMode === 'profile' ? 'focusgroupstart' : ''}>3×3 Feed</button>
+            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabGrid" aria-selected="${igMode === 'grid' ? 'true' : 'false'}" ${igMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
+          </div>
+        `;
+      }
+    } else if (activeSubView === 'hidden' && roomHiddenItems.length > 0) {
+      subToggleExtra = `<button type="button" class="lb-tool-btn is-ghost" id="btnLbUnhideAllRoom">Unhide All (${roomHiddenItems.length})</button>`;
     }
+
+    inlineModeControlsHtml = `
+      <div class="lb-inline-mode-tabs" role="group" aria-label="Room view">
+        <button type="button" class="lb-inline-mode-tab" data-lb-subview="pick" aria-pressed="${activeSubView === 'pick' ? 'true' : 'false'}">Pick (${roomVisibleItems.length})</button>
+        <button type="button" class="lb-inline-mode-tab" data-lb-subview="ready" aria-pressed="${activeSubView === 'ready' ? 'true' : 'false'}">${readyLabel} (${roomKeptItems.length})</button>
+        ${(roomHiddenItems.length > 0 || activeSubView === 'hidden') ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="hidden" aria-pressed="${activeSubView === 'hidden' ? 'true' : 'false'}">Hidden (${roomHiddenItems.length})</button>` : ''}
+      </div>
+      ${subToggleExtra}
+    `;
   }
 
   const projectScopeGroupHtml = [
@@ -26488,12 +26678,12 @@ function renderLightboxView(ws, spaceObj) {
             </button>
           ` : ''}
 
-          ${(activeFilter === '★ Keep Selected' || keptItems.length > 0) ? `
-            <button type="button" class="lb-tool-btn is-primary" id="btnLbBatchExportFolder" title="Copy kept files into a new clean folder on your Desktop">
-              ★ Export Kept Folder (${keptItems.length})
+          ${(activeSubView !== 'hidden' && activeRoom !== 'source' && roomKeptItems.length > 0) ? `
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbBatchExportFolder" title="Copy non-hidden kept files into a ${activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready'} folder on your Desktop">
+              Export ${activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready'} (${roomKeptItems.length})
             </button>
-          ` : (filteredItems.length > 0 ? `
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbBatchExportFolder" title="Copy current files into a new clean folder on your Desktop">
+          ` : (activeSubView !== 'hidden' && filteredItems.length > 0 ? `
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbBatchExportFolder" title="Copy visible non-hidden files into a folder on your Desktop">
               Export Folder (${filteredItems.length})
             </button>
           ` : '')}
@@ -26898,20 +27088,33 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Bind Batch Export buttons
+  // Bind Room Sub-View Switcher (Pick | Ready | Hidden)
+  ws.querySelectorAll('[data-lb-subview]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = btn.dataset.lbSubview || 'pick';
+      if (activeRoom === 'instagram') state.lightboxIgSubView = next;
+      else if (activeRoom === 'website') state.lightboxWebSubView = next;
+      renderWorkspace();
+    });
+  });
+
+  ws.querySelector('#btnLbUnhideAllRoom')?.addEventListener('click', () => {
+    unhideAllInLightboxRoom(activeRoom);
+  });
+
+  // Bind Batch Export (strictly excludes hidden items in the active room)
   const projLabel = activeProjObj ? activeProjObj.title : 'All_Projects';
   ws.querySelector('#btnLbBatchExportFolder')?.addEventListener('click', () => {
-    const toExport = (keptItems.length > 0) ? keptItems : exportTargetItems;
-    exportLightboxSelectedFolder(toExport, projLabel);
-  });
-  ws.querySelector('#btnLbExportKeptSub')?.addEventListener('click', () => {
-    exportLightboxSelectedFolder(filteredItems, `${projLabel}_Selects`);
-  });
-  ws.querySelector('#btnLbExportRoutedPortfolio')?.addEventListener('click', () => {
-    exportLightboxSelectedFolder(filteredItems, `${projLabel}_Portfolio_Staging`);
-  });
-  ws.querySelector('#btnLbExportRoutedIg')?.addEventListener('click', () => {
-    exportLightboxSelectedFolder(filteredItems, `${projLabel}_Instagram_Board`);
+    if (activeSubView === 'hidden') return;
+    if (activeRoom === 'instagram') {
+      const toExport = roomKeptItems.length > 0 ? roomKeptItems : filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'instagram'));
+      exportLightboxSelectedFolder(toExport, `${projLabel}_Instagram_Ready`);
+    } else if (activeRoom === 'website') {
+      const toExport = roomKeptItems.length > 0 ? roomKeptItems : filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'website'));
+      exportLightboxSelectedFolder(toExport, `${projLabel}_Website_Ready`);
+    } else {
+      exportLightboxSelectedFolder(filteredItems, `${projLabel}_Source_Files`);
+    }
   });
 
   // Bind Compare button in Command Bar
@@ -26932,11 +27135,24 @@ function renderLightboxView(ws, spaceObj) {
     openCompareDialog();
   });
 
-  // Bind Individual Asset Actions: Keep, Compare, Route to Portfolio, Route to IG
-  ws.querySelectorAll('[data-lb-keep]').forEach(btn => {
+  // Bind Individual Asset Actions: Room Keep, Room Hide, Unhide
+  ws.querySelectorAll('[data-lb-room-keep]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleItemLightboxKeep(btn.dataset.lbKeep);
+      const targetRoom = btn.dataset.lbRoomKeepTarget || activeRoom;
+      toggleLightboxRoomKeep(btn.dataset.lbRoomKeep, targetRoom);
+    });
+  });
+  ws.querySelectorAll('[data-lb-room-hide]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLightboxRoomHide(btn.dataset.lbRoomHide, activeRoom, true);
+    });
+  });
+  ws.querySelectorAll('[data-lb-room-unhide]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLightboxRoomHide(btn.dataset.lbRoomUnhide, activeRoom, false);
     });
   });
 
@@ -27080,30 +27296,14 @@ function renderLightboxView(ws, spaceObj) {
   ws.querySelectorAll('[data-lb-route-web]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const it = vault.items.find(i => i.id === btn.dataset.lbRouteWeb);
-      if (!it) return;
-      const isCurrentlyWeb = isLightboxPortfolioRouted(it);
-      const next = isCurrentlyWeb ? '' : 'website';
-      const prevIgStatus = it.igStatus || '';
-      const prevRoute = it.lightboxRoute || '';
-      it.lightboxRoute = next === 'website' ? 'portfolio' : '';
-      pushLightboxUndo({ type: 'route_change', desc: `Routed "${it.title || 'asset'}"`, itemId: it.id, prevIgStatus, prevRoute, nextIgStatus: next, nextRoute: it.lightboxRoute });
-      setItemIgStatus(it.id, next);
+      toggleLightboxRoomKeep(btn.dataset.lbRouteWeb, 'website');
     });
   });
 
   ws.querySelectorAll('[data-lb-route-ig]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const it = vault.items.find(i => i.id === btn.dataset.lbRouteIg);
-      if (!it) return;
-      const isCurrentlyIg = itIsIgRouted(it);
-      const next = isCurrentlyIg ? '' : 'queued';
-      const prevIgStatus = it.igStatus || '';
-      const prevRoute = it.lightboxRoute || '';
-      it.lightboxRoute = next === 'queued' ? 'instagram' : '';
-      pushLightboxUndo({ type: 'route_change', desc: `Routed "${it.title || 'asset'}"`, itemId: it.id, prevIgStatus, prevRoute, nextIgStatus: next, nextRoute: it.lightboxRoute });
-      setItemIgStatus(it.id, next);
+      toggleLightboxRoomKeep(btn.dataset.lbRouteIg, 'instagram');
     });
   });
 
