@@ -16870,8 +16870,6 @@ dialog.compare-dialog::backdrop {
 
 .lb-ig-carousel-frame {
   position: relative;
-  inline-size: min(520px, 78vw);
-  max-block-size: 62vh;
   background: #0f172a;
   border-radius: 14px;
   overflow: hidden;
@@ -16883,16 +16881,22 @@ dialog.compare-dialog::backdrop {
 }
 
 .lb-ig-carousel-frame.is-ratio-4x5 {
+  block-size: min(62vh, 580px, calc(80vw * 5 / 4));
+  inline-size: auto;
   aspect-ratio: 4 / 5;
 }
 
 .lb-ig-carousel-frame.is-ratio-1x1 {
+  block-size: min(62vh, 540px, 80vw);
+  inline-size: auto;
   aspect-ratio: 1 / 1;
 }
 
 .lb-ig-carousel-frame.is-ratio-orig {
-  aspect-ratio: auto;
-  min-block-size: 320px;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: min(760px, 82vw);
+  max-block-size: 64vh;
   background: #111827;
 }
 
@@ -16908,13 +16912,16 @@ dialog.compare-dialog::backdrop {
 .lb-ig-carousel-media-slot video {
   inline-size: 100%;
   block-size: 100%;
-  max-block-size: 62vh;
   object-fit: cover;
   display: block;
 }
 
 .lb-ig-carousel-frame.is-ratio-orig .lb-ig-carousel-media-slot img,
 .lb-ig-carousel-frame.is-ratio-orig .lb-ig-carousel-media-slot video {
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: min(760px, 82vw);
+  max-block-size: 64vh;
   object-fit: contain;
 }
 

@@ -26432,7 +26432,7 @@ function buildInstagramCarouselSubpageHtml(items) {
   const resText = (activeItem.naturalW > 0 && activeItem.naturalH > 0) ? `${activeItem.naturalW}×${activeItem.naturalH}` : '';
 
   const stageMediaHtml = activeKind === 'video'
-    ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" poster="${escapeHtml(posterSrc)}" controls playsinline preload="metadata" data-lb-item-id="${escapeHtml(activeItem.id)}"></video>`
+    ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}#t=0.05" controls playsinline preload="auto" data-lb-item-id="${escapeHtml(activeItem.id)}"></video>`
     : `<img id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" alt="${escapeHtml(activeTitle)}" decoding="async" draggable="false" data-lb-item-id="${escapeHtml(activeItem.id)}" data-pin-nopin="true">`;
 
   const dotsHtml = slides.map((s, idx) =>
@@ -27740,7 +27740,7 @@ function renderLightboxView(ws, spaceObj) {
         const oldVid = mediaSlot.querySelector('video');
         if (oldVid) { try { oldVid.pause(); } catch (_) {} }
         mediaSlot.innerHTML = kind === 'video'
-          ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" poster="${escapeHtml(posterSrc)}" controls playsinline preload="metadata" data-lb-item-id="${escapeHtml(it.id)}"></video>`
+          ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}#t=0.05" controls playsinline preload="auto" data-lb-item-id="${escapeHtml(it.id)}"></video>`
           : `<img id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" alt="${escapeHtml(title)}" decoding="async" draggable="false" data-lb-item-id="${escapeHtml(it.id)}" data-pin-nopin="true">`;
       }
       if (counterEl) counterEl.textContent = `${clamped + 1} / ${slides.length}`;
