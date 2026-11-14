@@ -26974,7 +26974,7 @@ function renderLightboxView(ws, spaceObj) {
   });
 
   // Active Project Contextual Menu Actions: Inline Rename & Remove Project
-  const activeProjMenuPop = ws.querySelector('#lbActiveProjMenuPopover');
+  const activeProjMenuPop = ws.querySelector('#lbProjectMenuPopover');
   ws.querySelector('#btnLbRenameActiveProj')?.addEventListener('click', (e) => {
     activeProjMenuPop?._closeMenu?.(e.detail !== 0);
     if (!activeProjObj) return;
