@@ -24100,9 +24100,9 @@ function getLightboxAssetsForActiveProject() {
   });
 }
 
-function openCompareDialog(preferredAssetId = null) {
+function openCompareDialog(preferredAssetId = null, { singleOnly = false } = {}) {
   let sel = state.selectedCompareAssets || [];
-  if (sel.length < 2) {
+  if (!singleOnly && sel.length < 2) {
     const { type, obj } = getActiveContainer();
     const pool = (type === 'space' && obj.id === 'lightbox')
       ? getLightboxAssetsForActiveProject()
@@ -27256,9 +27256,10 @@ function renderLightboxView(ws, spaceObj) {
       const clickedId = cardEl.dataset.lbItemId;
       const it = vault.items.find(i => i.id === clickedId);
       if (!it) return;
-      if (!isAssetCompareSelected(it.id)) {
-        state.selectedCompareAssets = state.selectedCompareAssets || [];
-        state.selectedCompareAssets.push({
+      const otherSelected = (state.selectedCompareAssets || []).filter(a => a.id !== it.id && a.vaultItemId !== it.id);
+      if (otherSelected.length === 0) {
+        // Nothing else checked: open this single file alone without auto-picking a second file
+        state.selectedCompareAssets = [{
           id: it.id,
           title: it.title || 'Asset',
           url: it.url,
@@ -27267,10 +27268,25 @@ function renderLightboxView(ws, spaceObj) {
           lightboxKeep: Boolean(it.lightboxKeep),
           vaultItemId: it.id,
           notes: it.notes || ''
-        });
+        }];
+        renderCompareFloatingBar();
+        openCompareDialog(it.id, { singleOnly: true });
+      } else {
+        if (!isAssetCompareSelected(it.id)) {
+          state.selectedCompareAssets.push({
+            id: it.id,
+            title: it.title || 'Asset',
+            url: it.url,
+            kind: getLightboxMasterMediaKind(it),
+            igStatus: it.igStatus || '',
+            lightboxKeep: Boolean(it.lightboxKeep),
+            vaultItemId: it.id,
+            notes: it.notes || ''
+          });
+        }
+        renderCompareFloatingBar();
+        openCompareDialog(it.id);
       }
-      renderCompareFloatingBar();
-      openCompareDialog(it.id);
     });
   });
 
