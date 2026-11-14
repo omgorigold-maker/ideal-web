@@ -24601,14 +24601,25 @@ function renderCompareModal() {
   }
 
   // Active asset Keep & Routing buttons in top bar (Stack mode)
+  const isLbCompare = state.viewType === 'space' && state.activeSpaceId === 'lightbox';
   const keepBtn = document.getElementById('btnCmpToggleKeep');
   const qBtn = document.getElementById('btnCmpToggleQueued');
   const pBtn = document.getElementById('btnCmpTogglePublished');
   const wBtn = document.getElementById('btnCmpToggleWebsite');
-  setBtnPressed(keepBtn, Boolean(activeAsset.lightboxKeep), 'is-active-keep');
-  setBtnPressed(qBtn, activeAsset.igStatus === 'queued', 'is-active-queued');
-  setBtnPressed(pBtn, activeAsset.igStatus === 'published', 'is-active-published');
-  setBtnPressed(wBtn, activeAsset.igStatus === 'website', 'is-active-website');
+  const delBtn = document.getElementById('btnCmpDeleteActive');
+  const hideBtn = document.getElementById('btnCmpHideActive');
+  if (keepBtn) keepBtn.hidden = isLbCompare;
+  if (qBtn) qBtn.hidden = isLbCompare;
+  if (wBtn) wBtn.hidden = isLbCompare;
+  if (pBtn) pBtn.hidden = true;
+  if (delBtn) delBtn.hidden = isLbCompare;
+  if (hideBtn) hideBtn.hidden = !isLbCompare;
+  if (!isLbCompare) {
+    setBtnPressed(keepBtn, Boolean(activeAsset.lightboxKeep), 'is-active-keep');
+    setBtnPressed(qBtn, activeAsset.igStatus === 'queued', 'is-active-queued');
+    setBtnPressed(pBtn, activeAsset.igStatus === 'published', 'is-active-published');
+    setBtnPressed(wBtn, activeAsset.igStatus === 'website', 'is-active-website');
+  }
 
   // Zoom pill: only visible when zoomed != 100%
   const zoomPct = Math.round((cs.zoom || 1) * 100);
@@ -24678,10 +24689,14 @@ function renderCompareModal() {
             <span class="cmp-cell-title-text">${escapeHtml(a.title.slice(0, 22))}</span>
           </span>
           <div class="cmp-split-cell-actions">
-            <button type="button" class="cmp-cell-action-btn is-keep ${a.lightboxKeep ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.lightboxKeep ? 'true' : 'false'}" title="Mark as Keep">★ Keep</button>
-            <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Mark as Website Ready">Website Ready</button>
-            <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Mark as IG Ready">IG Ready</button>
-            <button type="button" class="cmp-cell-action-btn is-danger" data-trash-idx="${idx}" aria-label="Remove ${escapeHtml(a.title)}" title="Remove from Lightbox (keeps original file on Mac)">Remove…</button>
+            ${(state.viewType === 'space' && state.activeSpaceId === 'lightbox') ? `
+              <button type="button" class="cmp-cell-action-btn is-hide" data-hide-idx="${idx}" title="Hide from this room">Hide</button>
+            ` : `
+              <button type="button" class="cmp-cell-action-btn is-keep ${a.lightboxKeep ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.lightboxKeep ? 'true' : 'false'}" title="Mark as Keep">★ Keep</button>
+              <button type="button" class="cmp-cell-action-btn is-web ${a.igStatus === 'website' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'website' ? 'true' : 'false'}" title="Mark as Website Ready">Website Ready</button>
+              <button type="button" class="cmp-cell-action-btn is-ig ${a.igStatus === 'queued' ? 'active' : ''}" data-idx="${idx}" aria-pressed="${a.igStatus === 'queued' ? 'true' : 'false'}" title="Mark as IG Ready">IG Ready</button>
+              <button type="button" class="cmp-cell-action-btn is-danger" data-trash-idx="${idx}" aria-label="Remove ${escapeHtml(a.title)}" title="Remove from Lightbox (keeps original file on Mac)">Remove…</button>
+            `}
           </div>
           <div class="cmp-split-media-wrap" style="transform:${transformCss};">
             ${mediaHtml}
@@ -24887,6 +24902,34 @@ function initCompareDialogEvents() {
     if (!active) return;
     const itemId = active.vaultItemId || active.id;
     setItemIgStatus(itemId, active.igStatus === 'website' ? '' : 'website');
+  });
+
+  const hideCompareAssetAt = (idxToHide) => {
+    const sel = state.selectedCompareAssets || [];
+    const target = sel[idxToHide];
+    if (!target) return;
+    const itemId = target.vaultItemId || target.id;
+    toggleLightboxRoomHide(itemId, getLightboxActiveRoom(), true);
+    state.selectedCompareAssets = sel.filter((_, i) => i !== idxToHide);
+    if (state.selectedCompareAssets.length === 0) {
+      dlg.close();
+      renderCompareFloatingBar();
+    } else {
+      state.compareState.activeIndex = Math.min(state.compareState.activeIndex, state.selectedCompareAssets.length - 1);
+      renderCompareFloatingBar();
+      renderCompareModal();
+    }
+  };
+
+  stage.addEventListener('click', (e) => {
+    const hideBtn = e.target.closest('.cmp-cell-action-btn.is-hide[data-hide-idx]');
+    if (!hideBtn) return;
+    e.stopPropagation();
+    hideCompareAssetAt(parseInt(hideBtn.dataset.hideIdx, 10) || 0);
+  });
+
+  document.getElementById('btnCmpHideActive')?.addEventListener('click', () => {
+    hideCompareAssetAt(state.compareState.activeIndex || 0);
   });
 
   document.getElementById('btnCmpDeleteActive')?.addEventListener('click', () => {
@@ -25163,6 +25206,10 @@ function initCompareDialogEvents() {
       renderCompareModal();
     } else if (!inControl && (e.key === 'Delete' || e.key === 'Backspace')) {
       e.preventDefault();
+      if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+        hideCompareAssetAt(state.compareState.activeIndex || 0);
+        return;
+      }
       const active = sel[state.compareState.activeIndex] || sel[0];
       if (active) {
         const itemId = active.vaultItemId || active.id;
