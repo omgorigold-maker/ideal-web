@@ -24206,6 +24206,7 @@ function openCompareDialog(preferredAssetId = null, { singleOnly = false, keepOv
   if (!dlg) return;
   renderCompareModal();
   if (!dlg.open) dlg.showModal();
+  requestAnimationFrame(() => syncCompareOverlayBounds());
 }
 
 function syncCompareOverlayBounds() {
@@ -24213,16 +24214,23 @@ function syncCompareOverlayBounds() {
   if (!stage) return;
   const containers = stage.querySelectorAll('.cmp-stack-viewport, .cmp-split-media-wrap');
   containers.forEach(wrap => {
-    const activeLayer = wrap.querySelector('.cmp-layer.active') || wrap;
+    const activeLayer = wrap.querySelector('.cmp-stack-layer.is-active-layer') || wrap;
     const media = activeLayer.querySelector('img, video');
     if (!media) return;
 
     const applyBounds = () => {
       const natW = media.tagName === 'VIDEO' ? (media.videoWidth || 0) : (media.naturalWidth || 0);
       const natH = media.tagName === 'VIDEO' ? (media.videoHeight || 0) : (media.naturalHeight || 0);
-      const boxW = media.clientWidth || wrap.clientWidth;
-      const boxH = media.clientHeight || wrap.clientHeight;
-      if (!boxW || !boxH) return;
+      const wrapRect = wrap.getBoundingClientRect();
+      const mediaRect = media.getBoundingClientRect();
+      if (!wrapRect.width || !wrapRect.height || !mediaRect.width || !mediaRect.height) return;
+
+      const scaleX = wrap.clientWidth ? (wrapRect.width / wrap.clientWidth) : 1;
+      const scaleY = wrap.clientHeight ? (wrapRect.height / wrap.clientHeight) : 1;
+      const mLeft = (mediaRect.left - wrapRect.left) / scaleX;
+      const mTop = (mediaRect.top - wrapRect.top) / scaleY;
+      const boxW = mediaRect.width / scaleX;
+      const boxH = mediaRect.height / scaleY;
 
       let renW = boxW;
       let renH = boxH;
@@ -24237,8 +24245,8 @@ function syncCompareOverlayBounds() {
           renW = boxH * mediaAspect;
         }
       }
-      const offLeft = (media.offsetLeft || 0) + (boxW - renW) / 2;
-      const offTop = (media.offsetTop || 0) + (boxH - renH) / 2;
+      const offLeft = mLeft + (boxW - renW) / 2;
+      const offTop = mTop + (boxH - renH) / 2;
 
       wrap.querySelectorAll('.cmp-context-overlay').forEach(ov => {
         ov.style.left = `${offLeft.toFixed(1)}px`;
