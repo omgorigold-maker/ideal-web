@@ -524,20 +524,22 @@
         <h2 class="cmp-sr-only" id="compareDialogTitle">Compare</h2>
 
         <div class="compare-hud-left">
-          <div class="compare-mode-toggle" role="group" aria-label="Comparison mode">
-            <button type="button" class="cmp-mode-btn active" id="btnCmpModeStack" data-cmp-mode="stack" aria-pressed="true" autofocus title="1:1 Overlay — flip versions with keys 1-9 or ← → (S)">
-              1:1 Overlay
-            </button>
-            <button type="button" class="cmp-mode-btn" id="btnCmpModeSplit" data-cmp-mode="split" aria-pressed="false" title="Side-by-Side Split (S)">
-              Side-by-Side
-            </button>
-          </div>
-
           <!-- Contextual Stack-Only Controls (Hidden in Split Mode) -->
           <div class="cmp-stack-inline-controls" id="cmpStackInlineControls" role="group" aria-label="Stack layers">
             <div class="compare-layers-strip" id="compareLayerPills"></div>
             <button type="button" class="cmp-ghost-pill" id="btnCmpDiffToggle" aria-pressed="false" title="Highlight pixel differences between versions (D)">
               ◐ Pixel Diff
+            </button>
+          </div>
+        </div>
+
+        <div class="compare-hud-center">
+          <div class="compare-mode-toggle" role="group" aria-label="Comparison mode">
+            <button type="button" class="cmp-mode-btn" id="btnCmpModeStack" data-cmp-mode="stack" aria-pressed="false" title="1:1 Overlay — flip versions with keys 1-9 or ← → (S)">
+              1:1 Overlay
+            </button>
+            <button type="button" class="cmp-mode-btn active" id="btnCmpModeSplit" data-cmp-mode="split" aria-pressed="true" autofocus title="Side-by-Side Split (S)">
+              Side-by-Side
             </button>
           </div>
         </div>

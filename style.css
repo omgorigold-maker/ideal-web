@@ -14953,28 +14953,43 @@ dialog.compare-dialog::backdrop {
 
 /* Single Whisper-Slim Studio Bar (48px, zero stacked sub-bars) */
 .compare-hud-bar {
-  display: flex;
-  align-items: safe center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   gap: 12px;
   block-size: 48px;
   padding: 0 14px;
   background: #ffffff;
   border-block-end: 1px solid #eceff3;
   flex-shrink: 0;
-  flex-wrap: nowrap;
+}
+
+.compare-hud-left {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.compare-hud-bar::-webkit-scrollbar {
+.compare-hud-left::-webkit-scrollbar {
   display: none;
 }
 
-.compare-hud-left,
+.compare-hud-center {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  flex-shrink: 0;
+}
+
 .compare-hud-right {
   display: inline-flex;
   align-items: safe center;
+  justify-self: end;
   gap: 8px;
   flex-shrink: 0;
   white-space: nowrap;
@@ -15152,25 +15167,27 @@ dialog.compare-dialog::backdrop {
 #compareDialog .compare-layers-strip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-wrap: nowrap;
-  padding-inline-start: 2px;
+  padding-inline-start: 0;
 }
 
 #compareDialog .cmp-layer-pill-wrap {
   display: inline-flex;
   align-items: center;
-  background: #f1f4f8;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 999px;
   block-size: 28px;
   overflow: clip;
   flex-shrink: 0;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
 }
 
 #compareDialog .cmp-layer-pill-wrap.active {
-  background: #0f172a;
+  background: #ffffff;
   border-color: #0f172a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
 
 #compareDialog .cmp-layer-pill-wrap.is-hidden-layer {
@@ -15180,12 +15197,11 @@ dialog.compare-dialog::backdrop {
 #compareDialog .cmp-layer-eye-btn {
   appearance: none;
   border: none;
-  border-inline-end: 1px solid rgba(15, 23, 42, 0.08);
   background: transparent;
-  color: #64748b;
-  min-inline-size: 26px;
+  color: #94a3b8;
+  min-inline-size: 22px;
   min-block-size: 28px;
-  padding: 0 6px;
+  padding: 0 4px 0 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -15198,18 +15214,14 @@ dialog.compare-dialog::backdrop {
 }
 
 #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-eye-btn {
-  color: rgba(255, 255, 255, 0.78);
-  border-inline-end-color: rgba(255, 255, 255, 0.14);
+  color: #64748b;
 }
 
 @media (hover: hover) {
-  #compareDialog .cmp-layer-eye-btn:hover {
-    background: rgba(15, 23, 42, 0.06);
-    color: #0f172a;
-  }
+  #compareDialog .cmp-layer-eye-btn:hover,
   #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-eye-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background: rgba(15, 23, 42, 0.05);
+    color: #0f172a;
   }
 }
 
@@ -15223,47 +15235,51 @@ dialog.compare-dialog::backdrop {
   border-radius: 0 !important;
   box-shadow: none !important;
   outline: none !important;
-  color: #334155;
+  color: #334155 !important;
   font-family: inherit;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   min-block-size: 28px;
-  padding: 0 9px 0 7px;
+  padding: 0 10px 0 2px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   white-space: nowrap;
 }
 
 #compareDialog .cmp-layer-pill .layer-key,
 #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-pill .layer-key,
 #compareDialog .cmp-layer-pill.active .layer-key {
-  display: inline;
-  width: auto;
-  height: auto;
-  background: transparent !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 18px;
+  block-size: 18px;
+  background: #0f172a !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: 50% !important;
   box-shadow: none !important;
   font-family: 'JetBrains Mono', var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  opacity: 0.62;
-  color: inherit !important;
+  opacity: 1;
+  color: #ffffff !important;
+  flex-shrink: 0;
 }
 
 #compareDialog .cmp-layer-pill[aria-pressed="true"],
 #compareDialog .cmp-layer-pill.active,
 #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-pill {
-  color: #ffffff !important;
+  color: #0f172a !important;
+  font-weight: 600;
   background: transparent !important;
 }
 
 #compareDialog .cmp-layer-pill[aria-pressed="true"] .layer-key,
 #compareDialog .cmp-layer-pill.active .layer-key,
 #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-pill .layer-key {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 #compareDialog .cmp-layer-remove-btn {
@@ -15275,7 +15291,7 @@ dialog.compare-dialog::backdrop {
   line-height: 1;
   min-inline-size: 22px;
   min-block-size: 28px;
-  padding: 0 6px 0 2px;
+  padding: 0 8px 0 2px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -15283,7 +15299,7 @@ dialog.compare-dialog::backdrop {
 }
 
 #compareDialog .cmp-layer-pill-wrap.active .cmp-layer-remove-btn {
-  color: rgba(255, 255, 255, 0.65);
+  color: #64748b;
 }
 
 @media (hover: hover) {

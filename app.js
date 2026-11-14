@@ -1646,7 +1646,7 @@ let state = {
   rdLabFilter: 'all', // 'all' | 'explore' | 'subs' | 'build'
   selectedCompareAssets: [], // [{ id, title, url, kind, status, igStatus, section, vaultItemId }]
   compareState: {
-    mode: 'stack', // 'stack' | 'split'
+    mode: 'split', // 'stack' | 'split'
     activeIndex: 0,
     visibleLayers: null, // Set of visible layer indices in Photoshop Stack mode
     diffBlend: false,
@@ -24301,6 +24301,9 @@ function openCompareDialog(preferredAssetId = null, { singleOnly = false, keepOv
 
   const dlg = document.getElementById('compareDialog');
   if (!dlg) return;
+  if (!dlg.open) {
+    state.compareState.mode = 'split';
+  }
   renderCompareModal();
   if (!dlg.open) dlg.showModal();
   requestAnimationFrame(() => syncCompareOverlayBounds());
