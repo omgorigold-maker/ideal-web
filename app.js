@@ -21810,7 +21810,13 @@ function initEvents() {
     clearTimeout(_dragWatchdogTimer);
     forceHideAllDropOverlays();
     if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock')) return;
-    if (e.dataTransfer && ((e.dataTransfer.items && e.dataTransfer.items.length > 0) || (e.dataTransfer.files && e.dataTransfer.files.length > 0))) {
+    const hasDroppedFile = Boolean(
+      e.dataTransfer && (
+        (e.dataTransfer.files && e.dataTransfer.files.length > 0) ||
+        Array.from(e.dataTransfer.items || []).some(it => it && it.kind === 'file')
+      )
+    );
+    if (hasDroppedFile) {
       e.preventDefault();
       const isMf = (state.viewType === 'space' && ['residencies', 'work_apps', 'dream_clients', 'opportunity_pool'].includes(state.activeSpaceId));
       if (isMf && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -27542,6 +27548,7 @@ function renderLightboxView(ws, spaceObj) {
     container.addEventListener('drop', (e) => {
       if (!draggedCard) return;
       e.preventDefault();
+      e.stopPropagation();
       const target = e.target.closest(cardSelector);
       clearDropHighlight();
       if (!target || target === draggedCard || !container.contains(target)) return;
@@ -27848,6 +27855,7 @@ function renderLightboxView(ws, spaceObj) {
       strip.addEventListener('drop', (e) => {
         if (!draggedThumb) return;
         e.preventDefault();
+        e.stopPropagation();
         const target = e.target.closest('.lb-ig-carousel-thumb');
         clearDrop();
         if (!target || target === draggedThumb) return;
@@ -28398,6 +28406,7 @@ function renderLightboxView(ws, spaceObj) {
     gridEl.addEventListener('drop', (e) => {
       if (!activeGridDragCard || activeGridSource !== gridEl) return;
       e.preventDefault();
+      e.stopPropagation();
       const target = e.target.closest('.lb-studio-card[data-lb-item-id]');
       clearGridDrop();
       if (!target || target === activeGridDragCard || !gridEl.contains(target)) return;
