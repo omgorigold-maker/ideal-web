@@ -1739,6 +1739,9 @@ function saveNavState() {
       lightboxFilter: state.lightboxFilter || 'All Assets',
       lightboxMediaKind: state.lightboxMediaKind || 'all',
       lightboxIgPreviewOn: Boolean(state.lightboxIgPreviewOn),
+      lightboxIgTab: state.lightboxIgTab || (state.lightboxIgPreviewOn ? 'feed' : 'grid'),
+      lightboxIgCarouselCrop: state.lightboxIgCarouselCrop || '4:5',
+      lightboxIgCarouselIdx: Number(state.lightboxIgCarouselIdx || 0),
       lightboxWebPreviewOn: Boolean(state.lightboxWebPreviewOn),
       lightboxIgViewMode: state.lightboxIgViewMode || 'profile',
       lightboxIgCropMode: state.lightboxIgCropMode || '4:5',
@@ -1844,6 +1847,16 @@ function restoreNavState() {
         }
         if (typeof saved.lightboxIgPreviewOn === 'boolean') {
           state.lightboxIgPreviewOn = saved.lightboxIgPreviewOn;
+        }
+        if (typeof saved.lightboxIgTab === 'string' && ['grid', 'feed', 'carousel'].includes(saved.lightboxIgTab)) {
+          state.lightboxIgTab = saved.lightboxIgTab;
+          state.lightboxIgPreviewOn = saved.lightboxIgTab !== 'grid';
+        }
+        if (typeof saved.lightboxIgCarouselCrop === 'string' && saved.lightboxIgCarouselCrop) {
+          state.lightboxIgCarouselCrop = saved.lightboxIgCarouselCrop;
+        }
+        if (typeof saved.lightboxIgCarouselIdx === 'number' && !Number.isNaN(saved.lightboxIgCarouselIdx)) {
+          state.lightboxIgCarouselIdx = saved.lightboxIgCarouselIdx;
         }
         if (typeof saved.lightboxWebPreviewOn === 'boolean') {
           state.lightboxWebPreviewOn = saved.lightboxWebPreviewOn;
@@ -26346,6 +26359,99 @@ function buildPortfolioStagingSubpageHtml(items, scaleStep) {
   `;
 }
 
+function buildInstagramCarouselSubpageHtml(items) {
+  const cropMode = state.lightboxIgCarouselCrop || '4:5';
+  const sortedAll = [...items].sort((a, b) =>
+    (Number(a.igCarouselOrder ?? a.igBoardOrder ?? 9999) - Number(b.igCarouselOrder ?? b.igBoardOrder ?? 9999)) ||
+    (Number(b.createdAt || 0) - Number(a.createdAt || 0))
+  );
+  const slides = sortedAll.filter(it => !it.igCarouselExcluded);
+  const excludedCount = sortedAll.length - slides.length;
+
+  if (slides.length === 0) {
+    return `
+      <div class="lb-ig-carousel-empty">
+        <p>All ${sortedAll.length} files were removed from this Carousel preview.</p>
+        ${excludedCount > 0 ? `<button type="button" class="lb-tool-btn is-primary" id="btnLbCarouselRestoreAll">Restore All (${excludedCount})</button>` : ''}
+      </div>
+    `;
+  }
+
+  let activeIdx = Number(state.lightboxIgCarouselIdx || 0);
+  if (activeIdx < 0 || activeIdx >= slides.length) activeIdx = 0;
+  state.lightboxIgCarouselIdx = activeIdx;
+  const activeItem = slides[activeIdx];
+  const activeKind = getLightboxMasterMediaKind(activeItem);
+  const fullSrc = getLightboxMediaSrc(activeItem) || getLightboxDisplayUrl(activeItem);
+  const posterSrc = getLightboxDisplayUrl(activeItem);
+  const activeTitle = activeItem.title || `Slide ${activeIdx + 1}`;
+  const resText = (activeItem.naturalW > 0 && activeItem.naturalH > 0) ? `${activeItem.naturalW}×${activeItem.naturalH}` : '';
+
+  const stageMediaHtml = activeKind === 'video'
+    ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" poster="${escapeHtml(posterSrc)}" controls playsinline preload="metadata" data-lb-item-id="${escapeHtml(activeItem.id)}"></video>`
+    : `<img id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" alt="${escapeHtml(activeTitle)}" decoding="async" draggable="false" data-lb-item-id="${escapeHtml(activeItem.id)}" data-pin-nopin="true">`;
+
+  const dotsHtml = slides.map((s, idx) =>
+    `<button type="button" class="lb-ig-carousel-dot${idx === activeIdx ? ' is-active' : ''}" data-lb-carousel-goto="${idx}" aria-label="Go to slide ${idx + 1}"></button>`
+  ).join('');
+
+  const stripHtml = slides.map((it, idx) => {
+    const kind = getLightboxMasterMediaKind(it);
+    const thumbUrl = getLightboxDisplayUrl(it);
+    const titleText = it.title || `Slide ${idx + 1}`;
+    return `
+      <article class="lb-ig-carousel-thumb${idx === activeIdx ? ' is-active' : ''}${isAssetCompareSelected(it.id) ? ' is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" data-lb-carousel-idx="${idx}" draggable="true" title="${escapeHtml(titleText)} — Click to view · Double-click to compare · Drag to reorder">
+        <button type="button" class="lb-ig-carousel-thumb-btn" data-lb-carousel-goto="${idx}" aria-label="View slide ${idx + 1}: ${escapeHtml(titleText)}"></button>
+        <img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true">
+        <span class="lb-ig-cell-badge">#${idx + 1}${kind === 'video' ? ' · ▶' : ''}</span>
+        <button type="button" class="lb-mini-stage-btn lb-ig-carousel-remove" data-lb-carousel-remove="${escapeHtml(it.id)}" title="Remove slide from Carousel">✕</button>
+      </article>
+    `;
+  }).join('');
+
+  const ratioClass = cropMode === '1:1' ? 'is-ratio-1x1' : (cropMode === 'orig' ? 'is-ratio-orig' : 'is-ratio-4x5');
+
+  return `
+    <div class="lb-ig-carousel-studio" id="lbIgCarouselStudio">
+      <div class="lb-ig-carousel-topbar">
+        <div class="lb-ig-carousel-meta">
+          <span class="lb-ig-carousel-counter" id="lbCarouselCounter">${activeIdx + 1} / ${slides.length}</span>
+          <span class="lb-ig-carousel-filename" id="lbCarouselFilename" title="${escapeHtml(activeTitle)}">${escapeHtml(activeTitle)}</span>
+          ${resText ? `<span class="lb-ig-carousel-res" id="lbCarouselRes">${resText}</span>` : '<span class="lb-ig-carousel-res" id="lbCarouselRes"></span>'}
+        </div>
+        <div class="lb-ig-carousel-actions">
+          ${excludedCount > 0 ? `<button type="button" class="lb-tool-btn is-ghost" id="btnLbCarouselRestoreAll">Restore (${excludedCount})</button>` : ''}
+          <button type="button" class="lb-tool-btn is-ghost" id="btnLbCarouselCompareSlide" data-lb-carousel-compare="${escapeHtml(activeItem.id)}" title="Open this slide in Compare">Compare</button>
+          <div class="lb-segmented-control" role="group" aria-label="Carousel aspect ratio">
+            <button type="button" class="lb-seg-btn" aria-pressed="${cropMode === '4:5' ? 'true' : 'false'}" data-lb-carousel-crop="4:5">4:5</button>
+            <button type="button" class="lb-seg-btn" aria-pressed="${cropMode === '1:1' ? 'true' : 'false'}" data-lb-carousel-crop="1:1">1:1</button>
+            <button type="button" class="lb-seg-btn" aria-pressed="${cropMode === 'orig' ? 'true' : 'false'}" data-lb-carousel-crop="orig">Original</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lb-ig-carousel-stage-wrap">
+        <button type="button" class="lb-ig-carousel-nav is-prev" id="btnLbCarouselPrev" aria-label="Previous slide"${activeIdx <= 0 ? ' disabled' : ''}>‹</button>
+        <div class="lb-ig-carousel-frame ${ratioClass}" id="lbCarouselFrame">
+          <div class="lb-ig-carousel-media-slot" id="lbCarouselMediaSlot">
+            ${stageMediaHtml}
+          </div>
+          <span class="lb-ig-carousel-pill-badge" id="lbCarouselPillBadge">${activeIdx + 1}/${slides.length}</span>
+        </div>
+        <button type="button" class="lb-ig-carousel-nav is-next" id="btnLbCarouselNext" aria-label="Next slide"${activeIdx >= slides.length - 1 ? ' disabled' : ''}>›</button>
+      </div>
+
+      <div class="lb-ig-carousel-dots" id="lbCarouselDots" aria-label="Carousel slides">${dotsHtml}</div>
+
+      <div class="lb-ig-carousel-strip-wrap">
+        <div class="lb-ig-carousel-strip" id="lbCarouselStrip">
+          ${stripHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function buildInstagramBoardSubpageHtml(items, scaleStep) {
   const mode = state.lightboxIgViewMode || 'profile';
   const cropMode = state.lightboxIgCropMode || '4:5';
@@ -26752,8 +26858,11 @@ function renderLightboxView(ws, spaceObj) {
       </div>
     `;
 
-  } else if (activeRoom === 'instagram' && state.lightboxIgPreviewOn === true) {
-    mainContentHtml = buildInstagramBoardSubpageHtml(filteredItems, scaleStep);
+  } else if (activeRoom === 'instagram' && (state.lightboxIgTab === 'carousel' || state.lightboxIgTab === 'feed' || state.lightboxIgPreviewOn === true)) {
+    const igTab = state.lightboxIgTab || (state.lightboxIgPreviewOn ? 'feed' : 'grid');
+    mainContentHtml = igTab === 'carousel'
+      ? buildInstagramCarouselSubpageHtml(filteredItems)
+      : buildInstagramBoardSubpageHtml(filteredItems, scaleStep);
   } else {
     const showBothHeaders = imageItems.length > 0 && videoItems.length > 0;
     mainContentHtml = `
@@ -26805,11 +26914,12 @@ function renderLightboxView(ws, spaceObj) {
   let inlineModeControlsHtml = '';
   if (roomVisibleItems.length > 0) {
     if (activeRoom === 'instagram') {
-      const igPreviewOn = state.lightboxIgPreviewOn === true;
+      const igTab = state.lightboxIgTab || (state.lightboxIgPreviewOn ? 'feed' : 'grid');
       inlineModeControlsHtml = `
         <div class="lb-inline-mode-tabs" role="group" aria-label="Instagram view">
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${!igPreviewOn ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="preview" aria-pressed="${igPreviewOn ? 'true' : 'false'}">3×3 Feed</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${igTab === 'grid' ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="feed" aria-pressed="${igTab === 'feed' ? 'true' : 'false'}">Feed</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="carousel" aria-pressed="${igTab === 'carousel' ? 'true' : 'false'}">Carousel</button>
         </div>
       `;
     }
@@ -27528,19 +27638,238 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Bind Grid vs 3x3 Feed / 12-Col Layout toggle
+  // Bind Grid vs Feed vs Carousel / 12-Col Layout toggle
   ws.querySelectorAll('[data-lb-room-preview]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const isPreview = btn.dataset.lbRoomPreview === 'preview';
+      const modeVal = btn.dataset.lbRoomPreview || 'grid';
       if (activeRoom === 'instagram') {
-        state.lightboxIgPreviewOn = isPreview;
+        const nextTab = (modeVal === 'carousel' || modeVal === 'feed' || modeVal === 'grid')
+          ? modeVal
+          : (modeVal === 'preview' ? 'feed' : 'grid');
+        state.lightboxIgTab = nextTab;
+        state.lightboxIgPreviewOn = nextTab !== 'grid';
         state.lightboxIgViewMode = 'profile';
       } else if (activeRoom === 'website') {
+        const isPreview = modeVal === 'preview';
         state.lightboxWebPreviewOn = isPreview;
         state.lightboxPortfolioViewMode = 'layout';
       }
       renderWorkspace();
     });
+  });
+
+  // Bind Instagram Carousel Studio (in-place max-quality slide switching + drag reorder)
+  const carouselStudio = ws.querySelector('#lbIgCarouselStudio');
+  if (carouselStudio) {
+    const strip = carouselStudio.querySelector('#lbCarouselStrip');
+    const mediaSlot = carouselStudio.querySelector('#lbCarouselMediaSlot');
+    const counterEl = carouselStudio.querySelector('#lbCarouselCounter');
+    const filenameEl = carouselStudio.querySelector('#lbCarouselFilename');
+    const resEl = carouselStudio.querySelector('#lbCarouselRes');
+    const pillBadgeEl = carouselStudio.querySelector('#lbCarouselPillBadge');
+    const prevBtn = carouselStudio.querySelector('#btnLbCarouselPrev');
+    const nextBtn = carouselStudio.querySelector('#btnLbCarouselNext');
+    const dotsWrap = carouselStudio.querySelector('#lbCarouselDots');
+    const frameEl = carouselStudio.querySelector('#lbCarouselFrame');
+    const compareSlideBtn = carouselStudio.querySelector('#btnLbCarouselCompareSlide');
+
+    const getOrderedSlides = () => {
+      const thumbs = strip ? [...strip.querySelectorAll('.lb-ig-carousel-thumb')] : [];
+      const itemById = new Map(filteredItems.map(i => [i.id, i]));
+      return thumbs.map(el => itemById.get(el.dataset.lbItemId)).filter(Boolean);
+    };
+
+    const goToCarouselSlide = (nextIdx) => {
+      const slides = getOrderedSlides();
+      if (!slides.length) return;
+      const clamped = Math.max(0, Math.min(slides.length - 1, nextIdx));
+      state.lightboxIgCarouselIdx = clamped;
+      saveNavState();
+      const it = slides[clamped];
+      const kind = getLightboxMasterMediaKind(it);
+      const fullSrc = getLightboxMediaSrc(it) || getLightboxDisplayUrl(it);
+      const posterSrc = getLightboxDisplayUrl(it);
+      const title = it.title || `Slide ${clamped + 1}`;
+      const resText = (it.naturalW > 0 && it.naturalH > 0) ? `${it.naturalW}×${it.naturalH}` : '';
+
+      if (mediaSlot) {
+        const oldVid = mediaSlot.querySelector('video');
+        if (oldVid) { try { oldVid.pause(); } catch (_) {} }
+        mediaSlot.innerHTML = kind === 'video'
+          ? `<video id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" poster="${escapeHtml(posterSrc)}" controls playsinline preload="metadata" data-lb-item-id="${escapeHtml(it.id)}"></video>`
+          : `<img id="lbCarouselActiveMedia" src="${escapeHtml(fullSrc)}" alt="${escapeHtml(title)}" decoding="async" draggable="false" data-lb-item-id="${escapeHtml(it.id)}" data-pin-nopin="true">`;
+      }
+      if (counterEl) counterEl.textContent = `${clamped + 1} / ${slides.length}`;
+      if (pillBadgeEl) pillBadgeEl.textContent = `${clamped + 1}/${slides.length}`;
+      if (filenameEl) { filenameEl.textContent = title; filenameEl.title = title; }
+      if (resEl) resEl.textContent = resText;
+      if (compareSlideBtn) compareSlideBtn.dataset.lbCarouselCompare = it.id;
+      if (prevBtn) prevBtn.disabled = clamped <= 0;
+      if (nextBtn) nextBtn.disabled = clamped >= slides.length - 1;
+      if (dotsWrap) {
+        dotsWrap.querySelectorAll('.lb-ig-carousel-dot').forEach((d, i) => {
+          d.classList.toggle('is-active', i === clamped);
+        });
+      }
+      if (strip) {
+        strip.querySelectorAll('.lb-ig-carousel-thumb').forEach((t, i) => {
+          t.classList.toggle('is-active', i === clamped);
+          if (i === clamped) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+      }
+    };
+
+    prevBtn?.addEventListener('click', () => goToCarouselSlide((state.lightboxIgCarouselIdx || 0) - 1));
+    nextBtn?.addEventListener('click', () => goToCarouselSlide((state.lightboxIgCarouselIdx || 0) + 1));
+
+    dotsWrap?.addEventListener('click', (e) => {
+      const dot = e.target.closest('[data-lb-carousel-goto]');
+      if (!dot) return;
+      goToCarouselSlide(parseInt(dot.dataset.lbCarouselGoto, 10) || 0);
+    });
+
+    carouselStudio.querySelectorAll('[data-lb-carousel-crop]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const crop = btn.dataset.lbCarouselCrop || '4:5';
+        state.lightboxIgCarouselCrop = crop;
+        saveNavState();
+        carouselStudio.querySelectorAll('[data-lb-carousel-crop]').forEach(b => {
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+        });
+        if (frameEl) {
+          frameEl.classList.remove('is-ratio-4x5', 'is-ratio-1x1', 'is-ratio-orig');
+          frameEl.classList.add(crop === '1:1' ? 'is-ratio-1x1' : (crop === 'orig' ? 'is-ratio-orig' : 'is-ratio-4x5'));
+        }
+      });
+    });
+
+    const openSlideInCompare = (itemId) => {
+      const it = vault.items.find(i => i.id === itemId);
+      if (!it) return;
+      state.selectedCompareAssets = [{
+        id: it.id,
+        title: it.title || 'Asset',
+        url: it.url,
+        kind: getLightboxMasterMediaKind(it),
+        igStatus: it.igStatus || '',
+        lightboxKeep: Boolean(it.lightboxKeep),
+        vaultItemId: it.id,
+        notes: it.notes || ''
+      }];
+      openCompareDialog(it.id, { singleOnly: true });
+    };
+
+    compareSlideBtn?.addEventListener('click', () => {
+      openSlideInCompare(compareSlideBtn.dataset.lbCarouselCompare);
+    });
+
+    mediaSlot?.addEventListener('dblclick', () => {
+      const media = mediaSlot.querySelector('[data-lb-item-id]');
+      if (media?.dataset.lbItemId) openSlideInCompare(media.dataset.lbItemId);
+    });
+
+    if (strip) {
+      let draggedThumb = null;
+      let dropThumb = null;
+      const clearDrop = () => {
+        if (dropThumb) { dropThumb.classList.remove('is-drop-target'); dropThumb = null; }
+      };
+
+      strip.addEventListener('click', (e) => {
+        const rmBtn = e.target.closest('[data-lb-carousel-remove]');
+        if (rmBtn) {
+          e.stopPropagation();
+          const it = vault.items.find(i => i.id === rmBtn.dataset.lbCarouselRemove);
+          if (it) {
+            it.igCarouselExcluded = true;
+            saveVault('CAROUSEL SLIDE REMOVED');
+            renderWorkspace();
+          }
+          return;
+        }
+        const thumb = e.target.closest('.lb-ig-carousel-thumb');
+        if (!thumb) return;
+        const thumbs = [...strip.querySelectorAll('.lb-ig-carousel-thumb')];
+        const idx = thumbs.indexOf(thumb);
+        if (idx >= 0) goToCarouselSlide(idx);
+      });
+
+      strip.addEventListener('dblclick', (e) => {
+        if (e.target.closest('[data-lb-carousel-remove]')) return;
+        const thumb = e.target.closest('.lb-ig-carousel-thumb');
+        if (thumb?.dataset.lbItemId) openSlideInCompare(thumb.dataset.lbItemId);
+      });
+
+      strip.addEventListener('dragstart', (e) => {
+        if (e.target.closest('[data-lb-carousel-remove]')) { e.preventDefault(); return; }
+        const thumb = e.target.closest('.lb-ig-carousel-thumb');
+        if (!thumb) return;
+        draggedThumb = thumb;
+        thumb.classList.add('is-dragging');
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', thumb.dataset.lbItemId || '');
+        }
+      });
+
+      strip.addEventListener('dragover', (e) => {
+        if (!draggedThumb) return;
+        e.preventDefault();
+        const target = e.target.closest('.lb-ig-carousel-thumb');
+        if (!target || target === draggedThumb) { clearDrop(); return; }
+        if (dropThumb !== target) {
+          clearDrop();
+          dropThumb = target;
+          target.classList.add('is-drop-target');
+        }
+      });
+
+      strip.addEventListener('dragleave', (e) => {
+        if (e.target === strip || (e.relatedTarget && !strip.contains(e.relatedTarget))) clearDrop();
+      });
+
+      strip.addEventListener('drop', (e) => {
+        if (!draggedThumb) return;
+        e.preventDefault();
+        const target = e.target.closest('.lb-ig-carousel-thumb');
+        clearDrop();
+        if (!target || target === draggedThumb) return;
+        const thumbs = [...strip.querySelectorAll('.lb-ig-carousel-thumb')];
+        const fromIdx = thumbs.indexOf(draggedThumb);
+        const toIdx = thumbs.indexOf(target);
+        if (fromIdx === -1 || toIdx === -1) return;
+        if (fromIdx < toIdx) target.after(draggedThumb);
+        else target.before(draggedThumb);
+
+        const updatedThumbs = [...strip.querySelectorAll('.lb-ig-carousel-thumb')];
+        const itemById = new Map(filteredItems.map(i => [i.id, i]));
+        let newActiveIdx = state.lightboxIgCarouselIdx || 0;
+        updatedThumbs.forEach((el, idx) => {
+          const item = itemById.get(el.dataset.lbItemId);
+          if (item) item.igCarouselOrder = idx + 1;
+          const badge = el.querySelector('.lb-ig-cell-badge');
+          if (badge && item) {
+            const k = getLightboxMasterMediaKind(item);
+            badge.textContent = `#${idx + 1}${k === 'video' ? ' · ▶' : ''}`;
+          }
+          if (el.classList.contains('is-active')) newActiveIdx = idx;
+        });
+        saveVault('IG CAROUSEL ORDER UPDATED');
+        goToCarouselSlide(newActiveIdx);
+      });
+
+      strip.addEventListener('dragend', () => {
+        if (draggedThumb) draggedThumb.classList.remove('is-dragging');
+        draggedThumb = null;
+        clearDrop();
+      });
+    }
+  }
+
+  ws.querySelector('#btnLbCarouselRestoreAll')?.addEventListener('click', () => {
+    filteredItems.forEach(it => { delete it.igCarouselExcluded; });
+    saveVault('CAROUSEL SLIDES RESTORED');
+    renderWorkspace();
   });
 
   // Bind Room Sub-View Switcher (All Files | Ready | Hidden)
