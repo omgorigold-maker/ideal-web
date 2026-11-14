@@ -6115,7 +6115,7 @@ function renderFilterActionRow() {
     state.activeCategory = list[0] || 'All';
   }
 
-  const pillsHtml = list.map((cat, idx) => {
+  const pillsHtml = isLightboxSpace ? '' : list.map((cat, idx) => {
     const count = getCategoryCount(type, obj, cat, idx === 0);
     const isActive = isLightboxSpace ? (state.lightboxFilter === cat) : (state.activeCategory === cat);
     const shortCat = isLightboxSpace
@@ -26591,18 +26591,13 @@ function renderLightboxView(ws, spaceObj) {
             <span class="lb-menu-icon" aria-hidden="true">＋</span>
             <span>New Project…</span>
           </button>
+          ${activeProjObj ? `
+            <hr>
+            <button type="button" id="btnLbRenameActiveProj"><span class="lb-menu-icon" aria-hidden="true">✎</span><span>Rename "${escapeHtml(activeProjObj.title)}"…</span></button>
+            <button type="button" class="is-danger-item" id="btnLbTrashActiveProj"><span class="lb-menu-icon" aria-hidden="true">✕</span><span>Remove Project from Lightbox…</span></button>
+          ` : ''}
         </div>
       </div>
-      ${activeProjObj ? `
-        <button type="button" class="lb-scope-more-btn" id="btnLbActiveProjMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbActiveProjMenuPopover" command="toggle-popover" aria-label="Options for ${escapeHtml(activeProjObj.title)}" title="Project options (Rename, Remove from Lightbox)">⋯</button>
-        <div id="lbActiveProjMenuPopover" popover="auto" class="lb-card-menu-popover">
-          <div focusgroup="menu nomemory" id="lbActiveProjMenuInner" aria-labelledby="btnLbActiveProjMenuTrigger">
-            <button type="button" id="btnLbRenameActiveProj"><span class="lb-menu-icon" aria-hidden="true">✎</span><span>Rename Project…</span></button>
-            <hr>
-            <button type="button" class="is-danger-item" id="btnLbTrashActiveProj"><span class="lb-menu-icon" aria-hidden="true">✕</span><span>Remove Project from Lightbox…</span></button>
-          </div>
-        </div>
-      ` : ''}
     `;
   }
 
@@ -26610,25 +26605,48 @@ function renderLightboxView(ws, spaceObj) {
 
   ws.innerHTML = `
     <div class="lb-studio-tool ${hasSelectionNow ? 'has-selection' : ''}" id="lightboxMainShell" data-lb-room="${activeRoom}">
-      <!-- Frameless Single-Line Studio Header (Zero Stacked Toolbars) -->
-      <div class="lb-canvas-head">
-        <div class="lb-head-left">
-          <span class="lb-room-badge is-${activeRoom}" title="${activeRoom === 'instagram' ? 'Instagram Room — Keeping or hiding here only affects Instagram' : (activeRoom === 'website' ? 'Website Room — Keeping or hiding here only affects Website' : 'Source Files — Master project files (Local Mac files protected)')}">
-            <span aria-hidden="true">${activeRoom === 'instagram' ? '◈' : (activeRoom === 'website' ? '⊞' : '📁')}</span>
-            <span>${activeRoom === 'instagram' ? 'Instagram' : (activeRoom === 'website' ? 'Website' : 'Source Files')}</span>
-          </span>
-          ${leftHeadHtml}
-          <div class="lb-undo-group" role="group" aria-label="Lightbox History">
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbUndo" title="Undo (⌘Z)" ${state.lightboxUndoStack?.length ? '' : 'disabled'}>↶</button>
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbRedo" title="Redo (⇧⌘Z)" ${state.lightboxRedoStack?.length ? '' : 'disabled'}>↷</button>
+      <!-- Clear 2-Level Lightbox Header -->
+      <div class="lb-canvas-head-stack">
+        <div class="lb-canvas-head-top">
+          <div class="lb-head-left">
+            ${leftHeadHtml}
           </div>
-          <span class="lb-safety-icon" title="Local Mac disk files are untouched. Lightbox actions are strictly sandboxed inside Ideal.">🛡️</span>
+
+          <div class="lb-room-switcher" role="tablist" aria-label="Lightbox Room">
+            <button type="button" role="tab" class="lb-room-tab is-instagram" data-lb-room-tab="Instagram Board" aria-selected="${activeRoom === 'instagram' ? 'true' : 'false'}">
+              <span aria-hidden="true">◈</span>
+              <span>Instagram</span>
+              <span class="lb-room-tab-count">${allProjectItems.filter(i => isLightboxKeptInRoom(i, 'instagram')).length}</span>
+            </button>
+            <button type="button" role="tab" class="lb-room-tab is-website" data-lb-room-tab="Portfolio Staging" aria-selected="${activeRoom === 'website' ? 'true' : 'false'}">
+              <span aria-hidden="true">⊞</span>
+              <span>Website</span>
+              <span class="lb-room-tab-count">${allProjectItems.filter(i => isLightboxKeptInRoom(i, 'website')).length}</span>
+            </button>
+            <button type="button" role="tab" class="lb-room-tab is-source" data-lb-room-tab="All Assets" aria-selected="${activeRoom === 'source' ? 'true' : 'false'}">
+              <span aria-hidden="true">📁</span>
+              <span>Source Files</span>
+              <span class="lb-room-tab-count">${allProjectItems.length}</span>
+            </button>
+          </div>
+
+          <div class="lb-head-add-wrap">
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbAddMediaTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbAddMediaPopover" command="toggle-popover" title="Link local files or folders from your Mac">+ Add ▾</button>
+            <div id="lbAddMediaPopover" popover="auto" class="lb-card-menu-popover is-align-end">
+              <div focusgroup="menu nomemory" id="lbAddMediaInner" aria-labelledby="btnLbAddMediaTrigger">
+                <button type="button" id="btnLbChooseFiles"><span class="lb-menu-icon" aria-hidden="true">📄</span><span>Choose Files…</span></button>
+                <button type="button" id="btnLbChooseFolder"><span class="lb-menu-icon" aria-hidden="true">📁</span><span>Choose Folder…</span></button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="lb-head-right">
-          ${inlineModeControlsHtml}
-
-          <div class="lb-filter-trigger-wrap">
+        <div class="lb-canvas-head-sub">
+          <div class="lb-sub-left">
+            ${inlineModeControlsHtml}
+          </div>
+          <div class="lb-sub-right">
+            <div class="lb-filter-trigger-wrap">
             <button type="button" class="lb-tool-btn ${hasActiveViewFilter ? 'is-filter-active' : 'is-ghost'}" id="btnLbFilterTrigger" popovertarget="lbFilterPopover" title="Filter by media type, aspect ratio, or grid framing">
               <span>${escapeHtml(filterButtonLabel)}</span>
             </button>
@@ -26692,8 +26710,7 @@ function renderLightboxView(ws, spaceObj) {
             </button>
           ` : '')}
 
-          <button type="button" class="lb-tool-btn" id="btnLbChooseFiles" title="Link local image or video files without uploading">+ Choose Files</button>
-          <button type="button" class="lb-tool-btn" id="btnLbChooseFolder" title="Link an entire local folder without uploading">+ Choose Folder</button>
+          </div>
         </div>
       </div>
 
@@ -27092,7 +27109,19 @@ function renderLightboxView(ws, spaceObj) {
     });
   });
 
-  // Bind Room Sub-View Switcher (Pick | Ready | Hidden)
+  // Bind Main Room Switcher (Instagram | Website | Source Files)
+  ws.querySelectorAll('[data-lb-room-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nextFilter = btn.dataset.lbRoomTab;
+      if (!nextFilter || state.lightboxFilter === nextFilter) return;
+      state.lightboxFilter = nextFilter;
+      state.activeCategory = nextFilter;
+      saveState();
+      renderWorkspace();
+    });
+  });
+
+  // Bind Room Sub-View Switcher (All Files | Ready | Hidden)
   ws.querySelectorAll('[data-lb-subview]').forEach(btn => {
     btn.addEventListener('click', () => {
       const next = btn.dataset.lbSubview || 'pick';
