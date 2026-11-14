@@ -22451,8 +22451,11 @@ function ensureLightboxCleanWorkspace(v = vault) {
   const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
   if (st) {
     // If state.lightboxProjectId was set to the dummy project or invalid, default to 'all' so all files show immediately
-    if (!st.lightboxProjectId || st.lightboxProjectId === 'all' || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
-      st.lightboxProjectId = v.lightboxProjects[0]?.id || 'unsorted';
+    if (v.lightboxProjects.length > 0) {
+      const hasUnsortedItems = v.items.some(i => i && i.parentType === 'space' && i.parentId === 'lightbox' && !i.lightboxProjectId);
+      if (!st.lightboxProjectId || st.lightboxProjectId === 'all' || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId === 'unsorted' && !hasUnsortedItems) || (st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
+        st.lightboxProjectId = v.lightboxProjects[0].id;
+      }
     }
     // Default into Instagram room
     if (!['Instagram Board', 'Portfolio Staging'].includes(st.lightboxFilter)) {
@@ -24083,9 +24086,12 @@ function buildLightboxStacks(items) {
 function getLightboxAssetsForActiveProject() {
   const validProjs = getLightboxProjects(vault);
   let projId = state.lightboxProjectId;
-  if (!projId || projId === 'all' || (projId !== 'unsorted' && !validProjs.some(p => p.id === projId))) {
-    projId = validProjs[0]?.id || 'unsorted';
+  const hasUnsorted = (vault.items || []).some(i => i && i.parentType === 'space' && i.parentId === 'lightbox' && !i.lightboxProjectId);
+  if (validProjs.length > 0 && (!projId || projId === 'all' || (projId === 'unsorted' && !hasUnsorted) || (projId !== 'unsorted' && !validProjs.some(p => p.id === projId)))) {
+    projId = validProjs[0].id;
     state.lightboxProjectId = projId;
+  } else if (!projId) {
+    projId = 'unsorted';
   }
   const activeProj = projId;
   return (vault.items || []).filter(it => {
@@ -26552,8 +26558,7 @@ function renderLightboxView(ws, spaceObj) {
         ${filteredItems.map(it => buildLightboxAssetCardHtml(it, '', { room: activeRoom, isHiddenView: true })).join('')}
       </div>
     `;
-  } else if (activeRoom === 'website' && state.lightboxWebPreviewOn === true) {
-    mainContentHtml = buildPortfolioStagingSubpageHtml(filteredItems, scaleStep);
+
   } else if (activeRoom === 'instagram' && state.lightboxIgPreviewOn === true) {
     mainContentHtml = buildInstagramBoardSubpageHtml(filteredItems, scaleStep);
   } else {
@@ -26612,14 +26617,6 @@ function renderLightboxView(ws, spaceObj) {
         <div class="lb-inline-mode-tabs" role="group" aria-label="Instagram view">
           <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${!igPreviewOn ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
           <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="preview" aria-pressed="${igPreviewOn ? 'true' : 'false'}">3×3 Feed</button>
-        </div>
-      `;
-    } else if (activeRoom === 'website') {
-      const webPreviewOn = state.lightboxWebPreviewOn === true;
-      inlineModeControlsHtml = `
-        <div class="lb-inline-mode-tabs" role="group" aria-label="Website view">
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${!webPreviewOn ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="preview" aria-pressed="${webPreviewOn ? 'true' : 'false'}">12-Col Layout</button>
         </div>
       `;
     }
