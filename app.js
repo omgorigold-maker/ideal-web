@@ -1665,6 +1665,7 @@ let state = {
   lightboxFilter: 'Instagram Board', // 'Instagram Board' (Instagram room) | 'Portfolio Staging' (Website room) | 'All Assets' (Source Files)
   lightboxIgSubView: 'pick', // 'pick' | 'ready' | 'hidden'
   lightboxWebSubView: 'pick', // 'pick' | 'ready' | 'hidden'
+  lightboxSourceSubView: 'pick', // 'pick' | 'hidden'
   lightboxMediaKind: 'all', // 'all' | 'image' | 'video'
   lightboxRatioFilter: 'all', // 'all' | exact ratio string e.g. '16:9', '4:5', '1:1'
   lightboxExpandedStacks: {}, // { [stackKey]: true }
@@ -6466,7 +6467,7 @@ function getCategoryCount(type, obj, cat, isFirstAll) {
     const items = getLightboxAssetsForActiveProject();
     if (cat === 'Instagram Board') return items.filter(i => isLightboxKeptInRoom(i, 'instagram')).length;
     if (cat === 'Portfolio Staging') return items.filter(i => isLightboxKeptInRoom(i, 'website')).length;
-    return items.length;
+    return items.filter(i => !isLightboxHiddenInRoom(i, 'source')).length;
   }
   if (type === 'project') {
     const all = vault.items.filter(i => i.parentType === 'project' && i.parentId === obj.id && (i.folderId || null) === (state.activeFolderId || null));
@@ -22325,6 +22326,7 @@ function getLightboxActiveRoom(filterVal = state.lightboxFilter) {
 
 function isLightboxHiddenInRoom(it, room) {
   if (!it) return false;
+  if (Boolean(it.lbGlobalHidden)) return true; // Hidden from All = hidden everywhere
   if (room === 'instagram') return Boolean(it.lbIgHidden);
   if (room === 'website') return Boolean(it.lbWebHidden);
   return false;
@@ -22393,37 +22395,46 @@ function toggleLightboxRoomKeep(itemId, room) {
 
 function toggleLightboxRoomHide(itemId, room, forceHide = null) {
   const it = vault.items.find(i => i.id === itemId);
-  if (!it || (room !== 'instagram' && room !== 'website')) return;
-  const field = room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+  if (!it || !['instagram', 'website', 'source'].includes(room)) return;
+  const field = room === 'instagram' ? 'lbIgHidden' : (room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
   const prevHidden = Boolean(it[field]);
   const nextHidden = forceHide !== null ? Boolean(forceHide) : !prevHidden;
   if (prevHidden === nextHidden) return;
   it[field] = nextHidden;
+  // When unhiding from a specific room, also clear global hide if it was globally hidden
+  if (!nextHidden && room !== 'source' && it.lbGlobalHidden) {
+    it.lbGlobalHidden = false;
+  }
+  const roomLabel = room === 'instagram' ? 'Instagram' : (room === 'website' ? 'Website' : 'All');
   pushLightboxUndo({
     type: 'room_hide',
-    desc: `${nextHidden ? 'Hid' : 'Unhid'} "${it.title || 'asset'}" in ${room === 'instagram' ? 'Instagram' : 'Website'}`,
+    desc: `${nextHidden ? 'Hid' : 'Unhid'} "${it.title || 'asset'}" in ${roomLabel}`,
     itemId: it.id,
     room,
     prevHidden,
     nextHidden
   });
-  saveVault(`${nextHidden ? 'HIDDEN' : 'UNHIDDEN'} IN ${room.toUpperCase()}`);
+  saveVault(`${nextHidden ? 'HIDDEN' : 'UNHIDDEN'} IN ${roomLabel.toUpperCase()}`);
   renderAll();
 }
 
 function unhideAllInLightboxRoom(room) {
-  if (room !== 'instagram' && room !== 'website') return;
-  const field = room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
-  const items = getLightboxAssetsForActiveProject().filter(it => Boolean(it[field]));
+  if (!['instagram', 'website', 'source'].includes(room)) return;
+  const field = room === 'instagram' ? 'lbIgHidden' : (room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+  const items = getLightboxAssetsForActiveProject().filter(it => Boolean(it[field]) || (room !== 'source' && Boolean(it.lbGlobalHidden)));
   if (!items.length) return;
-  items.forEach(it => { it[field] = false; });
+  items.forEach(it => {
+    it[field] = false;
+    if (room === 'source') it.lbGlobalHidden = false;
+  });
+  const roomLabel = room === 'instagram' ? 'Instagram' : (room === 'website' ? 'Website' : 'All');
   pushLightboxUndo({
     type: 'room_unhide_all',
-    desc: `Unhid ${items.length} files in ${room === 'instagram' ? 'Instagram' : 'Website'}`,
+    desc: `Unhid ${items.length} files in ${roomLabel}`,
     itemIds: items.map(i => i.id),
     room
   });
-  saveVault(`UNHID ${items.length} IN ${room.toUpperCase()}`);
+  saveVault(`UNHID ${items.length} IN ${roomLabel.toUpperCase()}`);
   renderAll();
 }
 
@@ -22946,12 +22957,13 @@ function undoLightboxAction() {
   } else if (action.type === 'room_hide') {
     const it = (vault.items || []).find(i => i.id === action.itemId);
     if (it) {
-      it[action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden'] = Boolean(action.prevHidden);
+      const f = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+      it[f] = Boolean(action.prevHidden);
     }
     saveVault('UNDO ROOM HIDE');
   } else if (action.type === 'room_unhide_all') {
     const ids = new Set(action.itemIds || []);
-    const field = action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+    const field = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
     (vault.items || []).forEach(it => { if (ids.has(it.id)) it[field] = true; });
     saveVault('UNDO UNHIDE ALL');
   } else if (action.type === 'move_project') {
@@ -23041,12 +23053,13 @@ function redoLightboxAction() {
   } else if (action.type === 'room_hide') {
     const it = (vault.items || []).find(i => i.id === action.itemId);
     if (it) {
-      it[action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden'] = Boolean(action.nextHidden);
+      const f = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+      it[f] = Boolean(action.nextHidden);
     }
     saveVault('REDO ROOM HIDE');
   } else if (action.type === 'room_unhide_all') {
     const ids = new Set(action.itemIds || []);
-    const field = action.room === 'instagram' ? 'lbIgHidden' : 'lbWebHidden';
+    const field = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
     (vault.items || []).forEach(it => { if (ids.has(it.id)) it[field] = false; });
     saveVault('REDO UNHIDE ALL');
   } else if (action.type === 'move_project') {
@@ -25776,6 +25789,9 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
           <button type="button" class="lb-action-pill ${isWebKept ? 'is-portfolio' : ''}" aria-pressed="${isWebKept ? 'true' : 'false'}" data-lb-room-keep-target="website" data-lb-room-keep="${escapeHtml(it.id)}" title="Keep for Website">
             <span aria-hidden="true">${isWebKept ? '★ ' : ''}</span>Website
           </button>
+          <button type="button" class="lb-action-pill is-hide" data-lb-room-hide="${escapeHtml(it.id)}" title="Hide from All (hides from Instagram, Website, and Exports)">
+            Hide<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
+          </button>
         ` : `
           <button type="button" class="lb-action-pill is-keep" aria-pressed="${isKeep ? 'true' : 'false'}" data-lb-room-keep="${escapeHtml(it.id)}" title="${isKeep ? 'Kept for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready') : 'Keep for ' + (room === 'instagram' ? 'Instagram Ready' : 'Website Ready')}">
             <span aria-hidden="true">${isKeep ? '★ ' : '☆ '}</span>${isKeep ? 'Kept' : 'Keep'}<span class="cmp-sr-only"> ${escapeHtml(titleText)}</span>
@@ -26330,7 +26346,7 @@ function renderLightboxView(ws, spaceObj) {
   const activeRoom = getLightboxActiveRoom(activeFilter);
   const activeSubView = activeRoom === 'instagram'
     ? (state.lightboxIgSubView || 'pick')
-    : (activeRoom === 'website' ? (state.lightboxWebSubView || 'pick') : 'pick');
+    : (activeRoom === 'website' ? (state.lightboxWebSubView || 'pick') : (state.lightboxSourceSubView || 'pick'));
   const mediaKindFilter = state.lightboxMediaKind || 'all';
   const activeRatio = state.lightboxRatioFilter || 'all';
   const activeProjId = state.lightboxProjectId || 'all';
@@ -26363,12 +26379,8 @@ function renderLightboxView(ws, spaceObj) {
     return (b.decimal || 1) - (a.decimal || 1);
   });
 
-  const roomVisibleItems = activeRoom === 'source'
-    ? allProjectItems
-    : allProjectItems.filter(it => !isLightboxHiddenInRoom(it, activeRoom));
-  const roomHiddenItems = activeRoom === 'source'
-    ? []
-    : allProjectItems.filter(it => isLightboxHiddenInRoom(it, activeRoom));
+  const roomVisibleItems = allProjectItems.filter(it => !isLightboxHiddenInRoom(it, activeRoom));
+  const roomHiddenItems = allProjectItems.filter(it => isLightboxHiddenInRoom(it, activeRoom));
   const roomKeptItems = activeRoom === 'source'
     ? []
     : roomVisibleItems.filter(it => isLightboxKeptInRoom(it, activeRoom));
@@ -26376,14 +26388,12 @@ function renderLightboxView(ws, spaceObj) {
   // Apply search query + room sub-view + media kind + aspect ratio filter
   const q = (state.searchQuery || '').trim().toLowerCase();
   let filteredItems = allProjectItems.filter(it => {
-    if (activeRoom !== 'source') {
-      const isHid = isLightboxHiddenInRoom(it, activeRoom);
-      if (activeSubView === 'hidden') {
-        if (!isHid) return false;
-      } else {
-        if (isHid) return false;
-        if (activeSubView === 'ready' && !isLightboxKeptInRoom(it, activeRoom)) return false;
-      }
+    const isHid = isLightboxHiddenInRoom(it, activeRoom);
+    if (activeSubView === 'hidden') {
+      if (!isHid) return false;
+    } else {
+      if (isHid) return false;
+      if (activeRoom !== 'source' && activeSubView === 'ready' && !isLightboxKeptInRoom(it, activeRoom)) return false;
     }
     if (q) {
       const hay = `${it.title || ''} ${it.notes || ''} ${(it.tags || []).join(' ')} ${it.aspectRatioKey || ''} ${it.subfolderName || ''}`.toLowerCase();
@@ -26501,7 +26511,7 @@ function renderLightboxView(ws, spaceObj) {
           </div>
         </div>
       `;
-    } else if (allProjectItems.length > 0 && activeRoom !== 'source' && activeSubView === 'hidden') {
+    } else if (allProjectItems.length > 0 && activeSubView === 'hidden') {
       mainContentHtml = `
         <div class="lb-bright-empty-state">
           <div class="lb-empty-icon" aria-hidden="true">👁</div>
@@ -26515,7 +26525,7 @@ function renderLightboxView(ws, spaceObj) {
     } else {
       mainContentHtml = emptyStateHtml;
     }
-  } else if (activeRoom !== 'source' && activeSubView === 'hidden') {
+  } else if (activeSubView === 'hidden') {
     mainContentHtml = `
       <div class="lb-studio-grid" data-scale-step="${scaleStep}">
         ${filteredItems.map(it => buildLightboxAssetCardHtml(it, '', { room: activeRoom, isHiddenView: true })).join('')}
@@ -26553,9 +26563,9 @@ function renderLightboxView(ws, spaceObj) {
   const hasActiveViewFilter = activeFilterTokens.length > 0;
   const filterButtonLabel = hasActiveViewFilter ? `Filter · ${activeFilterTokens.join(' · ')}` : 'Filter';
 
-  // Inline Room Sub-View Controls (Pick | Ready | Hidden + Preview Mode)
+  // Inline Room Sub-View Controls (All Files | Ready | Hidden + Preview Mode)
   let inlineModeControlsHtml = '';
-  if (activeRoom !== 'source' && allProjectItems.length > 0) {
+  if (allProjectItems.length > 0 && (activeRoom !== 'source' || roomHiddenItems.length > 0 || activeSubView === 'hidden')) {
     const readyLabel = activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready';
     let subToggleExtra = '';
     if (activeSubView === 'ready' && filteredItems.length > 0) {
@@ -26583,7 +26593,7 @@ function renderLightboxView(ws, spaceObj) {
     inlineModeControlsHtml = `
       <div class="lb-inline-mode-tabs" role="group" aria-label="Room view">
         <button type="button" class="lb-inline-mode-tab" data-lb-subview="pick" aria-pressed="${activeSubView === 'pick' ? 'true' : 'false'}">All Files (${roomVisibleItems.length})</button>
-        <button type="button" class="lb-inline-mode-tab" data-lb-subview="ready" aria-pressed="${activeSubView === 'ready' ? 'true' : 'false'}">${readyLabel} (${roomKeptItems.length})</button>
+        ${activeRoom !== 'source' ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="ready" aria-pressed="${activeSubView === 'ready' ? 'true' : 'false'}">${readyLabel} (${roomKeptItems.length})</button>` : ''}
         ${(roomHiddenItems.length > 0 || activeSubView === 'hidden') ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="hidden" aria-pressed="${activeSubView === 'hidden' ? 'true' : 'false'}">Hidden (${roomHiddenItems.length})</button>` : ''}
       </div>
       ${subToggleExtra}
@@ -27151,6 +27161,7 @@ function renderLightboxView(ws, spaceObj) {
       const next = btn.dataset.lbSubview || 'pick';
       if (activeRoom === 'instagram') state.lightboxIgSubView = next;
       else if (activeRoom === 'website') state.lightboxWebSubView = next;
+      else state.lightboxSourceSubView = next === 'hidden' ? 'hidden' : 'pick';
       renderWorkspace();
     });
   });
