@@ -26961,9 +26961,9 @@ function renderLightboxView(ws, spaceObj) {
       const igTab = state.lightboxIgTab || (state.lightboxIgPreviewOn ? 'feed' : 'grid');
       inlineModeControlsHtml = `
         <div class="lb-inline-mode-tabs" role="group" aria-label="Instagram view">
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${igTab === 'grid' ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${igTab === 'grid' ? 'true' : 'false'}">Cards (${roomVisibleItems.length})</button>
           <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="feed" aria-pressed="${igTab === 'feed' ? 'true' : 'false'}">Feed</button>
-          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="carousel" aria-pressed="${igTab === 'carousel' ? 'true' : 'false'}">Carousel</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="carousel" aria-pressed="${igTab === 'carousel' ? 'true' : 'false'}">Post</button>
         </div>
       `;
     }
