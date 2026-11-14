@@ -16527,3 +16527,17 @@ dialog.compare-dialog::backdrop {
   box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
   border-radius: 2px;
 }
+
+/* Solid, gap-free Sticky Lightbox Header (covers behind the floating top bar too) */
+#workspace:has(> .lb-studio-tool) {
+  padding-top: 0 !important;
+}
+.lb-canvas-head {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background: var(--lb-bg, #f6f7f9);
+  padding: 66px 28px 12px;
+  margin: 0 -28px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
