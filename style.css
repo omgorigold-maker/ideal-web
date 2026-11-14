@@ -7371,7 +7371,10 @@ body[data-topbar-elevation="elevated"] .hud-top-row {
   flex: 1 1 0% !important;
   min-width: 0 !important;
   padding-left: 8px !important;
+  padding-right: 0 !important;
+  margin-right: 2px !important;
   border-left: 1px solid color-mix(in srgb, var(--text) 10%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, var(--text) 14%, transparent) !important;
   overflow-x: auto !important;
   scrollbar-width: none !important;
 }

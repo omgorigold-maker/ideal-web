@@ -6241,14 +6241,12 @@ function renderFilterActionRow() {
           .replace('VJ & Club Visuals', 'VJ')
           .replace('3D & Motion', '3D')
           .replace('Graphic Design', 'Design');
-    const canDeleteTab = idx > 0 && !isGDriveAssets && !isGmailSpace && !isLightboxSpace;
     const showCountSpan = isLightboxSpace ? (Number(count) > 0) : !(isGmailSpace && count === '');
     const ariaPressedAttr = isLightboxSpace ? ` aria-pressed="${isActive ? 'true' : 'false'}"` : '';
     return `
       <button type="button" class="filter-pill ${isActive ? 'active' : ''}" data-cat="${escapeHtml(cat)}"${ariaPressedAttr} title="${escapeHtml(cat)}${count !== '' ? ` (${count})` : ''} • Click to switch view">
         <span>${escapeHtml(shortCat)}</span>
         ${showCountSpan ? `<span class="filter-pill-count">${count}</span>` : ''}
-        ${canDeleteTab ? `<span class="pill-del-btn" data-del-cat="${escapeHtml(cat)}" title="Delete tab (contents stay safe as Untagged)">×</span>` : ''}
       </button>
     `;
   }).join('');
