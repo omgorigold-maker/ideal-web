@@ -16457,3 +16457,9 @@ dialog.compare-dialog::backdrop {
   content-visibility: auto;
   contain-intrinsic-size: 220px 275px;
 }
+
+/* Skip painting offscreen Lightbox cards so original-quality images stay fast */
+.lb-studio-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 260px 320px;
+}

@@ -23955,12 +23955,16 @@ function getLightboxDisplayUrl(it) {
   const liveBlob = lightboxLiveObjectUrls.get(vIt.id);
   if (liveBlob) return liveBlob;
 
-  // 1. Instant Static Thumbnails: Use pre-rendered JPEG/WebP thumbnails whenever available (both localhost and GitHub Pages)
+  const nameProbeCheck = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
+  const isSpecialRaster = /\.(heic|heif|tif|tiff|psd|psb)$/i.test(nameProbeCheck);
+  // Prefer full original quality whenever reachable; only use thumbnail for special formats (HEIC/PSD/TIFF) or unlinked files on github.io
+  const directSrc = getLightboxMediaSrc(vIt);
+  if (directSrc && !isSpecialRaster && !(isStaticWeb && directSrc.startsWith('/api/'))) {
+    return directSrc;
+  }
   if (vIt.staticThumbUrl && !vIt.staticThumbUrl.startsWith('asset_thumbs/lb_')) {
     return vIt.staticThumbUrl;
   }
-
-  // 2. On local server, fall back to on-demand QuickLook raster thumbnail API:
   if (!isStaticWeb && vIt.localPath && vIt.localPath.startsWith('/')) {
     return `/api/local-media-thumb?path=${encodeURIComponent(vIt.localPath)}`;
   }
@@ -25808,7 +25812,7 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
       const isStaticWeb = typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
       const showVideoDirectly = Boolean(vidSrc && (!isStaticWeb || vidSrc.startsWith('blob:')));
       mediaHtml = `
-        <video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" preload="metadata" loop muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onmouseover="try{this.play();}catch(e){}" onmouseout="try{this.pause();this.currentTime=0;}catch(e){}" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
+        <video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" preload="none" muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
         <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: ${showVideoDirectly ? 'none' : 'block'};" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
       `;
     } else {
