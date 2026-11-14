@@ -16463,3 +16463,35 @@ dialog.compare-dialog::backdrop {
   content-visibility: auto;
   contain-intrinsic-size: 260px 320px;
 }
+
+/* Clean Toggleable 3x3 Grid & Accurate Safe Crop Boxes */
+.cmp-context-overlay {
+  overflow: hidden;
+}
+.cmp-general-grid-lines {
+  inline-size: 100%;
+  block-size: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+.cmp-general-grid-lines > div {
+  border: 0.5px solid rgba(255, 255, 255, 0.35);
+}
+.cmp-safe-crop-box {
+  position: relative;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  block-size: 100%;
+  inline-size: auto;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.52);
+  border-radius: 2px;
+}
+.cmp-safe-crop-box.is-4x5 {
+  aspect-ratio: 4 / 5;
+}
+.cmp-safe-crop-box.is-1x1 {
+  aspect-ratio: 1 / 1;
+}

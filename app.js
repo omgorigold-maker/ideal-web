@@ -24133,7 +24133,10 @@ function getLightboxAssetsForActiveProject() {
   });
 }
 
-function openCompareDialog(preferredAssetId = null, { singleOnly = false } = {}) {
+function openCompareDialog(preferredAssetId = null, { singleOnly = false, keepOverlay = false } = {}) {
+  if (!keepOverlay && state.compareState) {
+    state.compareState.overlayMode = 'none';
+  }
   let sel = state.selectedCompareAssets || [];
   if (!singleOnly && sel.length < 2) {
     const { type, obj } = getActiveContainer();
@@ -24205,17 +24208,31 @@ function openCompareDialog(preferredAssetId = null, { singleOnly = false } = {})
 }
 
 function buildContextOverlayHtml(overlayMode) {
-  if (!overlayMode || overlayMode === 'none') return '';
+  const showGrid = Boolean(state.compareState && state.compareState.showGrid);
+  const gridHtml = showGrid ? `
+    <div class="cmp-context-overlay is-general-grid" aria-hidden="true">
+      <div class="cmp-general-grid-lines">
+        <div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+      </div>
+    </div>
+  ` : '';
+  if (!overlayMode || overlayMode === 'none') return gridHtml;
   if (overlayMode === 'ig-grid') {
-    return `
+    return gridHtml + `
       <div class="cmp-context-overlay is-ig-grid" aria-hidden="true">
-        <div class="cmp-ig-grid-frame">
-          <span class="cmp-overlay-badge">▦ INSTAGRAM 3×3 PROFILE GRID &amp; 4:5 SAFE CROP</span>
-          <div class="cmp-ig-grid-lines">
-            <div></div><div></div><div></div>
-            <div></div><div></div><div></div>
-            <div></div><div></div><div></div>
-          </div>
+        <div class="cmp-safe-crop-box is-4x5">
+          <span class="cmp-overlay-badge">IG 4:5 Safe Crop</span>
+        </div>
+      </div>
+    `;
+  }
+  if (overlayMode === 'ig-square') {
+    return gridHtml + `
+      <div class="cmp-context-overlay is-ig-grid" aria-hidden="true">
+        <div class="cmp-safe-crop-box is-1x1">
+          <span class="cmp-overlay-badge">IG 1:1 Safe Crop</span>
         </div>
       </div>
     `;
@@ -24866,6 +24883,14 @@ function initCompareDialogEvents() {
     renderCompareModal();
   });
 
+  const gridBtn = document.getElementById('btnCmpGridToggle');
+  gridBtn?.addEventListener('click', () => {
+    state.compareState.showGrid = !state.compareState.showGrid;
+    gridBtn.classList.toggle('active', Boolean(state.compareState.showGrid));
+    gridBtn.setAttribute('aria-pressed', state.compareState.showGrid ? 'true' : 'false');
+    renderCompareModal();
+  });
+
   document.getElementById('btnCmpDiffToggle')?.addEventListener('click', () => {
     state.compareState.mode = 'stack';
     state.compareState.diffBlend = !state.compareState.diffBlend;
@@ -25253,6 +25278,15 @@ function initCompareDialogEvents() {
     } else if (!inControl && e.key.toLowerCase() === 's' && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       state.compareState.mode = state.compareState.mode === 'stack' ? 'split' : 'stack';
+      renderCompareModal();
+    } else if (!inControl && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      state.compareState.showGrid = !state.compareState.showGrid;
+      const gBtn = document.getElementById('btnCmpGridToggle');
+      if (gBtn) {
+        gBtn.classList.toggle('active', Boolean(state.compareState.showGrid));
+        gBtn.setAttribute('aria-pressed', state.compareState.showGrid ? 'true' : 'false');
+      }
       renderCompareModal();
     } else if (!inControl && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
@@ -27551,21 +27585,18 @@ function renderLightboxView(ws, spaceObj) {
       if (requestedOverlay) {
         state.compareState.overlayMode = requestedOverlay;
       }
-      if (!isAssetCompareSelected(it.id)) {
-        state.selectedCompareAssets = state.selectedCompareAssets || [];
-        state.selectedCompareAssets.push({
-          id: it.id,
-          title: it.title || 'Asset',
-          url: it.url,
-          kind: getLightboxMasterMediaKind(it),
-          igStatus: it.igStatus || '',
-          lightboxKeep: Boolean(it.lightboxKeep),
-          vaultItemId: it.id,
-          notes: it.notes || ''
-        });
-      }
+      state.selectedCompareAssets = [{
+        id: it.id,
+        title: it.title || 'Asset',
+        url: it.url,
+        kind: getLightboxMasterMediaKind(it),
+        igStatus: it.igStatus || '',
+        lightboxKeep: Boolean(it.lightboxKeep),
+        vaultItemId: it.id,
+        notes: it.notes || ''
+      }];
       renderCompareFloatingBar();
-      openCompareDialog(it.id);
+      openCompareDialog(it.id, { singleOnly: true, keepOverlay: Boolean(requestedOverlay) });
     });
   });
 

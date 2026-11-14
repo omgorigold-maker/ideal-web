@@ -557,8 +557,9 @@
           <button type="button" class="cmp-zoom-pill" id="btnCmpZoomReset" title="Reset zoom to 100%" hidden>100%</button>
 
           <!-- Clean Popover Trigger for Safe Zones, Diff Tuning, File Info & Zoom -->
-          <button type="button" class="cmp-ghost-pill" id="btnCmpOptionsTrigger" popovertarget="cmpOptionsPopover" title="Crop guides, file info &amp; zoom">
-            ⊞ Guides &amp; Info
+          <button type="button" class="cmp-ghost-pill" id="btnCmpGridToggle" aria-pressed="false" title="Toggle 3×3 Grid overlay (G)"># Grid</button>
+          <button type="button" class="cmp-ghost-pill" id="btnCmpOptionsTrigger" popovertarget="cmpOptionsPopover" title="Safe crop guides, file info &amp; zoom">
+            ⊞ Safe Crop
           </button>
 
           <button type="button" class="cmp-close-btn" id="btnCloseCompareDialog" aria-label="Close comparison" title="Close (Esc)">✕</button>
@@ -572,8 +573,8 @@
           <div class="cmp-pop-grid" id="cmpOverlayGroup" role="group" aria-label="Safe zone overlays">
             <button type="button" class="cmp-overlay-btn active" data-cmp-overlay="none" aria-pressed="true">None</button>
             <button type="button" class="cmp-overlay-btn" data-cmp-overlay="ig-grid" aria-pressed="false">IG 4:5</button>
+            <button type="button" class="cmp-overlay-btn" data-cmp-overlay="ig-square" aria-pressed="false">IG 1:1</button>
             <button type="button" class="cmp-overlay-btn" data-cmp-overlay="ig-story" aria-pressed="false">Story 9:16</button>
-            <button type="button" class="cmp-overlay-btn" data-cmp-overlay="cargo-grid" aria-pressed="false">Cargo 12-Col</button>
           </div>
         </div>
 
