@@ -23638,7 +23638,7 @@ function renderCompareFloatingBar() {
   }
   if (!bar) return;
 
-  if (sel.length === 0) {
+  if (sel.length === 0 || isLightbox) {
     bar.hidden = true;
     try { document.getElementById('lbBatchMovePopover')?.hidePopover?.(); } catch (_) {}
     return;
@@ -26696,11 +26696,13 @@ function renderLightboxView(ws, spaceObj) {
             ` : ''}
           </div>
 
-          ${canCompare ? `
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbCompareAllKept" title="Open in Comparison Engine">
-              Compare${keptItems.length >= 2 && activeFilter === 'All Assets' ? ` Kept (${keptItems.length})` : ''}
-            </button>
-          ` : ''}
+          ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? `
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbHideSelected" title="Hide selected files from this room">Hide (${state.selectedCompareAssets.length})</button>
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbClearSelection" title="Clear selection">Clear</button>
+            <button type="button" class="lb-tool-btn is-primary" id="btnLbCompareAllKept" title="Open selected files in Compare">Compare (${state.selectedCompareAssets.length})</button>
+          ` : (canCompare ? `
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbCompareAllKept" title="Open in Comparison Engine">Compare</button>
+          ` : '')}
 
           ${(activeSubView !== 'hidden' && activeRoom !== 'source' && roomKeptItems.length > 0) ? `
             <button type="button" class="lb-tool-btn is-primary" id="btnLbBatchExportFolder" title="Copy non-hidden kept files into a ${activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready'} folder on your Desktop">
@@ -27161,9 +27163,23 @@ function renderLightboxView(ws, spaceObj) {
     }
   });
 
-  // Bind Compare button in Command Bar
+  // Bind Selection & Compare buttons in Command Bar
+  ws.querySelector('#btnLbClearSelection')?.addEventListener('click', () => {
+    state.selectedCompareAssets = [];
+    renderWorkspace();
+  });
+  ws.querySelector('#btnLbHideSelected')?.addEventListener('click', () => {
+    const ids = (state.selectedCompareAssets || []).map(a => a.vaultItemId || a.id).filter(Boolean);
+    ids.forEach(id => toggleLightboxRoomHide(id, activeRoom, true));
+    state.selectedCompareAssets = [];
+    renderWorkspace();
+  });
   ws.querySelector('#btnLbCompareAllKept')?.addEventListener('click', () => {
-    const pool = (keptItems.length >= 2 && activeFilter === 'All Assets') ? keptItems : filteredItems.slice(0, 6);
+    if (state.selectedCompareAssets && state.selectedCompareAssets.length > 0) {
+      openCompareDialog(null, { singleOnly: state.selectedCompareAssets.length === 1 });
+      return;
+    }
+    const pool = filteredItems.slice(0, 6);
     if (pool.length === 0) return;
     state.selectedCompareAssets = pool.map(it => ({
       id: it.id,
