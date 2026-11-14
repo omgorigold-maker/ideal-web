@@ -23957,9 +23957,10 @@ function getLightboxDisplayUrl(it) {
 
   const nameProbeCheck = String(vIt.originalFileName || vIt.localPath || vIt.title || vIt.url || it.url || '');
   const isSpecialRaster = /\.(heic|heif|tif|tiff|psd|psb)$/i.test(nameProbeCheck);
-  // Prefer full original quality whenever reachable; only use thumbnail for special formats (HEIC/PSD/TIFF) or unlinked files on github.io
+  const isVideoItem = getLightboxMasterMediaKind(vIt) === 'video';
+  // For images: use full original quality when reachable; for videos: ALWAYS use raster poster/thumbnail for <img>/poster
   const directSrc = getLightboxMediaSrc(vIt);
-  if (directSrc && !isSpecialRaster && !(isStaticWeb && directSrc.startsWith('/api/'))) {
+  if (!isVideoItem && directSrc && !isSpecialRaster && !(isStaticWeb && directSrc.startsWith('/api/'))) {
     return directSrc;
   }
   if (vIt.staticThumbUrl && !vIt.staticThumbUrl.startsWith('asset_thumbs/lb_')) {
