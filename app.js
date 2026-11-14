@@ -19022,12 +19022,13 @@ function renderCustomizeView(ws) {
     `;
   } else {
     modeHeadingText = (defaultTpl?.name || 'Current Studio Default');
-    modeDescText = `Active website preset across all spaces in your vault`;
+    modeDescText = `Active website preset across all spaces in your vault — choose a preset to edit or create a new one`;
     modeActionsHtml = `
-      <button type="button" class="outline-btn" id="btnCustEditDefault">Edit Default</button>
       <button type="button" class="outline-btn cust-btn-black" id="btnCustCreateNew">＋ New Preset</button>
     `;
   }
+
+  const showEditingPanels = (curMode === 'edit' || curMode === 'create');
 
   ws.innerHTML = `
     <div class="customizer-grid">
@@ -19049,6 +19050,7 @@ function renderCustomizeView(ws) {
         </div>
         <div class="cust-templates-grid">${templatesHtml}</div>
       </section>
+      ${showEditingPanels ? `
 
       <!-- PANEL 1: TYPOGRAPHY & FONTS -->
       <section class="customizer-panel">
@@ -19355,6 +19357,7 @@ function renderCustomizeView(ws) {
           </div>
         </div>
       </section>
+      ` : ''}
     </div>
   `;
 
@@ -19428,10 +19431,6 @@ function renderCustomizeView(ws) {
 
   ws.querySelector('#cardCreateNewTemplate')?.addEventListener('click', () => {
     enterCreateNewTemplateMode();
-  });
-
-  ws.querySelector('#btnCustEditDefault')?.addEventListener('click', () => {
-    startEditingTemplate(defaultTpl.id);
   });
 
   ws.querySelector('#btnCustEditThisTpl')?.addEventListener('click', () => {
