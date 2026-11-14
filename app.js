@@ -7004,7 +7004,7 @@ function buildSingleSphereOrb(batch, idx, isHeroStage, stageConfig = {}) {
           <button type="button" class="spatial-link-pill" id="btnHudIgQueued" style="${curIgStat === 'queued' ? 'background:#D97706;color:#FFF;' : ''}" title="Flag as Queued (IG Ready / Next Up)">
             <span>◈ IG Ready</span>
           </button>
-          <button type="button" class="spatial-link-pill" id="btnHudIgPublished" style="${curIgStat === 'published' ? 'background:#10B981;color:#FFF;' : ''}" title="Flag as Published (IG Live)">
+          <button type="button" class="spatial-link-pill" id="btnHudIgPublished" hidden style="${curIgStat === 'published' ? 'background:#10B981;color:#FFF;' : ''}" title="Flag as Published (IG Live)">
             <span>● IG Live</span>
           </button>
         ` : ''}
@@ -20237,8 +20237,8 @@ function saveInspectorChanges() {
       it.status = '● IG Live';
     } else if (it.igStatus === 'queued' && !it.status.includes('IG Ready')) {
       it.status = '◈ IG Ready';
-    } else if (it.igStatus === 'website' && !it.status.includes('On Site')) {
-      it.status = '🌐 On Site';
+    } else if (it.igStatus === 'website' && !it.status.includes('Website Ready')) {
+      it.status = '🌐 Website Ready';
     }
   }
 
@@ -23264,8 +23264,8 @@ function setItemIgStatus(itemId, nextStatus) {
   } else if (nextStatus === 'queued') {
     it.status = '◈ IG Ready';
   } else if (nextStatus === 'website') {
-    it.status = '🌐 On Site';
-  } else if (it.status === '● IG Live' || it.status === '◈ IG Ready' || it.status === '🌐 On Site') {
+    it.status = '🌐 Website Ready';
+  } else if (it.status === '● IG Live' || it.status === '◈ IG Ready' || it.status === '🌐 On Site' || it.status === '🌐 Website Ready') {
     it.status = '✨ WIP / Edit';
   }
 
@@ -23305,7 +23305,7 @@ function batchSetSelectedIgStatus(targetStatus) {
     const it = vault.items.find(i => i.id === itemId);
     if (it) {
       it.igStatus = targetStatus;
-      it.status = targetStatus === 'published' ? '● IG Live' : (targetStatus === 'website' ? '🌐 On Site' : '◈ IG Ready');
+      it.status = targetStatus === 'published' ? '● IG Live' : (targetStatus === 'website' ? '🌐 Website Ready' : '◈ IG Ready');
       a.igStatus = targetStatus;
       changed++;
     }
@@ -26488,11 +26488,11 @@ function renderLightboxView(ws, spaceObj) {
     const entries = keptItems.map(it => ({ id: it.id, prevIgStatus: it.igStatus || '', prevRoute: it.lightboxRoute || '', prevStatus: it.status || '' }));
     keptItems.forEach(it => {
       it.igStatus = 'website';
-      it.status = '🌐 On Site';
+      it.status = '🌐 Website Ready';
       it.lightboxRoute = 'portfolio';
     });
     if (entries.length) {
-      pushLightboxUndo({ type: 'route_batch', desc: `Staged ${entries.length} selects to Portfolio`, entries, nextIgStatus: 'website', nextRoute: 'portfolio', nextStatus: '🌐 On Site' });
+      pushLightboxUndo({ type: 'route_batch', desc: `Staged ${entries.length} selects to Website Ready`, entries, nextIgStatus: 'website', nextRoute: 'portfolio', nextStatus: '🌐 Website Ready' });
     }
     saveVault(`STAGED ${keptItems.length} SELECTS TO PORTFOLIO`);
     renderWorkspace();

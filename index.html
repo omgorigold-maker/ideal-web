@@ -169,7 +169,7 @@
             <div class="hud-pill hud-ig-filter-pill" id="igStatusFilterBar" title="Filter by Publishing Status">
               <button type="button" class="ig-filter-btn active" data-ig-filter="all" title="Show All Assets">All</button>
               <button type="button" class="ig-filter-btn is-queued" data-ig-filter="queued" title="Queued for Next Post (IG Ready)">◈ Ready</button>
-              <button type="button" class="ig-filter-btn is-published" data-ig-filter="published" title="Published (IG Live)">● Live</button>
+              <button type="button" class="ig-filter-btn is-published" data-ig-filter="published" title="Published (IG Live)" hidden>● Live</button>
               <button type="button" class="ig-filter-btn is-website" data-ig-filter="website" title="On Website">🌐 Site</button>
             </div>
 
@@ -486,8 +486,8 @@
         </button>
         <div class="compare-bar-divider"></div>
         <button type="button" class="compare-status-btn is-keep" id="btnBatchMarkKeep" title="Mark selected as Keep">★ Keep</button>
-        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Stage selected for Portfolio">Portfolio</button>
-        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Stage selected for Instagram">Instagram</button>
+        <button type="button" class="compare-status-btn is-website" id="btnBatchMarkWebsite" title="Mark selected as Website Ready">Website Ready</button>
+        <button type="button" class="compare-status-btn is-queued" id="btnBatchMarkQueued" title="Mark selected as IG Ready">IG Ready</button>
         <button type="button" class="compare-status-btn is-published" id="btnBatchMarkPublished" title="Mark selected as Published (IG Live)" hidden>● IG Live</button>
         <button type="button" class="compare-status-btn lb-only-bar-btn" id="btnBatchMoveProject" aria-haspopup="menu" aria-expanded="false" commandfor="lbBatchMovePopover" command="toggle-popover" title="Move selected files to another project" hidden>Move to… <span aria-hidden="true">▾</span></button>
         <div id="lbBatchMovePopover" popover="auto" class="lb-move-popover">
@@ -625,8 +625,8 @@
         </div>
         <div class="spacebar-preview-actions">
           <button type="button" class="cmp-ig-btn is-queued" id="btnQuickLookQueued">◈ IG Ready</button>
-          <button type="button" class="cmp-ig-btn is-published" id="btnQuickLookPublished">● IG Live</button>
-          <button type="button" class="cmp-ig-btn is-website" id="btnQuickLookWebsite">🌐 On Site</button>
+          <button type="button" class="cmp-ig-btn is-published" id="btnQuickLookPublished" hidden>● IG Live</button>
+          <button type="button" class="cmp-ig-btn is-website" id="btnQuickLookWebsite">🌐 Website Ready</button>
           <button type="button" class="cmp-chip-btn" id="btnQuickLookPinToBoard" title="Send asset to a Studio Project or Incubator">+ To Studio</button>
           <button type="button" class="cmp-chip-btn" id="btnQuickLookFinder" title="Reveal in Finder / Open Link">Finder ↗</button>
           <button type="button" class="cmp-chip-btn" id="btnQuickLookInspect" title="Open Full Inspector">Inspect</button>
@@ -661,8 +661,8 @@
           <div class="inspector-ig-pills" id="sheetIgStatusGroup">
             <button type="button" class="cmp-ig-btn seg-btn" data-ig-set="" id="btnSheetIgNone">WIP / None</button>
             <button type="button" class="cmp-ig-btn seg-btn is-queued" data-ig-set="queued" id="btnSheetIgQueued">◈ IG Ready</button>
-            <button type="button" class="cmp-ig-btn seg-btn is-published" data-ig-set="published" id="btnSheetIgPublished">● IG Live</button>
-            <button type="button" class="cmp-ig-btn seg-btn is-website" data-ig-set="website" id="btnSheetIgWebsite">🌐 On Site</button>
+            <button type="button" class="cmp-ig-btn seg-btn is-published" data-ig-set="published" id="btnSheetIgPublished" hidden>● IG Live</button>
+            <button type="button" class="cmp-ig-btn seg-btn is-website" data-ig-set="website" id="btnSheetIgWebsite">🌐 Website Ready</button>
           </div>
         </div>
 
