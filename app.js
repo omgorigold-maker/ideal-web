@@ -24338,6 +24338,16 @@ function syncCompareOverlayBounds() {
       const offLeft = mLeft + (boxW - renW) / 2;
       const offTop = mTop + (boxH - renH) / 2;
 
+      const diffCanvas = wrap.querySelector('#cmpDiffCanvas');
+      if (diffCanvas) {
+        diffCanvas.style.left = `${offLeft.toFixed(1)}px`;
+        diffCanvas.style.top = `${offTop.toFixed(1)}px`;
+        diffCanvas.style.right = 'auto';
+        diffCanvas.style.bottom = 'auto';
+        diffCanvas.style.width = `${renW.toFixed(1)}px`;
+        diffCanvas.style.height = `${renH.toFixed(1)}px`;
+      }
+
       wrap.querySelectorAll('.cmp-context-overlay').forEach(ov => {
         ov.style.left = `${offLeft.toFixed(1)}px`;
         ov.style.top = `${offTop.toFixed(1)}px`;
@@ -24493,14 +24503,19 @@ function renderHighContrastDiffCanvas() {
   if (!mediaA || !mediaB) return;
 
   const getDims = (m) => {
-    if (m.tagName === 'VIDEO') return { w: m.videoWidth || 640, h: m.videoHeight || 360 };
-    return { w: m.naturalWidth || 640, h: m.naturalHeight || 360 };
+    if (m.tagName === 'VIDEO') {
+      return m.videoWidth > 0 && m.videoHeight > 0 ? { w: m.videoWidth, h: m.videoHeight } : null;
+    }
+    return (m.complete && m.naturalWidth > 0 && m.naturalHeight > 0) ? { w: m.naturalWidth, h: m.naturalHeight } : null;
   };
   const dA = getDims(mediaA);
   const dB = getDims(mediaB);
-  const w = Math.min(960, Math.max(dA.w, dB.w, 320));
-  const h = Math.min(960, Math.round(w * ((dA.h || 360) / (dA.w || 640))));
-  if (w <= 0 || h <= 0) return;
+  if (!dA || !dB) return;
+
+  const maxSide = 1200;
+  const scale = Math.min(1, maxSide / Math.max(dA.w, dA.h));
+  const w = Math.max(1, Math.round(dA.w * scale));
+  const h = Math.max(1, Math.round(dA.h * scale));
 
   canvas.width = w;
   canvas.height = h;
@@ -24518,8 +24533,30 @@ function renderHighContrastDiffCanvas() {
   if (!ctxA || !ctxB) return;
 
   try {
+    ctxA.clearRect(0, 0, w, h);
+    ctxB.clearRect(0, 0, w, h);
     ctxA.drawImage(mediaA, 0, 0, w, h);
-    ctxB.drawImage(mediaB, 0, 0, w, h);
+
+    // Fit mediaB proportionally inside w x h so mismatched aspect ratios don't stretch
+    const aspectA = w / h;
+    const aspectB = dB.w / dB.h;
+    let bw = w;
+    let bh = h;
+    let bx = 0;
+    let by = 0;
+    if (Math.abs(aspectA - aspectB) > 0.01) {
+      if (aspectB > aspectA) {
+        bw = w;
+        bh = w / aspectB;
+        by = (h - bh) / 2;
+      } else {
+        bh = h;
+        bw = h * aspectB;
+        bx = (w - bw) / 2;
+      }
+    }
+    ctxB.drawImage(mediaB, bx, by, bw, bh);
+
     const dataA = ctxA.getImageData(0, 0, w, h).data;
     const dataB = ctxB.getImageData(0, 0, w, h).data;
     const outImg = ctx.createImageData(w, h);
@@ -24528,27 +24565,35 @@ function renderHighContrastDiffCanvas() {
     const mode = cs.diffColor || 'pink';
 
     for (let i = 0; i < dataA.length; i += 4) {
-      const dr = Math.abs(dataA[i] - dataB[i]);
-      const dg = Math.abs(dataA[i + 1] - dataB[i + 1]);
-      const db = Math.abs(dataA[i + 2] - dataB[i + 2]);
-      const delta = (dr + dg + db) / 3;
+      const aA = dataA[i + 3] / 255;
+      const aB = dataB[i + 3] / 255;
+      const rA = dataA[i] * aA;
+      const gA = dataA[i + 1] * aA;
+      const bA = dataA[i + 2] * aA;
+      const rB = dataB[i] * aB;
+      const gB = dataB[i + 1] * aB;
+      const bB = dataB[i + 2] * aB;
+
+      const dr = Math.abs(rA - rB);
+      const dg = Math.abs(gA - gB);
+      const db = Math.abs(bA - bB);
+      const da = Math.abs(dataA[i + 3] - dataB[i + 3]);
+      const delta = (dr + dg + db + da) / 4;
 
       if (mode === 'classic') {
-        out[i] = Math.min(255, dr * gain);
-        out[i + 1] = Math.min(255, dg * gain);
-        out[i + 2] = Math.min(255, db * gain);
+        out[i] = Math.min(255, Math.round(dr * gain));
+        out[i + 1] = Math.min(255, Math.round(dg * gain));
+        out[i + 2] = Math.min(255, Math.round(db * gain));
         out[i + 3] = 255;
       } else {
-        const lum = Math.round((dataA[i] * 0.299 + dataA[i + 1] * 0.587 + dataA[i + 2] * 0.114) * 0.22);
-        const strength = Math.min(1, (delta * gain) / 255);
-        if (delta > 2) {
+        const lum = Math.round((rA * 0.299 + gA * 0.587 + bA * 0.114) * 0.34 + 14 * (1 - aA));
+        if (delta > 4) {
+          const strength = Math.min(0.86, Math.pow(((delta - 4) * gain) / 255, 0.72));
           if (mode === 'green') {
-            // Neon Green (#39FF14)
             out[i] = Math.round(lum * (1 - strength) + 57 * strength);
             out[i + 1] = Math.round(lum * (1 - strength) + 255 * strength);
             out[i + 2] = Math.round(lum * (1 - strength) + 20 * strength);
           } else {
-            // Neon Pink (#FF10F0)
             out[i] = Math.round(lum * (1 - strength) + 255 * strength);
             out[i + 1] = Math.round(lum * (1 - strength) + 16 * strength);
             out[i + 2] = Math.round(lum * (1 - strength) + 240 * strength);
@@ -24563,7 +24608,12 @@ function renderHighContrastDiffCanvas() {
       }
     }
     ctx.putImageData(outImg, 0, 0);
-  } catch (e) {}
+    canvas.hidden = false;
+    syncCompareOverlayBounds();
+  } catch (e) {
+    // CORS fallback: hide canvas so CSS mix-blend-mode: difference on .is-diff-blend shows cleanly
+    canvas.hidden = true;
+  }
 }
 
 function formatComparisonVideoTimecode(sec) {
@@ -24704,7 +24754,11 @@ function renderCompareModal() {
   };
   setBtnPressed(document.getElementById('btnCmpModeStack'), isStack);
   setBtnPressed(document.getElementById('btnCmpModeSplit'), !isStack);
-  setBtnPressed(document.getElementById('btnCmpDiffToggle'), Boolean(cs.diffBlend));
+  const diffToggleBtn = document.getElementById('btnCmpDiffToggle');
+  if (diffToggleBtn) {
+    diffToggleBtn.hidden = sel.length < 2;
+    setBtnPressed(diffToggleBtn, Boolean(cs.diffBlend) && sel.length >= 2);
+  }
   setBtnPressed(document.getElementById('btnCmpSpecsToggle'), Boolean(cs.showSpecs));
 
   // Contextual visibility: hide Stack-only controls cleanly in Split mode
@@ -24889,9 +24943,23 @@ function renderCompareModal() {
     requestAnimationFrame(() => syncCompareOverlayBounds());
 
     if (cs.diffBlend) {
-      setTimeout(() => renderHighContrastDiffCanvas(), 45);
+      requestAnimationFrame(() => renderHighContrastDiffCanvas());
       stage.querySelectorAll('img').forEach(img => {
         if (!img.complete) img.addEventListener('load', () => renderHighContrastDiffCanvas(), { once: true });
+      });
+      let diffRafPending = false;
+      const scheduleVideoDiff = () => {
+        if (diffRafPending || !state.compareState.diffBlend || state.compareState.mode !== 'stack') return;
+        diffRafPending = true;
+        requestAnimationFrame(() => {
+          diffRafPending = false;
+          renderHighContrastDiffCanvas();
+        });
+      };
+      stage.querySelectorAll('video').forEach(vid => {
+        vid.addEventListener('loadeddata', scheduleVideoDiff);
+        vid.addEventListener('seeked', scheduleVideoDiff);
+        vid.addEventListener('timeupdate', scheduleVideoDiff);
       });
     }
   } else {
