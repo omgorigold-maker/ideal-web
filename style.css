@@ -7177,8 +7177,9 @@ dialog.mf-intake-dialog {
   align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
-  min-height: 36px !important;
-  padding: 4px 12px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 14px !important;
   border-radius: 10px !important;
   background: color-mix(in srgb, var(--bg) 86%, transparent) !important;
   backdrop-filter: blur(20px) saturate(140%) !important;
@@ -7198,7 +7199,8 @@ dialog.mf-intake-dialog {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   padding: 0 !important;
-  min-height: 28px !important;
+  height: 30px !important;
+  min-height: 30px !important;
   border-radius: 0 !important;
   gap: 5px !important;
 }
@@ -7319,10 +7321,10 @@ body[data-topbar-elevation="elevated"] .hud-top-row {
 }
 
 .hud-icon-btn {
-  width: 24px !important;
-  height: 24px !important;
+  width: 28px !important;
+  height: 28px !important;
   border-radius: 6px !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   color: var(--text-mid) !important;
   background: transparent !important;
   border: none !important;
@@ -7517,6 +7519,8 @@ body[data-topbar-elevation="elevated"] .hud-top-row {
 
 .hud-search-input {
   width: 68px !important;
+  height: 28px !important;
+  line-height: 28px !important;
   font-family: var(--font-body) !important;
   font-size: 11.5px !important;
   background: transparent !important;
@@ -7542,18 +7546,19 @@ body[data-topbar-elevation="elevated"] .hud-top-row {
 }
 
 .hud-segmented-pill .seg-btn {
-  width: 24px !important;
-  height: 24px !important;
+  width: 28px !important;
+  height: 28px !important;
   padding: 0 !important;
   border-radius: 5px !important;
   background: transparent !important;
   border: none !important;
   color: var(--text-mid) !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 .hud-segmented-pill .seg-btn.mf-view-btn {
   width: auto !important;
+  height: 28px !important;
   padding: 0 9px !important;
   font-size: 11px !important;
 }
