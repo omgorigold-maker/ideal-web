@@ -22256,6 +22256,29 @@ function toggleCompareSelect(assetObj) {
   } else {
     state.selectedCompareAssets.push(assetObj);
   }
+  if (state.viewType === 'space' && state.activeSpaceId === 'lightbox') {
+    const card = document.querySelector(`#lightboxMainShell .lb-studio-card[data-lb-item-id="${CSS.escape(assetObj.id)}"]`);
+    if (card) card.classList.toggle('is-compared', idx === -1);
+    const cnt = state.selectedCompareAssets.length;
+    const selGroup = document.querySelector('#lightboxMainShell #lbSelActionsGroup');
+    if (!selGroup) {
+      renderWorkspace();
+    } else {
+      const cmpBtn = selGroup.querySelector('#btnLbCompareAllKept');
+      const hideBtn = selGroup.querySelector('#btnLbHideSelected');
+      const clrBtn = selGroup.querySelector('#btnLbClearSelection');
+      if (cnt > 0) {
+        if (hideBtn) { hideBtn.hidden = false; hideBtn.textContent = `Hide (${cnt})`; }
+        if (clrBtn) clrBtn.hidden = false;
+        if (cmpBtn) { cmpBtn.textContent = `Compare (${cnt})`; cmpBtn.classList.add('is-primary'); cmpBtn.classList.remove('is-ghost'); }
+      } else {
+        if (hideBtn) hideBtn.hidden = true;
+        if (clrBtn) clrBtn.hidden = true;
+        if (cmpBtn) { cmpBtn.textContent = 'Compare'; cmpBtn.classList.remove('is-primary'); cmpBtn.classList.add('is-ghost'); }
+      }
+    }
+    return;
+  }
   renderWorkspace();
   renderCompareFloatingBar();
 }
@@ -26435,8 +26458,7 @@ function renderLightboxView(ws, spaceObj) {
     return true;
   });
 
-  const { stacks: candidateStacks } = buildLightboxStacks(filteredItems);
-  const activePiles = candidateStacks.filter(s => s.isPile);
+  const activePiles = [];
 
   const imageItems = filteredItems.filter(i => getLightboxMasterMediaKind(i) === 'image');
   const videoItems = filteredItems.filter(i => getLightboxMasterMediaKind(i) === 'video');
@@ -26741,13 +26763,15 @@ function renderLightboxView(ws, spaceObj) {
             ` : ''}
           </div>
 
-          ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? `
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbHideSelected" title="Hide selected files from this room">Hide (${state.selectedCompareAssets.length})</button>
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbClearSelection" title="Clear selection">Clear</button>
-            <button type="button" class="lb-tool-btn is-primary" id="btnLbCompareAllKept" title="Open selected files in Compare">Compare (${state.selectedCompareAssets.length})</button>
-          ` : (canCompare ? `
-            <button type="button" class="lb-tool-btn is-ghost" id="btnLbCompareAllKept" title="Open in Comparison Engine">Compare</button>
-          ` : '')}
+          <span id="lbSelActionsGroup" style="display:inline-flex;align-items:center;gap:6px;">
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbHideSelected" title="Hide selected files from this room" ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? '' : 'hidden'}>Hide (${(state.selectedCompareAssets || []).length})</button>
+            <button type="button" class="lb-tool-btn is-ghost" id="btnLbClearSelection" title="Clear selection" ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? '' : 'hidden'}>Clear</button>
+            ${(state.selectedCompareAssets && state.selectedCompareAssets.length > 0) ? `
+              <button type="button" class="lb-tool-btn is-primary" id="btnLbCompareAllKept" title="Open selected files in Compare">Compare (${state.selectedCompareAssets.length})</button>
+            ` : (canCompare ? `
+              <button type="button" class="lb-tool-btn is-ghost" id="btnLbCompareAllKept" title="Open in Comparison Engine">Compare</button>
+            ` : '')}
+          </span>
 
           ${(activeSubView !== 'hidden' && activeRoom !== 'source' && roomKeptItems.length > 0) ? `
             <button type="button" class="lb-tool-btn is-primary" id="btnLbBatchExportFolder" title="Copy non-hidden kept files into a ${activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready'} folder on your Desktop">
