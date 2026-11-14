@@ -18965,23 +18965,20 @@ function renderCustomizeView(ws) {
   }).join('');
 
   const headingButtons = FONT_OPTIONS_HEADING.map(f => `
-    <button type="button" class="font-option-btn ${c.fontHeading === f.value ? 'active' : ''}" data-font-heading="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};">
-      <span style="font-size:14px;font-weight:600;">${escapeHtml(f.label.split(' (')[0])}</span>
-      <span class="kicker-mono">${escapeHtml(f.label.split(' (')[1]?.replace(')', '') || 'Heading')}</span>
+    <button type="button" class="font-option-btn cust-pill-btn ${c.fontHeading === f.value ? 'active' : ''}" data-font-heading="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};" title="${escapeHtml(f.label)}">
+      <span>${escapeHtml(f.label.split(' (')[0])}</span>
     </button>
   `).join('');
 
   const bodyButtons = FONT_OPTIONS_BODY.map(f => `
-    <button type="button" class="font-option-btn ${c.fontBody === f.value ? 'active' : ''}" data-font-body="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};">
-      <span style="font-size:13px;">${escapeHtml(f.label.split(' (')[0])}</span>
-      <span class="kicker-mono">${escapeHtml(f.label.split(' (')[1]?.replace(')', '') || 'Notes')}</span>
+    <button type="button" class="font-option-btn cust-pill-btn ${c.fontBody === f.value ? 'active' : ''}" data-font-body="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};" title="${escapeHtml(f.label)}">
+      <span>${escapeHtml(f.label.split(' (')[0])}</span>
     </button>
   `).join('');
 
   const monoButtons = FONT_OPTIONS_MONO.map(f => `
-    <button type="button" class="font-option-btn ${c.fontMono === f.value ? 'active' : ''}" data-font-mono="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};">
-      <span style="font-size:12.5px;">${escapeHtml(f.label)}</span>
-      <span class="kicker-mono">01 / BADGE &amp; UI</span>
+    <button type="button" class="font-option-btn cust-pill-btn ${c.fontMono === f.value ? 'active' : ''}" data-font-mono="${escapeHtml(f.value)}" style="font-family:${escapeHtml(f.value)};" title="${escapeHtml(f.label)}">
+      <span>${escapeHtml(f.label.split(' (')[0])}</span>
     </button>
   `).join('');
 
@@ -19061,29 +19058,30 @@ function renderCustomizeView(ws) {
           <h3>Fonts &amp; Text Size</h3>
         </div>
 
-        <div>
-          <div class="kicker-mono" style="margin-bottom:6px;">HEADING FONT</div>
-          <div class="font-preset-grid">${headingButtons}</div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Heading Font</div>
+          <div class="font-preset-grid cust-grid-4">${headingButtons}</div>
         </div>
 
-        <div>
-          <div class="kicker-mono" style="margin-bottom:6px;">NOTES &amp; DESCRIPTION FONT</div>
-          <div class="font-preset-grid">${bodyButtons}</div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Notes &amp; Description Font</div>
+          <div class="font-preset-grid cust-grid-4">${bodyButtons}</div>
         </div>
 
-        <div>
-          <div class="kicker-mono" style="margin-bottom:6px;">NUMBERS &amp; BADGES MONO FONT</div>
-          <div class="font-preset-grid">${monoButtons}</div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Numbers &amp; Badges Mono Font</div>
+          <div class="font-preset-grid cust-grid-auto">${monoButtons}</div>
         </div>
 
-        <div class="setting-row">
-          <span class="kicker-mono" id="lblCustFontSize">BASE TEXT SIZE (${c.baseFontSize || 12.5}px)</span>
-          <input type="range" id="custFontSize" min="12" max="16" step="0.5" value="${c.baseFontSize || 12.5}" style="width:160px;">
-        </div>
-
-        <div class="setting-row">
-          <span class="kicker-mono" id="lblCustHeadingScale">HEADING SCALE (${Math.round((c.headingScale || 0.9) * 100)}%)</span>
-          <input type="range" id="custHeadingScale" min="0.85" max="1.35" step="0.05" value="${c.headingScale || 0.9}" style="width:160px;">
+        <div class="cust-sliders-stack">
+          <div class="setting-row">
+            <span class="kicker-mono" id="lblCustFontSize">BASE TEXT SIZE (${c.baseFontSize || 12.5}px)</span>
+            <input type="range" id="custFontSize" min="12" max="16" step="0.5" value="${c.baseFontSize || 12.5}">
+          </div>
+          <div class="setting-row">
+            <span class="kicker-mono" id="lblCustHeadingScale">HEADING SCALE (${Math.round((c.headingScale || 0.9) * 100)}%)</span>
+            <input type="range" id="custHeadingScale" min="0.85" max="1.35" step="0.05" value="${c.headingScale || 0.9}">
+          </div>
         </div>
       </section>
 
@@ -19094,33 +19092,34 @@ function renderCustomizeView(ws) {
           <h3>Palette, Spacing &amp; Card Details</h3>
         </div>
 
-        <div>
-          <div class="kicker-mono" style="margin-bottom:8px;">COLOR PALETTES</div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Color Palettes</div>
           <div class="color-swatch-row">${themeButtons}</div>
         </div>
 
-        <div>
-          <div class="kicker-mono" style="margin-bottom:8px;">CUSTOM COLORS</div>
-          <div class="color-swatch-row">
-            <label class="outline-btn">BG <input type="color" id="colBg" value="${escapeHtml(activePresetObj.bg)}"></label>
-            <label class="outline-btn">Card <input type="color" id="colSurface" value="${escapeHtml(activePresetObj.surface)}"></label>
-            <label class="outline-btn">Stage <input type="color" id="colStage" value="${escapeHtml(activePresetObj.stage)}"></label>
-            <label class="outline-btn">Ink <input type="color" id="colText" value="${escapeHtml(activePresetObj.text)}"></label>
-            <label class="outline-btn">Accent <input type="color" id="colAccent" value="${escapeHtml(activePresetObj.accent)}"></label>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Custom Colors</div>
+          <div class="cust-custom-colors-grid">
+            <label class="outline-btn cust-color-chip"><span>BG</span><input type="color" id="colBg" value="${escapeHtml(activePresetObj.bg)}"></label>
+            <label class="outline-btn cust-color-chip"><span>Card</span><input type="color" id="colSurface" value="${escapeHtml(activePresetObj.surface)}"></label>
+            <label class="outline-btn cust-color-chip"><span>Stage</span><input type="color" id="colStage" value="${escapeHtml(activePresetObj.stage)}"></label>
+            <label class="outline-btn cust-color-chip"><span>Ink</span><input type="color" id="colText" value="${escapeHtml(activePresetObj.text)}"></label>
+            <label class="outline-btn cust-color-chip"><span>Accent</span><input type="color" id="colAccent" value="${escapeHtml(activePresetObj.accent)}"></label>
           </div>
         </div>
 
-        <div class="setting-row">
-          <span class="kicker-mono" id="lblCustCardRadius">CARD CORNER RADIUS (${c.cardRadius ?? 5}px)</span>
-          <input type="range" id="custCardRadius" min="0" max="18" step="1" value="${c.cardRadius ?? 5}" style="width:160px;">
+        <div class="cust-sliders-stack">
+          <div class="setting-row">
+            <span class="kicker-mono" id="lblCustCardRadius">CARD CORNER RADIUS (${c.cardRadius ?? 5}px)</span>
+            <input type="range" id="custCardRadius" min="0" max="18" step="1" value="${c.cardRadius ?? 5}">
+          </div>
+          <div class="setting-row">
+            <span class="kicker-mono" id="lblCustGridGap">GRID SPACING GAP (${c.gridGap ?? 28}px)</span>
+            <input type="range" id="custGridGap" min="10" max="40" step="2" value="${c.gridGap ?? 28}">
+          </div>
         </div>
 
-        <div class="setting-row">
-          <span class="kicker-mono" id="lblCustGridGap">GRID SPACING GAP (${c.gridGap ?? 28}px)</span>
-          <input type="range" id="custGridGap" min="10" max="40" step="2" value="${c.gridGap ?? 28}" style="width:160px;">
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--border);">
+        <div class="cust-checks-grid">
           <label class="chk-row"><input type="checkbox" id="togIndex" ${c.showIndexBadge !== false ? 'checked' : ''}> <span>Show #01 Index Numbers</span></label>
           <label class="chk-row"><input type="checkbox" id="togStatus" ${c.showStatusBadge !== false ? 'checked' : ''}> <span>Show Status Badges</span></label>
           <label class="chk-row"><input type="checkbox" id="togCount" ${c.showCountBadge !== false ? 'checked' : ''}> <span>Show Item Count Pill</span></label>
@@ -19128,234 +19127,120 @@ function renderCustomizeView(ws) {
         </div>
       </section>
 
-      <!-- PANEL 3: VISUAL FINISHES & SUBBAR HEADERS (Unified across site) -->
-      <section class="customizer-panel" style="grid-column: 1 / -1;">
-        <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="kicker-mono">03 / VISUAL FINISHES &amp; TITLE HEADERS</div>
-            <h3>Subbar Header Tone, Card Framing &amp; Stage Canvas</h3>
+      <!-- PANEL 3: VISUAL FINISHES & SUBBAR HEADERS -->
+      <section class="customizer-panel">
+        <div class="panel-header">
+          <div class="kicker-mono">03 / VISUAL FINISHES</div>
+          <h3>Subbar Headers, Cards &amp; Stage</h3>
+        </div>
+
+        <div class="cust-field-group">
+          <div class="cust-field-label">Subbar Title Tone (Dashboard &amp; Launchpad)</div>
+          <div class="cust-seg-row cust-grid-4">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.subbarTitleTone || 'grayish') === 'grayish' ? 'active' : ''}" data-subbar-tone="grayish"><span style="color:var(--text-faint);">Grayish</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.subbarTitleTone === 'mid' ? 'active' : ''}" data-subbar-tone="mid"><span style="color:var(--text-mid);">Mid Gray</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.subbarTitleTone === 'ink' ? 'active' : ''}" data-subbar-tone="ink"><span style="color:var(--text);">Crisp Text</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.subbarTitleTone === 'accent' ? 'active' : ''}" data-subbar-tone="accent"><span style="color:var(--accent);">Accent</span></button>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:18px;">
-          <!-- Subbar Title Headers -->
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">SUBBAR TITLE HEADER TONE (DASHBOARD &amp; ACTIVE LAUNCHPAD)</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(4, 1fr);">
-                <button type="button" class="font-option-btn ${(c.subbarTitleTone || 'grayish') === 'grayish' ? 'active' : ''}" data-subbar-tone="grayish">
-                  <span style="font-size:12px;font-weight:600;color:var(--text-faint);">Grayish</span>
-                  <span class="kicker-mono">Muted Tone</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.subbarTitleTone === 'mid' ? 'active' : ''}" data-subbar-tone="mid">
-                  <span style="font-size:12px;font-weight:600;color:var(--text-mid);">Mid Gray</span>
-                  <span class="kicker-mono">Medium</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.subbarTitleTone === 'ink' ? 'active' : ''}" data-subbar-tone="ink">
-                  <span style="font-size:12px;font-weight:600;color:var(--text);">Crisp Text</span>
-                  <span class="kicker-mono">Inked Ink</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.subbarTitleTone === 'accent' ? 'active' : ''}" data-subbar-tone="accent">
-                  <span style="font-size:12px;font-weight:600;color:var(--accent);">Accent</span>
-                  <span class="kicker-mono">Colored</span>
-                </button>
-              </div>
-            </div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Subbar Title Size &amp; Tracking</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${c.subbarTitleSize === 'compact' ? 'active' : ''}" data-subbar-size="compact"><span>Compact (10px)</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.subbarTitleSize || 'standard') === 'standard' ? 'active' : ''}" data-subbar-size="standard"><span>Standard (10.5px)</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.subbarTitleSize === 'editorial' ? 'active' : ''}" data-subbar-size="editorial"><span>Editorial (12px)</span></button>
+          </div>
+        </div>
 
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">SUBBAR TITLE SIZE &amp; TRACKING</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${c.subbarTitleSize === 'compact' ? 'active' : ''}" data-subbar-size="compact">
-                  <span style="font-size:12px;font-weight:600;">Compact</span>
-                  <span class="kicker-mono">10px · Tight</span>
-                </button>
-                <button type="button" class="font-option-btn ${(c.subbarTitleSize || 'standard') === 'standard' ? 'active' : ''}" data-subbar-size="standard">
-                  <span style="font-size:12px;font-weight:600;">Standard</span>
-                  <span class="kicker-mono">10.5px · Balanced</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.subbarTitleSize === 'editorial' ? 'active' : ''}" data-subbar-size="editorial">
-                  <span style="font-size:12px;font-weight:600;">Editorial</span>
-                  <span class="kicker-mono">12px · Wide</span>
-                </button>
-              </div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Card Border &amp; Frame</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.cardBorderWidth ?? 0) === 0 ? 'active' : ''}" data-card-border="0"><span>0px Borderless</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.cardBorderWidth ?? 0) === 1 ? 'active' : ''}" data-card-border="1"><span>1px Hairline</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.cardBorderWidth ?? 0) === 2 ? 'active' : ''}" data-card-border="2"><span>2px Bold Frame</span></button>
+          </div>
+        </div>
+
+        <div class="cust-field-group">
+          <div class="cust-field-label">Card Elevation &amp; Shadow</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.cardShadow || 'none') === 'none' ? 'active' : ''}" data-card-shadow="none"><span>Flat Studio</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.cardShadow === 'soft' ? 'active' : ''}" data-card-shadow="soft"><span>Soft Elevation</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.cardShadow === 'deep' ? 'active' : ''}" data-card-shadow="deep"><span>Deep Float</span></button>
+          </div>
+        </div>
+
+        <div class="cust-field-group">
+          <div class="cust-field-label">Stage Canvas Background</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.stagePattern || 'none') === 'none' ? 'active' : ''}" data-stage-pattern="none"><span>Clean Studio</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.stagePattern === 'dots' ? 'active' : ''}" data-stage-pattern="dots"><span>Dot Grid</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.stagePattern === 'grid' ? 'active' : ''}" data-stage-pattern="grid"><span>Graph Lines</span></button>
+          </div>
+        </div>
+
+        <div class="cust-two-col-pair">
+          <div class="cust-field-group">
+            <div class="cust-field-label">Media Image Fit</div>
+            <div class="cust-seg-row cust-grid-2">
+              <button type="button" class="font-option-btn cust-seg-btn ${(c.stageFit || 'cover') === 'cover' ? 'active' : ''}" data-stage-fit="cover"><span>Cover</span></button>
+              <button type="button" class="font-option-btn cust-seg-btn ${c.stageFit === 'contain' ? 'active' : ''}" data-stage-fit="contain"><span>Contain</span></button>
             </div>
           </div>
-
-          <!-- Card Border & Shadow -->
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">CARD BORDER &amp; FRAME</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.cardBorderWidth ?? 0) === 0 ? 'active' : ''}" data-card-border="0">
-                  <span style="font-size:12px;font-weight:600;">Borderless</span>
-                  <span class="kicker-mono">0px Clean</span>
-                </button>
-                <button type="button" class="font-option-btn ${(c.cardBorderWidth ?? 0) === 1 ? 'active' : ''}" data-card-border="1">
-                  <span style="font-size:12px;font-weight:600;">Hairline</span>
-                  <span class="kicker-mono">1px Subtle</span>
-                </button>
-                <button type="button" class="font-option-btn ${(c.cardBorderWidth ?? 0) === 2 ? 'active' : ''}" data-card-border="2">
-                  <span style="font-size:12px;font-weight:600;">Bold Frame</span>
-                  <span class="kicker-mono">2px Defined</span>
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">CARD ELEVATION &amp; SHADOW</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.cardShadow || 'none') === 'none' ? 'active' : ''}" data-card-shadow="none">
-                  <span style="font-size:12px;font-weight:600;">Flat Studio</span>
-                  <span class="kicker-mono">Minimal</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.cardShadow === 'soft' ? 'active' : ''}" data-card-shadow="soft">
-                  <span style="font-size:12px;font-weight:600;">Soft Elevation</span>
-                  <span class="kicker-mono">Subtle</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.cardShadow === 'deep' ? 'active' : ''}" data-card-shadow="deep">
-                  <span style="font-size:12px;font-weight:600;">Deep Float</span>
-                  <span class="kicker-mono">Rich Shadow</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Canvas Texture, Fit & Motion -->
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">STAGE CANVAS BACKGROUND</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.stagePattern || 'none') === 'none' ? 'active' : ''}" data-stage-pattern="none">
-                  <span style="font-size:12px;font-weight:600;">Clean Studio</span>
-                  <span class="kicker-mono">Solid Canvas</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.stagePattern === 'dots' ? 'active' : ''}" data-stage-pattern="dots">
-                  <span style="font-size:12px;font-weight:600;">Dot Grid</span>
-                  <span class="kicker-mono">Milanote Dots</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.stagePattern === 'grid' ? 'active' : ''}" data-stage-pattern="grid">
-                  <span style="font-size:12px;font-weight:600;">Graph Lines</span>
-                  <span class="kicker-mono">Architectural</span>
-                </button>
-              </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div>
-                <div class="kicker-mono" style="margin-bottom:6px;">MEDIA IMAGE FIT</div>
-                <div class="font-preset-grid" style="grid-template-columns:1fr 1fr;">
-                  <button type="button" class="font-option-btn ${(c.stageFit || 'cover') === 'cover' ? 'active' : ''}" data-stage-fit="cover">
-                    <span style="font-size:11.5px;font-weight:600;">Cover</span>
-                    <span class="kicker-mono">Fill Frame</span>
-                  </button>
-                  <button type="button" class="font-option-btn ${c.stageFit === 'contain' ? 'active' : ''}" data-stage-fit="contain">
-                    <span style="font-size:11.5px;font-weight:600;">Contain</span>
-                    <span class="kicker-mono">Full Art</span>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <div class="kicker-mono" style="margin-bottom:6px;">HOVER MOTION</div>
-                <div class="font-preset-grid" style="grid-template-columns:1fr 1fr;">
-                  <button type="button" class="font-option-btn ${(c.hoverMotion || 'lift') === 'lift' ? 'active' : ''}" data-hover-motion="lift">
-                    <span style="font-size:11.5px;font-weight:600;">Lift</span>
-                    <span class="kicker-mono">Translate</span>
-                  </button>
-                  <button type="button" class="font-option-btn ${c.hoverMotion === 'zoom' ? 'active' : ''}" data-hover-motion="zoom">
-                    <span style="font-size:11.5px;font-weight:600;">Zoom</span>
-                    <span class="kicker-mono">1.04x Scale</span>
-                  </button>
-                </div>
-              </div>
+          <div class="cust-field-group">
+            <div class="cust-field-label">Hover Motion</div>
+            <div class="cust-seg-row cust-grid-2">
+              <button type="button" class="font-option-btn cust-seg-btn ${(c.hoverMotion || 'lift') === 'lift' ? 'active' : ''}" data-hover-motion="lift"><span>Lift</span></button>
+              <button type="button" class="font-option-btn cust-seg-btn ${c.hoverMotion === 'zoom' ? 'active' : ''}" data-hover-motion="zoom"><span>Zoom 1.04×</span></button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- PANEL 4: FLOATING TOP BAR & TITLES (UNIFIED APPEARANCE & INDIVIDUAL TITLES) -->
-      <section class="customizer-panel" style="grid-column: 1 / -1;">
-        <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="kicker-mono">04 / FLOATING TOP BAR &amp; TITLES</div>
-            <h3>Unified Top Bar Finish &amp; Independent Space Headings</h3>
+      <!-- PANEL 4: FLOATING TOP BAR & TITLES -->
+      <section class="customizer-panel">
+        <div class="panel-header">
+          <div class="kicker-mono">04 / FLOATING TOP BAR</div>
+          <h3>Top Bar Finish &amp; Space Titles</h3>
+        </div>
+
+        <div class="cust-field-group">
+          <div class="cust-field-label">Top Bar Background Finish</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.topBarBg || 'glass') === 'glass' ? 'active' : ''}" data-topbar-bg="glass"><span>Frosted Glass</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarBg === 'solid' ? 'active' : ''}" data-topbar-bg="solid"><span>Solid Studio</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarBg === 'minimal' ? 'active' : ''}" data-topbar-bg="minimal"><span>Minimal</span></button>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:18px;">
-          <!-- Top Bar Unified Appearance -->
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR BACKGROUND FINISH</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.topBarBg || 'glass') === 'glass' ? 'active' : ''}" data-topbar-bg="glass">
-                  <span style="font-size:12px;font-weight:600;">Frosted Glass</span>
-                  <span class="kicker-mono">Translucent Blur</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarBg === 'solid' ? 'active' : ''}" data-topbar-bg="solid">
-                  <span style="font-size:12px;font-weight:600;">Solid Studio</span>
-                  <span class="kicker-mono">Clean Surface</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarBg === 'minimal' ? 'active' : ''}" data-topbar-bg="minimal">
-                  <span style="font-size:12px;font-weight:600;">Minimal</span>
-                  <span class="kicker-mono">Subtle Frameless</span>
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR TITLE TONE</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.topBarTone || 'ink') === 'ink' ? 'active' : ''}" data-topbar-tone="ink">
-                  <span style="font-size:12px;font-weight:600;color:var(--text);">Crisp Text</span>
-                  <span class="kicker-mono">High Contrast</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarTone === 'mid' ? 'active' : ''}" data-topbar-tone="mid">
-                  <span style="font-size:12px;font-weight:600;color:var(--text-mid);">Mid Gray</span>
-                  <span class="kicker-mono">Muted Tone</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarTone === 'accent' ? 'active' : ''}" data-topbar-tone="accent">
-                  <span style="font-size:12px;font-weight:600;color:var(--accent);">Accent</span>
-                  <span class="kicker-mono">Theme Colored</span>
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div class="kicker-mono" style="margin-bottom:6px;">TOP BAR ELEVATION &amp; SHADOW</div>
-              <div class="font-preset-grid" style="grid-template-columns:repeat(3, 1fr);">
-                <button type="button" class="font-option-btn ${(c.topBarElevation || 'whisper') === 'whisper' ? 'active' : ''}" data-topbar-elevation="whisper">
-                  <span style="font-size:12px;font-weight:600;">Whisper Float</span>
-                  <span class="kicker-mono">Subtle Shadow</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarElevation === 'flat' ? 'active' : ''}" data-topbar-elevation="flat">
-                  <span style="font-size:12px;font-weight:600;">Flat Studio</span>
-                  <span class="kicker-mono">No Shadow</span>
-                </button>
-                <button type="button" class="font-option-btn ${c.topBarElevation === 'elevated' ? 'active' : ''}" data-topbar-elevation="elevated">
-                  <span style="font-size:12px;font-weight:600;">Deep Elevation</span>
-                  <span class="kicker-mono">Rich Float</span>
-                </button>
-              </div>
-            </div>
+        <div class="cust-field-group">
+          <div class="cust-field-label">Top Bar Title Tone</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.topBarTone || 'ink') === 'ink' ? 'active' : ''}" data-topbar-tone="ink"><span style="color:var(--text);">Crisp Text</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarTone === 'mid' ? 'active' : ''}" data-topbar-tone="mid"><span style="color:var(--text-mid);">Mid Gray</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarTone === 'accent' ? 'active' : ''}" data-topbar-tone="accent"><span style="color:var(--accent);">Accent</span></button>
           </div>
+        </div>
 
-          <!-- Individual Space Top Bar Headings (Disconnected from Sidebar) -->
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
-              <div class="kicker-mono" style="margin-bottom:4px;">DISCONNECTED TOP BAR SPACE TITLES</div>
-              <p style="font-size:11px;color:var(--text-mid);margin:0 0 10px 0;line-height:1.4;">
-                Top bar headings are completely independent from sidebar titles. Editing a title here or in the sidebar will not overwrite each other.
-              </p>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                ${vault.spaces.filter(s => s.id !== 'customize').map(sp => `
-                  <div style="display:flex;flex-direction:column;gap:3px;">
-                    <span class="kicker-mono" style="font-size:9.5px;color:var(--text-faint);">${escapeHtml(sp.code)} • SIDEBAR: "${escapeHtml(sp.title)}"</span>
-                    <input type="text" class="form-input cust-space-topbar-input" data-space-id="${escapeHtml(sp.id)}" style="font-size:11.5px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);" value="${escapeHtml(getSpaceTopBarTitle(sp.id))}" placeholder="${escapeHtml(sp.title)}">
-                  </div>
-                `).join('')}
+        <div class="cust-field-group">
+          <div class="cust-field-label">Top Bar Elevation &amp; Shadow</div>
+          <div class="cust-seg-row cust-grid-3">
+            <button type="button" class="font-option-btn cust-seg-btn ${(c.topBarElevation || 'whisper') === 'whisper' ? 'active' : ''}" data-topbar-elevation="whisper"><span>Whisper Float</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarElevation === 'flat' ? 'active' : ''}" data-topbar-elevation="flat"><span>Flat Studio</span></button>
+            <button type="button" class="font-option-btn cust-seg-btn ${c.topBarElevation === 'elevated' ? 'active' : ''}" data-topbar-elevation="elevated"><span>Deep Elevation</span></button>
+          </div>
+        </div>
+
+        <div class="cust-field-group cust-topbar-titles-box">
+          <div class="cust-field-label">Independent Top Bar Space Titles</div>
+          <div class="cust-space-titles-grid">
+            ${vault.spaces.filter(s => s.id !== 'customize').map(sp => `
+              <div class="cust-space-title-item">
+                <span class="kicker-mono">${escapeHtml(sp.code)} · ${escapeHtml(sp.title)}</span>
+                <input type="text" class="form-input cust-space-topbar-input" data-space-id="${escapeHtml(sp.id)}" value="${escapeHtml(getSpaceTopBarTitle(sp.id))}" placeholder="${escapeHtml(sp.title)}">
               </div>
-            </div>
+            `).join('')}
           </div>
         </div>
       </section>
