@@ -17045,3 +17045,13 @@ dialog.compare-dialog::backdrop {
   gap: 12px;
   color: var(--lb-text-muted, #64748b);
 }
+
+.lb-studio-card.is-dragging {
+  opacity: 0.42;
+  transform: scale(0.97);
+}
+
+.lb-studio-card.is-drop-target {
+  outline: 2.5px solid #2563eb;
+  outline-offset: -2px;
+}

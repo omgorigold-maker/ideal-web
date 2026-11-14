@@ -26155,6 +26155,10 @@ function buildLightboxPileCardHtml(pile) {
 function renderLightboxMasterGroupHtml(groupTitle, groupItems, scaleStep = 3, showMasterTitle = true) {
   if (!groupItems || groupItems.length === 0) return '';
 
+  const orderKey = state.lightboxFilter === 'Instagram Board'
+    ? 'igGridOrder'
+    : (state.lightboxFilter === 'Portfolio Staging' ? 'webGridOrder' : 'gridOrder');
+
   const ratioBuckets = new Map();
   groupItems.forEach(it => {
     const w = Number(it.naturalW || 0);
@@ -26180,6 +26184,7 @@ function renderLightboxMasterGroupHtml(groupTitle, groupItems, scaleStep = 3, sh
   const hideSingleRatioHeader = sortedBuckets.length <= 1;
 
   const ratioSectionsHtml = sortedBuckets.map(bucket => {
+    bucket.items.sort((a, b) => (Number(a[orderKey] ?? 9999) - Number(b[orderKey] ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
     const cardsHtml = bucket.items.map(it => {
       const passInfo = parseRenderStackInfo(it);
       const passLbl = passInfo.isStackedCandidate ? passInfo.versionLabel : (it.stackVersionLabel || '');
@@ -26203,7 +26208,7 @@ function renderLightboxMasterGroupHtml(groupTitle, groupItems, scaleStep = 3, sh
             ` : ''}
           </div>
         `}
-        <div class="lb-studio-grid" data-scale-step="${scaleStep}">
+        <div class="lb-studio-grid" data-scale-step="${scaleStep}" data-lb-grid-order-key="${orderKey}">
           ${cardsHtml}
         </div>
       </div>
@@ -27120,12 +27125,6 @@ function renderLightboxView(ws, spaceObj) {
         </div>
       </div>
 
-      <!-- On-Demand Floating Drag-to-Project Dock (Visible ONLY during an active card drag) -->
-      <div class="lb-drag-project-dock" id="lbDragProjectDock" role="region" aria-label="Drop into project" hidden>
-        <span class="lb-drag-dock-label">Move to:</span>
-        <div class="lb-drag-dock-pills">${dragDockTargetsHtml}</div>
-      </div>
-
       ${lightboxNeedsPermissionIds.size > 0 ? `
         <div class="lb-reconnect-banner" id="lbReconnectBanner">
           <div class="lb-reconnect-banner-left">
@@ -27269,32 +27268,6 @@ function renderLightboxView(ws, spaceObj) {
       saveNavState();
       renderFilterActionRow();
       renderWorkspace();
-    });
-  });
-
-  ws.querySelectorAll('[data-lb-proj-pill]').forEach(pill => {
-    pill.addEventListener('dragover', (e) => {
-      if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('application/x-ideal-lb-items')) {
-        e.preventDefault();
-        e.stopPropagation();
-        pill.classList.add('is-drop-target');
-      }
-    });
-    pill.addEventListener('dragleave', () => pill.classList.remove('is-drop-target'));
-    pill.addEventListener('drop', (e) => {
-      pill.classList.remove('is-drop-target');
-      ws.querySelector('#lbDragProjectDock')?.setAttribute('hidden', '');
-      if (!e.dataTransfer) return;
-      const rawJson = e.dataTransfer.getData('application/x-ideal-lb-items');
-      if (!rawJson) return;
-      e.preventDefault();
-      e.stopPropagation();
-      try {
-        const ids = JSON.parse(rawJson);
-        if (Array.isArray(ids) && ids.length > 0) {
-          moveLightboxItemsToDestination(ids, pill.dataset.lbProjPill);
-        }
-      } catch (_) {}
     });
   });
 
@@ -28373,31 +28346,82 @@ function renderLightboxView(ws, spaceObj) {
         openLightboxCardContextMenu(itemId, { x: e.clientX, y: e.clientY }, { fromKeyboard: false });
       }
     });
+  });
 
-    // Drag-and-Drop Card / Pile / Multi-Selection onto Project Pills (skip IG feed/reel reorder cards)
-    if (card.getAttribute('draggable') === 'true' && !card.classList.contains('lb-ig-cell') && !card.classList.contains('lb-ig-reel-card')) {
-      card.addEventListener('dragstart', (e) => {
-        if (!e.dataTransfer) return;
-        let dragIds = [itemId];
-        const pileKey = card.dataset.lbPileKey;
-        if (pileKey) {
-          const { stacks } = buildLightboxStacks(allProjectItems);
-          const found = stacks.find(s => s.stackKey === pileKey);
-          if (found && found.items.length) dragIds = found.items.map(x => x.id);
-        } else if (isAssetCompareSelected(itemId) && (state.selectedCompareAssets || []).length > 1) {
-          dragIds = (state.selectedCompareAssets || []).map(a => a.vaultItemId || a.id).filter(Boolean);
-        }
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('application/x-ideal-lb-items', JSON.stringify(dragIds));
-        e.dataTransfer.setData('text/plain', dragIds.join(','));
-        requestAnimationFrame(() => {
-          ws.querySelector('#lbDragProjectDock')?.removeAttribute('hidden');
-        });
-      });
-      card.addEventListener('dragend', () => {
-        ws.querySelector('#lbDragProjectDock')?.setAttribute('hidden', '');
-      });
+  // Strict Per-Ratio-Bucket Drag-and-Drop Reorder in Grid/Cards View (Images/Videos & Ratios stay strictly isolated)
+  let activeGridDragCard = null;
+  let activeGridSource = null;
+  let activeGridDropTarget = null;
+  const clearGridDrop = () => {
+    if (activeGridDropTarget) {
+      activeGridDropTarget.classList.remove('is-drop-target');
+      activeGridDropTarget = null;
     }
+  };
+
+  ws.querySelectorAll('.lb-studio-grid[data-lb-grid-order-key]').forEach(gridEl => {
+    const orderKey = gridEl.dataset.lbGridOrderKey;
+    gridEl.addEventListener('dragstart', (e) => {
+      const card = e.target.closest('.lb-studio-card[data-lb-item-id]');
+      if (!card || !gridEl.contains(card)) return;
+      activeGridDragCard = card;
+      activeGridSource = gridEl;
+      card.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', card.dataset.lbItemId || '');
+      }
+    });
+
+    gridEl.addEventListener('dragover', (e) => {
+      if (!activeGridDragCard || activeGridSource !== gridEl) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      const target = e.target.closest('.lb-studio-card[data-lb-item-id]');
+      if (!target || target === activeGridDragCard || !gridEl.contains(target)) {
+        clearGridDrop();
+        return;
+      }
+      if (activeGridDropTarget !== target) {
+        clearGridDrop();
+        activeGridDropTarget = target;
+        target.classList.add('is-drop-target');
+      }
+    });
+
+    gridEl.addEventListener('dragleave', (e) => {
+      if (e.target === gridEl || (e.relatedTarget && !gridEl.contains(e.relatedTarget))) {
+        clearGridDrop();
+      }
+    });
+
+    gridEl.addEventListener('drop', (e) => {
+      if (!activeGridDragCard || activeGridSource !== gridEl) return;
+      e.preventDefault();
+      const target = e.target.closest('.lb-studio-card[data-lb-item-id]');
+      clearGridDrop();
+      if (!target || target === activeGridDragCard || !gridEl.contains(target)) return;
+      const cards = [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')];
+      const fromIdx = cards.indexOf(activeGridDragCard);
+      const toIdx = cards.indexOf(target);
+      if (fromIdx === -1 || toIdx === -1) return;
+      if (fromIdx < toIdx) target.after(activeGridDragCard);
+      else target.before(activeGridDragCard);
+
+      const itemById = new Map((vault.items || []).map(i => [i.id, i]));
+      [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')].forEach((c, idx) => {
+        const it = itemById.get(c.dataset.lbItemId);
+        if (it) it[orderKey] = idx + 1;
+      });
+      saveVault('GRID ORDER UPDATED');
+    });
+
+    gridEl.addEventListener('dragend', () => {
+      if (activeGridDragCard) activeGridDragCard.classList.remove('is-dragging');
+      activeGridDragCard = null;
+      activeGridSource = null;
+      clearGridDrop();
+    });
   });
 }
 
