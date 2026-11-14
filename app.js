@@ -24660,7 +24660,11 @@ function initCompareDialogEvents() {
         renderCompareModal();
       }
     } else if (!inControl && !inToolbarButton && e.key === ' ') {
-      if (stage.querySelector('video')) {
+      // Space plays/pauses only when the version you're looking at is a video; otherwise it flips to the next version
+      const activeSel = sel[state.compareState.activeIndex] || sel[0];
+      const activeVaultIt = activeSel ? vault.items.find(x => x.id === (activeSel.vaultItemId || activeSel.id)) : null;
+      const activeIsVideo = activeVaultIt ? getLightboxMasterMediaKind(activeVaultIt) === 'video' : Boolean(stage.querySelector('video'));
+      if (activeIsVideo && stage.querySelector('video')) {
         e.preventDefault();
         toggleMasterVideoPlayback();
       } else if (!e.target?.closest('button, a')) {
