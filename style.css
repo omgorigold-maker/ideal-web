@@ -16495,3 +16495,15 @@ dialog.compare-dialog::backdrop {
 .cmp-safe-crop-box.is-1x1 {
   aspect-ratio: 1 / 1;
 }
+
+/* Sticky Lightbox Title Bar right below the floating top bar */
+.lb-canvas-head {
+  position: sticky;
+  top: 56px;
+  z-index: 30;
+  background: rgba(246, 247, 249, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px 0;
+  margin-top: -6px;
+}
