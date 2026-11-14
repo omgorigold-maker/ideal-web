@@ -6698,6 +6698,7 @@ function renderWorkspace() {
   if (!ws) return;
 
   saveNavState();
+  if (typeof renderCompareFloatingBar === 'function') renderCompareFloatingBar();
 
   const { type, obj } = getActiveContainer();
 
@@ -23750,7 +23751,8 @@ function renderCompareFloatingBar() {
   }
   if (!bar) return;
 
-  if (sel.length === 0 || isLightbox) {
+  const isVisualCompareSurface = state.viewType === 'project' || (state.viewType === 'space' && ['projects', 'incubator', 'assets', 'gdrive_assets'].includes(state.activeSpaceId));
+  if (sel.length === 0 || isLightbox || !isVisualCompareSurface) {
     bar.hidden = true;
     try { document.getElementById('lbBatchMovePopover')?.hidePopover?.(); } catch (_) {}
     return;
