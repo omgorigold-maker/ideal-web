@@ -25744,7 +25744,7 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
   }
 
   return `
-    <article class="lb-studio-card ${isKeep ? 'is-kept' : ''} ${isCompared ? 'is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" draggable="true">
+    <article class="lb-studio-card ${isCompared ? 'is-compared' : ''}" data-lb-item-id="${escapeHtml(it.id)}" draggable="true">
       <div class="lb-studio-stage" ${stageRatioStyle}>
         ${mediaHtml}
         <div class="lb-stage-top-row">

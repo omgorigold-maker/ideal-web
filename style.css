@@ -16403,7 +16403,4 @@ dialog.compare-dialog::backdrop {
 .lb-studio-card:not(.is-render-pile) {
   cursor: pointer;
 }
-.lb-studio-card.is-compared {
-  border-color: #18181B !important;
-  box-shadow: 0 0 0 2px #18181B !important;
-}
+
