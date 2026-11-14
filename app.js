@@ -26039,14 +26039,14 @@ function buildLightboxAssetCardHtml(it, passBadgeText = '', opts = {}) {
       const showVideoDirectly = Boolean(vidSrc && (!isStaticWeb || vidSrc.startsWith('blob:')));
       mediaHtml = `
         <video src="${escapeHtml(vidSrc || dispUrl)}" poster="${escapeHtml(dispUrl)}" preload="none" muted playsinline class="lb-studio-media ${fitMode}" data-lb-video="1" style="display: ${showVideoDirectly ? 'block' : 'none'};" onerror="this.style.display='none'; const sibling = this.nextElementSibling; if (sibling) sibling.style.display='block';"></video>
-        <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}" style="display: ${showVideoDirectly ? 'none' : 'block'};" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
+        <img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" draggable="false" class="lb-studio-media ${fitMode}" style="display: ${showVideoDirectly ? 'none' : 'block'};" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">
       `;
     } else {
-      mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true" class="lb-studio-media ${fitMode}" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">`;
+      mediaHtml = `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" draggable="false" data-pin-nopin="true" class="lb-studio-media ${fitMode}" onerror="if (!this.dataset.triedSvg) { this.dataset.triedSvg = '1'; this.src = getClientAssetSpecimenSvg('${escapeHtml(titleText).replace(/'/g, "\\'")}', '${escapeHtml(cardExt)}', 'Lightbox'); }">`;
     }
   } else {
     const fallbackSvg = getClientAssetSpecimenSvg(titleText, cardExt, 'Lightbox');
-    mediaHtml = `<img src="${fallbackSvg}" alt="${escapeHtml(titleText)}" class="lb-studio-media ${fitMode}">`;
+    mediaHtml = `<img src="${fallbackSvg}" alt="${escapeHtml(titleText)}" draggable="false" class="lb-studio-media ${fitMode}">`;
   }
 
   return `
