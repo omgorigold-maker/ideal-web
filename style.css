@@ -16450,3 +16450,10 @@ dialog.compare-dialog::backdrop {
   opacity: 1;
   filter: grayscale(0);
 }
+
+/* Lightweight offscreen rendering for Instagram 3x3 Feed & Reels */
+.lb-ig-cell,
+.lb-ig-reel-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 220px 275px;
+}

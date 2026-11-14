@@ -26202,8 +26202,8 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
     const kind = getLightboxMasterMediaKind(it);
     const dispUrl = getLightboxDisplayUrl(it);
     const titleText = it.title || `Post ${idx + 1}`;
-    const mediaHtml = kind === 'video'
-      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" loop muted playsinline data-lb-video="1"></video>`
+    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
+      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true">`;
     return `
       <article class="lb-ig-cell" data-lb-item-id="${escapeHtml(it.id)}">
@@ -26225,8 +26225,8 @@ function buildInstagramBoardSubpageHtml(items, scaleStep) {
     const kind = getLightboxMasterMediaKind(it);
     const dispUrl = getLightboxDisplayUrl(it);
     const titleText = it.title || `Story ${idx + 1}`;
-    const mediaHtml = kind === 'video'
-      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" loop muted playsinline data-lb-video="1"></video>`
+    const mediaHtml = (kind === 'video' && (!dispUrl || dispUrl === it.url))
+      ? `<video src="${escapeHtml(it.url)}#t=0.05" preload="metadata" muted playsinline data-lb-video="1"></video>`
       : `<img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(titleText)}" loading="lazy" decoding="async" data-pin-nopin="true">`;
     return `
       <article class="lb-ig-reel-card" data-lb-item-id="${escapeHtml(it.id)}">
