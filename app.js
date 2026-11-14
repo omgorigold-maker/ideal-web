@@ -6097,11 +6097,11 @@ function renderFilterActionRow() {
 
   let list = type === 'project' ? (obj.sections = obj.sections || ['All']) : (obj.categories = obj.categories || ['All']);
   const LIGHTBOX_SHORT_LABELS = {
-    'Instagram Board': 'Instagram',
-    'Portfolio Staging': 'Website'
+    'Portfolio Staging': 'The Website Box',
+    'Instagram Board': 'The Instagram Box'
   };
   if (isLightboxSpace) {
-    list = ['Instagram Board', 'Portfolio Staging'];
+    list = ['Portfolio Staging', 'Instagram Board'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
       state.lightboxFilter = 'Instagram Board';
@@ -26717,7 +26717,7 @@ function renderLightboxView(ws, spaceObj) {
     `;
   } else {
     leftHeadHtml = `
-      <h2 class="lb-room-title">${activeRoom === 'instagram' ? 'Instagram' : (activeRoom === 'website' ? 'Website' : 'All Files')}</h2>
+      <h2 class="lb-room-title">${activeRoom === 'instagram' ? 'The Instagram Box' : (activeRoom === 'website' ? 'The Website Box' : 'All Files')}</h2>
       <button type="button" class="lb-tool-btn is-ghost lb-proj-picker-btn" id="btnLbProjectMenuTrigger" aria-haspopup="menu" aria-expanded="false" commandfor="lbProjectMenuPopover" command="toggle-popover" title="Switch folder / project">
         <span aria-hidden="true">📁</span>
         <span>${escapeHtml(currentScopeTitle)}</span>
