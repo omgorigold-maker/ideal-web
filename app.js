@@ -19018,7 +19018,7 @@ function renderCustomizeView(ws) {
     modeHeadingText = `${previewTpl?.name || 'Preset'} (Live Preview)`;
     modeDescText = `Temporary live preview — leaving this page returns to your default preset`;
     modeActionsHtml = `
-      <button type="button" class="outline-btn" id="btnCustEditThisTpl">Edit Preset</button>
+      <button type="button" class="outline-btn cust-btn-black" id="btnCustCreateFromPreview">＋ Create Preset</button>
       <button type="button" class="outline-btn" id="btnResetDefaults">Exit Preview</button>
     `;
   } else {
@@ -19434,8 +19434,8 @@ function renderCustomizeView(ws) {
     enterCreateNewTemplateMode();
   });
 
-  ws.querySelector('#btnCustEditThisTpl')?.addEventListener('click', () => {
-    if (previewTpl) startEditingTemplate(previewTpl.id);
+  ws.querySelector('#btnCustCreateFromPreview')?.addEventListener('click', () => {
+    enterCreateNewTemplateMode();
   });
 
   // Preset Cards: Preview by clicking card body
