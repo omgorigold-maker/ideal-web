@@ -6097,12 +6097,11 @@ function renderFilterActionRow() {
 
   let list = type === 'project' ? (obj.sections = obj.sections || ['All']) : (obj.categories = obj.categories || ['All']);
   const LIGHTBOX_SHORT_LABELS = {
-    'All Assets': 'All',
     'Instagram Board': 'Instagram',
     'Portfolio Staging': 'Website'
   };
   if (isLightboxSpace) {
-    list = ['All Assets', 'Instagram Board', 'Portfolio Staging'];
+    list = ['Instagram Board', 'Portfolio Staging'];
     obj.categories = list;
     if (!list.includes(state.lightboxFilter)) {
       state.lightboxFilter = 'Instagram Board';
@@ -22452,11 +22451,11 @@ function ensureLightboxCleanWorkspace(v = vault) {
   const st = (typeof window !== 'undefined' && window.state) ? window.state : (typeof state !== 'undefined' ? state : null);
   if (st) {
     // If state.lightboxProjectId was set to the dummy project or invalid, default to 'all' so all files show immediately
-    if (!st.lightboxProjectId || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId !== 'all' && st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
-      st.lightboxProjectId = 'all';
+    if (!st.lightboxProjectId || st.lightboxProjectId === 'all' || st.lightboxProjectId === 'lbproj_character_lookdev' || (st.lightboxProjectId !== 'unsorted' && !v.lightboxProjects.some(p => p && p.id === st.lightboxProjectId))) {
+      st.lightboxProjectId = v.lightboxProjects[0]?.id || 'unsorted';
     }
-    // Default into Instagram room if filter is retired
-    if (!['Instagram Board', 'Portfolio Staging', 'All Assets'].includes(st.lightboxFilter)) {
+    // Default into Instagram room
+    if (!['Instagram Board', 'Portfolio Staging'].includes(st.lightboxFilter)) {
       st.lightboxFilter = 'Instagram Board';
     }
   }
@@ -24082,12 +24081,13 @@ function buildLightboxStacks(items) {
 }
 
 function getLightboxAssetsForActiveProject() {
-  const projId = state.lightboxProjectId || 'all';
   const validProjs = getLightboxProjects(vault);
-  if (projId !== 'all' && projId !== 'unsorted' && !validProjs.some(p => p.id === projId)) {
-    state.lightboxProjectId = validProjs[0]?.id || 'all';
+  let projId = state.lightboxProjectId;
+  if (!projId || projId === 'all' || (projId !== 'unsorted' && !validProjs.some(p => p.id === projId))) {
+    projId = validProjs[0]?.id || 'unsorted';
+    state.lightboxProjectId = projId;
   }
-  const activeProj = state.lightboxProjectId || 'all';
+  const activeProj = projId;
   return (vault.items || []).filter(it => {
     if (!it || !it.url) return false;
     if (it.parentType !== 'space' || it.parentId !== 'lightbox') return false;
@@ -26367,9 +26367,7 @@ function renderLightboxView(ws, spaceObj) {
 
   const activeFilter = state.lightboxFilter || 'Instagram Board';
   const activeRoom = getLightboxActiveRoom(activeFilter);
-  const activeSubView = activeRoom === 'instagram'
-    ? (state.lightboxIgSubView || 'pick')
-    : (activeRoom === 'website' ? (state.lightboxWebSubView || 'pick') : (state.lightboxSourceSubView || 'pick'));
+  const activeSubView = 'pick';
   const mediaKindFilter = state.lightboxMediaKind || 'all';
   const activeRatio = state.lightboxRatioFilter || 'all';
   const activeProjId = state.lightboxProjectId || 'all';
@@ -26554,15 +26552,34 @@ function renderLightboxView(ws, spaceObj) {
         ${filteredItems.map(it => buildLightboxAssetCardHtml(it, '', { room: activeRoom, isHiddenView: true })).join('')}
       </div>
     `;
-  } else if (activeRoom === 'website' && activeSubView === 'ready') {
+  } else if (activeRoom === 'website' && state.lightboxWebPreviewOn === true) {
     mainContentHtml = buildPortfolioStagingSubpageHtml(filteredItems, scaleStep);
-  } else if (activeRoom === 'instagram' && activeSubView === 'ready') {
+  } else if (activeRoom === 'instagram' && state.lightboxIgPreviewOn === true) {
     mainContentHtml = buildInstagramBoardSubpageHtml(filteredItems, scaleStep);
   } else {
     const showBothHeaders = imageItems.length > 0 && videoItems.length > 0;
     mainContentHtml = `
       ${renderLightboxMasterGroupHtml('Images', imageItems, scaleStep, showBothHeaders)}
       ${renderLightboxMasterGroupHtml('Videos', videoItems, scaleStep, showBothHeaders)}
+    `;
+  }
+
+  // Always show grey Hidden section at the bottom of the page whenever files are hidden in this room
+  if (roomHiddenItems.length > 0) {
+    mainContentHtml += `
+      <section class="lb-hidden-section" aria-label="Hidden files in ${activeRoom === 'instagram' ? 'Instagram' : 'Website'}">
+        <div class="lb-hidden-section-head">
+          <div class="lb-hidden-section-title">
+            <span>Hidden</span>
+            <span class="lb-hidden-count">${roomHiddenItems.length}</span>
+            <span class="lb-hidden-note">Excluded from ${activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready'} exports</span>
+          </div>
+          <button type="button" class="lb-tool-btn is-ghost" id="btnLbUnhideAllRoom">Unhide All</button>
+        </div>
+        <div class="lb-studio-grid lb-hidden-grid" data-scale-step="${scaleStep}">
+          ${roomHiddenItems.map(it => buildLightboxAssetCardHtml(it, '', { room: activeRoom, isHiddenView: true })).join('')}
+        </div>
+      </section>
     `;
   }
 
@@ -26586,45 +26603,29 @@ function renderLightboxView(ws, spaceObj) {
   const hasActiveViewFilter = activeFilterTokens.length > 0;
   const filterButtonLabel = hasActiveViewFilter ? `Filter · ${activeFilterTokens.join(' · ')}` : 'Filter';
 
-  // Inline Room Sub-View Controls (All Files | Ready | Hidden + Preview Mode)
+  // Room Preview Switcher (Grid vs 3x3 Feed in Instagram; Grid vs 12-Col in Website)
   let inlineModeControlsHtml = '';
-  if (allProjectItems.length > 0 && (activeRoom !== 'source' || roomHiddenItems.length > 0 || activeSubView === 'hidden')) {
-    const readyLabel = activeRoom === 'instagram' ? 'Instagram Ready' : 'Website Ready';
-    let subToggleExtra = '';
-    if (activeSubView === 'ready' && filteredItems.length > 0) {
-      if (activeRoom === 'website') {
-        const portMode = state.lightboxPortfolioViewMode || 'layout';
-        subToggleExtra = `
-          <div class="lb-inline-mode-tabs" id="lbPortfolioTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Website preview mode">
-            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabLayout" aria-selected="${portMode === 'layout' ? 'true' : 'false'}" ${portMode === 'layout' ? 'focusgroupstart' : ''}>12-Col</button>
-            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbPortTabGrid" aria-selected="${portMode === 'grid' ? 'true' : 'false'}" ${portMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
-          </div>
-        `;
-      } else if (activeRoom === 'instagram') {
-        const igMode = state.lightboxIgViewMode || 'profile';
-        subToggleExtra = `
-          <div class="lb-inline-mode-tabs" id="lbIgTablist" role="tablist" focusgroup="tablist nomemory" aria-label="Instagram preview mode">
-            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabProfile" aria-selected="${igMode === 'profile' ? 'true' : 'false'}" ${igMode === 'profile' ? 'focusgroupstart' : ''}>3×3 Feed</button>
-            <button type="button" role="tab" class="lb-inline-mode-tab" id="lbIgTabGrid" aria-selected="${igMode === 'grid' ? 'true' : 'false'}" ${igMode === 'grid' ? 'focusgroupstart' : ''}>Grid</button>
-          </div>
-        `;
-      }
-    } else if (activeSubView === 'hidden' && roomHiddenItems.length > 0) {
-      subToggleExtra = `<button type="button" class="lb-tool-btn is-ghost" id="btnLbUnhideAllRoom">Unhide All (${roomHiddenItems.length})</button>`;
+  if (roomVisibleItems.length > 0) {
+    if (activeRoom === 'instagram') {
+      const igPreviewOn = state.lightboxIgPreviewOn === true;
+      inlineModeControlsHtml = `
+        <div class="lb-inline-mode-tabs" role="group" aria-label="Instagram view">
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${!igPreviewOn ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="preview" aria-pressed="${igPreviewOn ? 'true' : 'false'}">3×3 Feed</button>
+        </div>
+      `;
+    } else if (activeRoom === 'website') {
+      const webPreviewOn = state.lightboxWebPreviewOn === true;
+      inlineModeControlsHtml = `
+        <div class="lb-inline-mode-tabs" role="group" aria-label="Website view">
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="grid" aria-pressed="${!webPreviewOn ? 'true' : 'false'}">Grid (${roomVisibleItems.length})</button>
+          <button type="button" class="lb-inline-mode-tab" data-lb-room-preview="preview" aria-pressed="${webPreviewOn ? 'true' : 'false'}">12-Col Layout</button>
+        </div>
+      `;
     }
-
-    inlineModeControlsHtml = `
-      <div class="lb-inline-mode-tabs" role="group" aria-label="Room view">
-        <button type="button" class="lb-inline-mode-tab" data-lb-subview="pick" aria-pressed="${activeSubView === 'pick' ? 'true' : 'false'}">All Files (${roomVisibleItems.length})</button>
-        ${activeRoom !== 'source' ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="ready" aria-pressed="${activeSubView === 'ready' ? 'true' : 'false'}">${readyLabel} (${roomKeptItems.length})</button>` : ''}
-        ${(roomHiddenItems.length > 0 || activeSubView === 'hidden') ? `<button type="button" class="lb-inline-mode-tab" data-lb-subview="hidden" aria-pressed="${activeSubView === 'hidden' ? 'true' : 'false'}">Hidden (${roomHiddenItems.length})</button>` : ''}
-      </div>
-      ${subToggleExtra}
-    `;
   }
 
   const projectScopeGroupHtml = [
-    `<button type="button" role="menuitemradio" aria-checked="${activeProjId === 'all' ? 'true' : 'false'}" data-lb-proj-select="all"><span>All Projects</span><span class="hint" aria-hidden="true">${allVaultLbAssets.length}</span></button>`,
     showUnsortedOption
       ? `<button type="button" role="menuitemradio" aria-checked="${activeProjId === 'unsorted' ? 'true' : 'false'}" data-lb-proj-select="unsorted"><span>Unsorted</span><span class="hint" aria-hidden="true">${unsortedLbAssets.length}</span></button>`
       : '',
@@ -27176,6 +27177,21 @@ function renderLightboxView(ws, spaceObj) {
       state.lightboxFilter = nextFilter;
       state.activeCategory = nextFilter;
       saveState();
+      renderWorkspace();
+    });
+  });
+
+  // Bind Grid vs 3x3 Feed / 12-Col Layout toggle
+  ws.querySelectorAll('[data-lb-room-preview]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isPreview = btn.dataset.lbRoomPreview === 'preview';
+      if (activeRoom === 'instagram') {
+        state.lightboxIgPreviewOn = isPreview;
+        state.lightboxIgViewMode = 'profile';
+      } else if (activeRoom === 'website') {
+        state.lightboxWebPreviewOn = isPreview;
+        state.lightboxPortfolioViewMode = 'layout';
+      }
       renderWorkspace();
     });
   });

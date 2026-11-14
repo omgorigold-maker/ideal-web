@@ -16404,3 +16404,49 @@ dialog.compare-dialog::backdrop {
   cursor: pointer;
 }
 
+
+/* Grey Hidden Section at the Bottom of Every Lightbox Page */
+.lb-hidden-section {
+  margin-top: 28px;
+  padding: 16px 18px 20px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.045);
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+}
+.lb-hidden-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.lb-hidden-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+.lb-hidden-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #475569;
+}
+.lb-hidden-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+.lb-hidden-grid .lb-studio-card {
+  opacity: 0.72;
+  filter: grayscale(0.35);
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+.lb-hidden-grid .lb-studio-card:hover {
+  opacity: 1;
+  filter: grayscale(0);
+}
