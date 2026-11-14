@@ -18914,10 +18914,11 @@ function renderCustomizeView(ws) {
     let cardBadgeHtml = '';
     if (isEditing) {
       cardBadgeHtml = `<span class="tpl-badge editing-badge">✎ EDITING</span>`;
+    } else if (isDefault) {
+      const defAccent = escapeHtml(tp.accent || '#db4f33');
+      cardBadgeHtml = `<span class="tpl-badge default-badge" style="border-color:${defAccent};color:${defAccent};background:color-mix(in srgb, ${defAccent} 12%, var(--surface));">Default Preset</span>`;
     } else if (isPreviewing) {
       cardBadgeHtml = `<span class="tpl-badge preview-badge">PREVIEWING</span>`;
-    } else if (isDefault) {
-      cardBadgeHtml = `<span class="tpl-badge default-badge">DEFAULT</span>`;
     }
 
     return `
@@ -18932,7 +18933,6 @@ function renderCustomizeView(ws) {
           </div>
           <div class="cust-template-badges">
             ${cardBadgeHtml}
-            ${!isDefault && !isEditing ? `<button type="button" class="cust-icon-btn make-default-icon" data-default-tpl="${escapeHtml(tpl.id)}" title="Set as Website Default">☆</button>` : ''}
             ${canDeletePreset && !isDefault && !isEditing ? `<button type="button" class="cust-icon-btn delete-icon" data-delete-tpl="${escapeHtml(tpl.id)}" title="Delete preset">✕</button>` : ''}
           </div>
         </div>
@@ -18940,7 +18940,7 @@ function renderCustomizeView(ws) {
           <div class="cust-template-title" style="font-family:${escapeHtml(tc.fontHeading || "'Syne', sans-serif")};">${escapeHtml(tpl.name)}</div>
           <div class="cust-template-meta">${escapeHtml(hLabel)} + ${escapeHtml(bLabel)} • ${escapeHtml(tp.name || 'Custom')}</div>
         </div>
-        <div class="cust-template-actions">
+        <div class="cust-template-actions ${!isEditing && isDefault ? 'single-action' : ''}">
           ${isEditing ? `
             <button type="button" class="outline-btn cust-btn-black" data-discard-tpl="${escapeHtml(tpl.id)}" title="Discard changes and exit editing">
               Discard Changes
@@ -18949,9 +18949,11 @@ function renderCustomizeView(ws) {
               Save
             </button>
           ` : `
-            <button type="button" class="outline-btn ${isPreviewing ? 'active' : ''}" data-preview-tpl="${escapeHtml(tpl.id)}" title="Preview preset live">
-              ${isPreviewing ? 'Previewing' : (isActive && isDefault ? '✓ Current' : 'Preview')}
-            </button>
+            ${!isDefault ? `
+              <button type="button" class="outline-btn" data-default-tpl="${escapeHtml(tpl.id)}" title="Set as Website Default">
+                Set as Default
+              </button>
+            ` : ''}
             <button type="button" class="outline-btn" data-edit-tpl="${escapeHtml(tpl.id)}" title="Edit this preset">
               ✎ Edit
             </button>
@@ -19016,7 +19018,6 @@ function renderCustomizeView(ws) {
     modeHeadingText = `${previewTpl?.name || 'Preset'} (Live Preview)`;
     modeDescText = `Temporary live preview — leaving this page returns to your default preset`;
     modeActionsHtml = `
-      <button type="button" class="outline-btn cust-btn-save" id="btnCustMakeDefault">Save as Default</button>
       <button type="button" class="outline-btn" id="btnCustEditThisTpl">Edit Preset</button>
       <button type="button" class="outline-btn" id="btnResetDefaults">Exit Preview</button>
     `;
@@ -19437,11 +19438,7 @@ function renderCustomizeView(ws) {
     if (previewTpl) startEditingTemplate(previewTpl.id);
   });
 
-  ws.querySelector('#btnCustMakeDefault')?.addEventListener('click', () => {
-    if (previewTpl) setTemplateAsWebsiteDefault(previewTpl.id);
-  });
-
-  // Preset Cards: Preview via button or clicking card body
+  // Preset Cards: Preview by clicking card body
   const triggerPreview = (tplId) => {
     const tpl = vault.customizationTemplates.find(t => t.id === tplId);
     if (!tpl) return;
@@ -19462,13 +19459,6 @@ function renderCustomizeView(ws) {
     renderWorkspace();
     showStatusToast(`👁 Previewing: ${tpl.name} (temporary)`);
   };
-
-  ws.querySelectorAll('[data-preview-tpl]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      triggerPreview(btn.dataset.previewTpl);
-    });
-  });
 
   ws.querySelectorAll('[data-preview-body]').forEach(el => {
     el.addEventListener('click', () => {

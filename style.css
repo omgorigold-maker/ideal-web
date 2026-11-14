@@ -9821,6 +9821,10 @@ dialog::backdrop {
   border-top: 1px solid var(--border);
 }
 
+.cust-template-actions.single-action {
+  grid-template-columns: 1fr;
+}
+
 .cust-template-actions .outline-btn,
 .cust-template-actions .primary-btn {
   padding: 5px 8px !important;
