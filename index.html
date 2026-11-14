@@ -152,8 +152,18 @@
           <div class="hud-cluster hud-cluster-left">
             <div class="hud-pill hud-nav-pill">
               <div class="hud-history-nav" role="group" aria-label="Page History">
-                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavBack" title="No previous page" aria-label="Back" disabled>←</button>
-                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavForward" title="No forward page" aria-label="Forward" disabled>→</button>
+                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavBack" title="No previous page" aria-label="Back" disabled>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12.5 8H3.5"/>
+                    <path d="M7.5 4L3.5 8L7.5 12"/>
+                  </svg>
+                </button>
+                <button type="button" class="hud-icon-btn hud-history-btn" id="btnNavForward" title="No forward page" aria-label="Forward" disabled>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3.5 8H12.5"/>
+                    <path d="M8.5 4L12.5 8L8.5 12"/>
+                  </svg>
+                </button>
               </div>
               <button type="button" class="hud-icon-btn" id="btnToggleSidebar" title="Toggle Sidebar">
                 <span>☰</span>
