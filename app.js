@@ -27915,10 +27915,10 @@ function renderLightboxView(ws, spaceObj) {
   ws.querySelector('#btnLbBatchExportFolder')?.addEventListener('click', () => {
     if (activeSubView === 'hidden') return;
     if (activeRoom === 'instagram') {
-      const toExport = roomKeptItems.length > 0 ? roomKeptItems : filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'instagram'));
+      const toExport = filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'instagram'));
       exportLightboxSelectedFolder(toExport, `${projLabel}_Instagram_Ready`);
     } else if (activeRoom === 'website') {
-      const toExport = roomKeptItems.length > 0 ? roomKeptItems : filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'website'));
+      const toExport = filteredItems.filter(i => !isLightboxHiddenInRoom(i, 'website'));
       exportLightboxSelectedFolder(toExport, `${projLabel}_Website_Ready`);
     } else {
       exportLightboxSelectedFolder(filteredItems, `${projLabel}_Source_Files`);
@@ -27941,7 +27941,22 @@ function renderLightboxView(ws, spaceObj) {
       openCompareDialog(null, { singleOnly: state.selectedCompareAssets.length === 1 });
       return;
     }
-    const pool = filteredItems.slice(0, 6);
+    let orderedPool = [...filteredItems];
+    if (activeRoom === 'instagram') {
+      const igTab = state.lightboxIgTab || (state.lightboxIgPreviewOn ? 'feed' : 'grid');
+      if (igTab === 'carousel') {
+        orderedPool = orderedPool
+          .filter(it => !it.igCarouselExcluded)
+          .sort((a, b) => (Number(a.igCarouselOrder ?? a.igBoardOrder ?? 9999) - Number(b.igCarouselOrder ?? b.igBoardOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
+      } else if (igTab === 'feed') {
+        orderedPool.sort((a, b) => (Number(a.igBoardOrder ?? 9999) - Number(b.igBoardOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
+      } else {
+        orderedPool.sort((a, b) => (Number(a.igGridOrder ?? 9999) - Number(b.igGridOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
+      }
+    } else if (activeRoom === 'website') {
+      orderedPool.sort((a, b) => (Number(a.webGridOrder ?? 9999) - Number(b.webGridOrder ?? 9999)) || (Number(b.createdAt || 0) - Number(a.createdAt || 0)));
+    }
+    const pool = orderedPool.slice(0, 6);
     if (pool.length === 0) return;
     state.selectedCompareAssets = pool.map(it => ({
       id: it.id,
@@ -27953,7 +27968,6 @@ function renderLightboxView(ws, spaceObj) {
       vaultItemId: it.id,
       notes: it.notes || ''
     }));
-    renderCompareFloatingBar();
     openCompareDialog();
   });
 
@@ -28011,8 +28025,26 @@ function renderLightboxView(ws, spaceObj) {
           }
         }
         state._lastLbSelectedId = clickedId;
-        renderWorkspace();
-        renderCompareFloatingBar();
+        for (let k = lo; k <= hi; k++) {
+          const selId = visibleCardIdsOrdered[k];
+          document.querySelectorAll(`#lightboxMainShell [data-lb-item-id="${CSS.escape(selId)}"]`).forEach(el => {
+            el.classList.add('is-compared');
+          });
+        }
+        const cnt = (state.selectedCompareAssets || []).length;
+        const selGroup = document.querySelector('#lightboxMainShell #lbSelActionsGroup');
+        if (selGroup) {
+          const cmpBtn = selGroup.querySelector('#btnLbCompareAllKept');
+          const hideBtn = selGroup.querySelector('#btnLbHideSelected');
+          const clrBtn = selGroup.querySelector('#btnLbClearSelection');
+          if (hideBtn) { hideBtn.hidden = cnt === 0; hideBtn.textContent = `Hide (${cnt})`; }
+          if (clrBtn) clrBtn.hidden = cnt === 0;
+          if (cmpBtn) {
+            cmpBtn.textContent = cnt > 0 ? `Compare (${cnt})` : 'Compare';
+            cmpBtn.classList.toggle('is-primary', cnt > 0);
+            cmpBtn.classList.toggle('is-ghost', cnt === 0);
+          }
+        }
         return;
       }
 
@@ -28096,8 +28128,26 @@ function renderLightboxView(ws, spaceObj) {
           }
         }
         state._lastLbSelectedId = clickedId;
-        renderWorkspace();
-        renderCompareFloatingBar();
+        for (let k = lo; k <= hi; k++) {
+          const selId = visibleCardIdsOrdered[k];
+          document.querySelectorAll(`#lightboxMainShell [data-lb-item-id="${CSS.escape(selId)}"]`).forEach(el => {
+            el.classList.add('is-compared');
+          });
+        }
+        const cnt = (state.selectedCompareAssets || []).length;
+        const selGroup = document.querySelector('#lightboxMainShell #lbSelActionsGroup');
+        if (selGroup) {
+          const cmpBtn = selGroup.querySelector('#btnLbCompareAllKept');
+          const hideBtn = selGroup.querySelector('#btnLbHideSelected');
+          const clrBtn = selGroup.querySelector('#btnLbClearSelection');
+          if (hideBtn) { hideBtn.hidden = cnt === 0; hideBtn.textContent = `Hide (${cnt})`; }
+          if (clrBtn) clrBtn.hidden = cnt === 0;
+          if (cmpBtn) {
+            cmpBtn.textContent = cnt > 0 ? `Compare (${cnt})` : 'Compare';
+            cmpBtn.classList.toggle('is-primary', cnt > 0);
+            cmpBtn.classList.toggle('is-ghost', cnt === 0);
+          }
+        }
         return;
       }
 
@@ -28323,16 +28373,8 @@ function renderLightboxView(ws, spaceObj) {
         sizeLabel: it.fileSize ? formatBytes(it.fileSize) : ''
       };
     };
-    card.addEventListener('mouseenter', () => {
-      setQuickLookTarget();
-      vids.forEach(v => v.play().catch(() => {}));
-    });
+    card.addEventListener('mouseenter', setQuickLookTarget);
     card.addEventListener('focusin', setQuickLookTarget);
-    card.addEventListener('mouseleave', () => {
-      if (!card.classList.contains('lb-portfolio-block')) {
-        vids.forEach(v => v.pause());
-      }
-    });
 
     // Right-click Context Menu on any Lightbox card, pile, IG cell, or Portfolio block
     card.addEventListener('contextmenu', (e) => {
@@ -28405,15 +28447,40 @@ function renderLightboxView(ws, spaceObj) {
       if (!activeGridDragCard || activeGridSource !== gridEl) return;
       e.preventDefault();
       e.stopPropagation();
-      const target = e.target.closest('.lb-studio-card[data-lb-item-id]');
+      const cards = [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')];
+      let target = e.target.closest('.lb-studio-card[data-lb-item-id]');
+      let insertAfter = null;
+      if (!target || !gridEl.contains(target)) {
+        // Dropped in the gap between cards: snap to closest card in the same grid
+        let bestDist = Infinity;
+        let bestCard = null;
+        for (const c of cards) {
+          if (c === activeGridDragCard) continue;
+          const r = c.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestCard = c;
+          }
+        }
+        target = bestCard;
+        if (target) {
+          const r = target.getBoundingClientRect();
+          insertAfter = e.clientX > (r.left + r.width / 2);
+        }
+      }
       clearGridDrop();
       if (!target || target === activeGridDragCard || !gridEl.contains(target)) return;
-      const cards = [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')];
       const fromIdx = cards.indexOf(activeGridDragCard);
       const toIdx = cards.indexOf(target);
       if (fromIdx === -1 || toIdx === -1) return;
-      if (fromIdx < toIdx) target.after(activeGridDragCard);
-      else target.before(activeGridDragCard);
+      if (insertAfter === true || (insertAfter === null && fromIdx < toIdx)) {
+        target.after(activeGridDragCard);
+      } else {
+        target.before(activeGridDragCard);
+      }
 
       const itemById = new Map((vault.items || []).map(i => [i.id, i]));
       [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')].forEach((c, idx) => {
