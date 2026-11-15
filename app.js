@@ -13435,6 +13435,12 @@ function renderItemsCollection(ws, parentType, parentObj) {
     }
   }
 
+  // Module 02: Dedicated Incubator Studio (Bear + Obsidian Visual Workspace)
+  if (parentType === 'space' && parentObj.id === 'incubator' && mode === 'giant_wall') {
+    renderIncubatorStudio(ws, parentObj, items);
+    return;
+  }
+
   // Module 1: The "Giant Wall" (Milanote-Style Spatial Board with Nested Folders, Columns, Snap Grid & Inline Cards)
   if (mode === 'giant_wall') {
     renderGiantWallView(ws, parentType, parentObj, items);
@@ -13843,6 +13849,357 @@ async function runIncubatorSmartCluster() {
   );
 }
 
+function renderIncubatorStudio(ws, spaceObj, items) {
+  const allIncItems = (vault.items || []).filter(
+    it => it.parentType === 'space' && it.parentId === 'incubator' && !['line', 'sphere'].includes(it.kind)
+  );
+  const tagCounts = new Map();
+  allIncItems.forEach(it => {
+    (it.tags || []).forEach(t => {
+      if (!t || t === 'All') return;
+      tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+    });
+  });
+
+  const activeTag = state.incubatorActiveTag || '';
+  const visibleItems = activeTag
+    ? items.filter(it => Array.isArray(it.tags) && it.tags.includes(activeTag))
+    : items;
+
+  const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
+  const stageTabs = ['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'];
+  const stageCount = (tabName) => tabName === 'All'
+    ? allIncItems.length
+    : allIncItems.filter(i => i.section === tabName).length;
+
+  ws.innerHTML = `
+    <div class="inc-studio-shell">
+      <aside class="inc-bear-sidebar" id="incBearSidebar">
+        <div class="inc-dump-box">
+          <div class="kicker-mono" style="font-size:10px;color:var(--accent);margin-bottom:6px;">⚡ INSTANT DUMP</div>
+          <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="2" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
+        </div>
+        <div class="inc-bear-section">
+          <div class="inc-bear-heading">STAGES</div>
+          ${stageTabs.map(t => `
+            <button type="button" class="inc-bear-nav-btn ${(state.activeCategory || 'All') === t && !activeTag ? 'is-active' : ''}" data-inc-stage="${escapeHtml(t)}">
+              <span>${t === 'All' ? '◈ All Sparks' : (t === 'Hatching Up' ? '🌱 Hatching Up' : (t === 'Sparks & Notes' ? '✎ Sparks & Notes' : '✦ Clusters'))}</span>
+              <span class="inc-bear-count">${stageCount(t)}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="inc-bear-section">
+          <div class="inc-bear-heading"># TAGS (BEAR)</div>
+          <div class="inc-bear-tag-list">
+            ${Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]).map(([tag, cnt]) => `
+              <button type="button" class="inc-bear-tag-btn ${activeTag === tag ? 'is-active' : ''}" data-inc-tag="${escapeHtml(tag)}">
+                <span>#${escapeHtml(tag)}</span>
+                <span class="inc-bear-count">${cnt}</span>
+              </button>
+            `).join('') || '<div class="inc-bear-empty">Drop or dump ideas to auto-tag</div>'}
+          </div>
+        </div>
+      </aside>
+
+      <div class="inc-studio-main">
+        <div class="inc-studio-topbar">
+          <div class="inc-mode-switch">
+            <button type="button" class="inc-mode-btn ${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">◈ Visual Wall</button>
+            <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">◎ Obsidian Graph</button>
+          </div>
+          <div class="inc-topbar-actions">
+            ${activeTag ? `<button type="button" class="cmp-chip-btn is-active" id="btnIncClearTag">#${escapeHtml(activeTag)} ×</button>` : ''}
+            <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">✦ Smart Cluster</button>
+            <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">🔗 ${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Sparks'}</button>
+          </div>
+        </div>
+        <div class="inc-stage-host" id="incStageHost"></div>
+      </div>
+
+      <aside class="inc-bear-editor" id="incBearEditor" ${state.incubatorEditorId ? '' : 'hidden'}></aside>
+    </div>
+  `;
+
+  // Wire Instant Dump Box
+  const dumpInput = ws.querySelector('#incQuickDumpInput');
+  dumpInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const raw = (dumpInput.value || '').trim();
+      if (!raw) return;
+      const isUrl = /^https?:\/\/\S+$/i.test(raw);
+      const hashTags = Array.from(raw.matchAll(/#([a-zA-Z0-9_-]+)/g)).map(m => m[1]);
+      const spot = findNextOpenBoardSpot();
+      const newItem = {
+        id: 'itm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        parentType: 'space',
+        parentId: 'incubator',
+        folderId: state.activeFolderId || null,
+        section: (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '',
+        kind: isUrl ? 'link' : (raw.includes('[ ]') ? 'checklist' : 'note'),
+        title: isUrl ? raw.replace(/^https?:\/\//, '').slice(0, 42) : raw.split('\n')[0].slice(0, 48),
+        status: isUrl ? '🔗 Link' : '✦ Spark',
+        url: '',
+        link: isUrl ? raw : '',
+        notes: isUrl ? '' : raw,
+        tags: hashTags,
+        linkedIds: [],
+        wallX: spot.x,
+        wallY: spot.y,
+        wallW: 264,
+        createdAt: Date.now()
+      };
+      autoClassifyIncubatorItem(newItem, (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '');
+      vault.items.unshift(newItem);
+      dumpInput.value = '';
+      saveVault('DUMPED TO INCUBATOR');
+      renderAll();
+    }
+  });
+
+  // Wire Bear Sidebar stage & tag filters
+  ws.querySelectorAll('[data-inc-stage]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.incubatorActiveTag = '';
+      state.activeCategory = btn.dataset.incStage || 'All';
+      renderAll();
+    });
+  });
+  ws.querySelectorAll('[data-inc-tag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.incTag || '';
+      state.incubatorActiveTag = state.incubatorActiveTag === t ? '' : t;
+      renderWorkspace();
+    });
+  });
+  ws.querySelector('#btnIncClearTag')?.addEventListener('click', () => {
+    state.incubatorActiveTag = '';
+    renderWorkspace();
+  });
+
+  // Wire Topbar modes & actions
+  ws.querySelectorAll('[data-inc-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.incubatorViewMode = btn.dataset.incView;
+      renderWorkspace();
+    });
+  });
+  ws.querySelector('#btnIncSmartCluster')?.addEventListener('click', () => runIncubatorSmartCluster());
+  ws.querySelector('#btnIncLinkMode')?.addEventListener('click', () => {
+    state.incubatorLinkMode = !state.incubatorLinkMode;
+    state.incubatorLinkSourceId = null;
+    renderWorkspace();
+  });
+
+  const stageHost = ws.querySelector('#incStageHost');
+  if (incView === 'graph') {
+    renderIncubatorGraphView(stageHost, visibleItems);
+  } else {
+    renderGiantWallView(stageHost, 'space', spaceObj, visibleItems);
+  }
+
+  if (state.incubatorEditorId) {
+    renderIncubatorBearEditor(ws.querySelector('#incBearEditor'), state.incubatorEditorId);
+  }
+}
+
+function renderIncubatorGraphView(host, items) {
+  if (!host) return;
+  const nodes = items.filter(it => !['line', 'sphere'].includes(it.kind));
+  if (nodes.length === 0) {
+    host.innerHTML = `<div class="inc-graph-empty">No sparks here yet — dump notes, images, or links on the left to watch your visual graph grow.</div>`;
+    return;
+  }
+
+  // Group nodes into cluster rings by section/primary tag
+  const groups = new Map();
+  nodes.forEach(n => {
+    const key = (n.section === 'Clusters' && n.tags?.[0]) ? n.tags[0] : (n.section || 'Hatching Up');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(n);
+  });
+
+  const width = Math.max(920, host.clientWidth || 960);
+  const height = Math.max(580, host.clientHeight || 620);
+  const posMap = new Map();
+  const groupKeys = Array.from(groups.keys());
+
+  groupKeys.forEach((gKey, gIdx) => {
+    const gNodes = groups.get(gKey);
+    const angle = (gIdx / Math.max(1, groupKeys.length)) * Math.PI * 2 - Math.PI / 2;
+    const cx = groupKeys.length === 1 ? width / 2 : width / 2 + Math.cos(angle) * (width * 0.24);
+    const cy = groupKeys.length === 1 ? height / 2 : height / 2 + Math.sin(angle) * (height * 0.22);
+    gNodes.forEach((n, idx) => {
+      const subAngle = (idx / Math.max(1, gNodes.length)) * Math.PI * 2;
+      const r = gNodes.length === 1 ? 0 : Math.min(130, 55 + gNodes.length * 14);
+      posMap.set(n.id, {
+        x: Math.round(cx + Math.cos(subAngle) * r),
+        y: Math.round(cy + Math.sin(subAngle) * r),
+        group: gKey
+      });
+    });
+  });
+
+  const drawn = new Set();
+  let linesSvg = '';
+  nodes.forEach(a => {
+    const pa = posMap.get(a.id);
+    if (!pa) return;
+    (a.linkedIds || []).forEach(bId => {
+      const pb = posMap.get(bId);
+      if (!pb) return;
+      const key = a.id < bId ? `${a.id}|${bId}` : `${bId}|${a.id}`;
+      if (drawn.has(key)) return;
+      drawn.add(key);
+      linesSvg += `<line class="inc-graph-edge" x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" />`;
+    });
+  });
+
+  host.innerHTML = `
+    <div class="inc-graph-stage">
+      <svg class="inc-graph-svg" viewBox="0 0 ${width} ${height}">${linesSvg}</svg>
+      <div class="inc-graph-nodes">
+        ${nodes.map(n => {
+          const p = posMap.get(n.id);
+          const isVisual = n.url && n.kind !== 'audio';
+          const isSelected = state.incubatorEditorId === n.id;
+          return `
+            <button type="button" class="inc-graph-node ${isVisual ? 'is-visual' : ''} ${isSelected ? 'is-selected' : ''}" data-node-id="${escapeHtml(n.id)}" style="left:${p.x}px;top:${p.y}px;">
+              ${isVisual ? `<img src="${escapeHtml(n.url)}" alt="">` : `<span class="inc-graph-node-icon">${n.kind === 'link' ? '🔗' : (n.kind === 'checklist' ? '☑' : '✦')}</span>`}
+              <span class="inc-graph-node-label">${escapeHtml((n.title || 'Spark').slice(0, 26))}</span>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  host.querySelectorAll('.inc-graph-node').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.nodeId;
+      if (state.incubatorLinkMode) {
+        if (!state.incubatorLinkSourceId) {
+          state.incubatorLinkSourceId = id;
+          showStatusToast('🔗 Now click a second node to connect');
+          renderWorkspace();
+        } else if (state.incubatorLinkSourceId !== id) {
+          const linked = toggleIncubatorLink(state.incubatorLinkSourceId, id);
+          state.incubatorLinkMode = false;
+          state.incubatorLinkSourceId = null;
+          showStatusToast(linked ? '🔗 Nodes connected!' : 'Connection removed');
+          renderWorkspace();
+        }
+        return;
+      }
+      state.incubatorEditorId = id;
+      renderWorkspace();
+    });
+  });
+}
+
+function renderIncubatorBearEditor(panel, itemId) {
+  if (!panel) return;
+  const it = (vault.items || []).find(x => x.id === itemId);
+  if (!it) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  const allOther = (vault.items || []).filter(x => x.parentType === 'space' && x.parentId === 'incubator' && x.id !== it.id && !['line', 'sphere'].includes(x.kind));
+  const linkedItems = (it.linkedIds || []).map(id => allOther.find(x => x.id === id)).filter(Boolean);
+
+  panel.innerHTML = `
+    <div class="inc-editor-header">
+      <select id="incEdStage" class="inc-editor-stage-sel">
+        ${['Hatching Up', 'Sparks & Notes', 'Clusters'].map(s => `<option value="${s}" ${it.section === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" class="hover-act-btn" id="btnIncEdPromote" style="opacity:1;" title="Promote to Studio Project">↗ Project</button>
+        <button type="button" class="icon-close-btn" id="btnIncEdClose">×</button>
+      </div>
+    </div>
+    <input type="text" id="incEdTitle" class="inc-editor-title" value="${escapeHtml(it.title || '')}" placeholder="Spark title…">
+    <div class="inc-editor-tags">
+      ${(it.tags || []).map(t => `<span class="tag-chip">#${escapeHtml(t)} <button type="button" class="inc-tag-x" data-rm-tag="${escapeHtml(t)}">×</button></span>`).join('')}
+      <input type="text" id="incEdAddTag" class="inc-editor-tag-input" placeholder="+ #tag">
+    </div>
+    ${it.url && it.kind !== 'audio' ? `<div class="inc-editor-media"><img src="${escapeHtml(it.url)}" alt=""></div>` : ''}
+    ${it.link ? `<a href="${escapeHtml(it.link)}" target="_blank" rel="noopener" class="inc-editor-link">↗ ${escapeHtml(it.link)}</a>` : ''}
+    <textarea id="incEdNotes" class="inc-editor-notes" placeholder="Write thoughts, [[links]], or [ ] checklist items…">${escapeHtml(it.notes || '')}</textarea>
+    <div class="inc-editor-links-box">
+      <div class="inc-bear-heading" style="margin-bottom:6px;">CONNECTED SPARKS (${linkedItems.length})</div>
+      <div class="inc-editor-links-list">
+        ${linkedItems.map(li => `
+          <span class="tag-chip" style="cursor:pointer;" data-jump-id="${escapeHtml(li.id)}">🔗 ${escapeHtml((li.title || 'Spark').slice(0, 24))} <button type="button" class="inc-tag-x" data-unlink-id="${escapeHtml(li.id)}">×</button></span>
+        `).join('') || '<span style="font-size:11px;color:var(--text-faint);">No connections yet</span>'}
+      </div>
+      <select id="incEdLinkSelect" class="inspector-input" style="margin-top:8px;font-size:11.5px;">
+        <option value="">+ Connect to another spark…</option>
+        ${allOther.filter(o => !(it.linkedIds || []).includes(o.id)).map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml((o.title || 'Spark').slice(0, 42))}</option>`).join('')}
+      </select>
+    </div>
+  `;
+
+  panel.querySelector('#btnIncEdClose')?.addEventListener('click', () => {
+    state.incubatorEditorId = null;
+    renderWorkspace();
+  });
+  panel.querySelector('#btnIncEdPromote')?.addEventListener('click', () => promoteIncubatorItemToProject(it.id));
+  panel.querySelector('#incEdStage')?.addEventListener('change', (e) => {
+    it.section = e.target.value;
+    saveVault('UPDATED STAGE');
+    renderWorkspace();
+  });
+  panel.querySelector('#incEdTitle')?.addEventListener('change', (e) => {
+    it.title = e.target.value.trim() || 'Spark';
+    saveVault('UPDATED TITLE');
+    renderWorkspace();
+  });
+  panel.querySelector('#incEdNotes')?.addEventListener('change', (e) => {
+    it.notes = e.target.value;
+    saveVault('UPDATED NOTES');
+  });
+  panel.querySelector('#incEdAddTag')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = e.target.value.trim().replace(/^#/, '');
+      if (val) {
+        it.tags = Array.from(new Set([...(it.tags || []), val]));
+        saveVault('ADDED TAG');
+        renderWorkspace();
+      }
+    }
+  });
+  panel.querySelectorAll('[data-rm-tag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rm = btn.dataset.rmTag;
+      it.tags = (it.tags || []).filter(t => t !== rm);
+      saveVault('REMOVED TAG');
+      renderWorkspace();
+    });
+  });
+  panel.querySelectorAll('[data-jump-id]').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      if (e.target.closest('[data-unlink-id]')) return;
+      state.incubatorEditorId = chip.dataset.jumpId;
+      renderWorkspace();
+    });
+  });
+  panel.querySelectorAll('[data-unlink-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleIncubatorLink(it.id, btn.dataset.unlinkId);
+      renderWorkspace();
+    });
+  });
+  panel.querySelector('#incEdLinkSelect')?.addEventListener('change', (e) => {
+    if (e.target.value) {
+      toggleIncubatorLink(it.id, e.target.value);
+      renderWorkspace();
+    }
+  });
+}
+
 /* --------------------------------------------------------------------------
    MODULE 1: THE "GIANT WALL" (Milanote-Style Spatial Board + Nested Folders)
    -------------------------------------------------------------------------- */
@@ -13851,16 +14208,8 @@ function renderGiantWallView(ws, parentType, parentObj, items) {
   const isIncubator = parentType === 'space' && parentObj.id === 'incubator';
   const isDelivered = isProject && parentObj.lifecycleState === 'delivered';
 
-  const incubatorBarHtml = isIncubator ? `
-    <div class="incubator-smart-bar" id="incubatorSmartBar">
-      <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">✦ Smart Cluster</button>
-      <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to draw a visual Obsidian-style connection line">🔗 ${state.incubatorLinkMode ? 'Linking: Click 2 Cards' : 'Link Sparks'}</button>
-    </div>
-  ` : '';
-
   ws.innerHTML = `
     <div class="giant-wall-stage" id="giantWallStage">
-      ${incubatorBarHtml}
       <div class="giant-wall-plane" id="giantWallPlane">
         <div class="wall-snap-preview" id="wallSnapPreview" hidden></div>
       </div>
@@ -13879,15 +14228,6 @@ function renderGiantWallView(ws, parentType, parentObj, items) {
   const stage = ws.querySelector('#giantWallStage');
   const plane = ws.querySelector('#giantWallPlane');
   if (!stage || !plane) return;
-
-  if (isIncubator) {
-    ws.querySelector('#btnIncSmartCluster')?.addEventListener('click', () => runIncubatorSmartCluster());
-    ws.querySelector('#btnIncLinkMode')?.addEventListener('click', () => {
-      state.incubatorLinkMode = !state.incubatorLinkMode;
-      state.incubatorLinkSourceId = null;
-      renderWorkspace();
-    });
-  }
 
   ws.querySelector('#btnWallDeliverProj')?.addEventListener('click', () => {
     deliverProjectAndSpawnShowcase(parentObj.id);
