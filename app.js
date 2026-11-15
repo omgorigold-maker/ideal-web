@@ -21687,12 +21687,50 @@ function initEvents() {
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
       e.preventDefault();
-      document.getElementById('btnBatchSelectAll')?.click();
+      const shell = document.getElementById('lightboxMainShell');
+      if (!shell) return;
+      const cards = Array.from(shell.querySelectorAll('.lb-studio-card:not(.is-render-pile)[data-lb-item-id], .lb-ig-cell[data-lb-item-id], .lb-ig-reel-card[data-lb-item-id], .lb-ig-carousel-thumb[data-lb-item-id]'));
+      if (!cards.length) return;
+      state.selectedCompareAssets = [];
+      const seen = new Set();
+      cards.forEach(c => {
+        const id = c.dataset.lbItemId;
+        if (!id || seen.has(id)) return;
+        const it = (vault.items || []).find(i => i.id === id);
+        if (!it) return;
+        seen.add(id);
+        state.selectedCompareAssets.push({
+          id: it.id,
+          title: it.title || 'Asset',
+          url: it.url,
+          kind: getLightboxMasterMediaKind(it),
+          igStatus: it.igStatus || '',
+          lightboxKeep: Boolean(it.lightboxKeep),
+          vaultItemId: it.id,
+          notes: it.notes || ''
+        });
+        c.classList.add('is-compared');
+      });
+      const cnt = state.selectedCompareAssets.length;
+      const selGroup = shell.querySelector('#lbSelActionsGroup');
+      if (selGroup) {
+        const cmpBtn = selGroup.querySelector('#btnLbCompareAllKept');
+        const hideBtn = selGroup.querySelector('#btnLbHideSelected');
+        const clrBtn = selGroup.querySelector('#btnLbClearSelection');
+        if (hideBtn) { hideBtn.hidden = cnt === 0; hideBtn.textContent = `Hide (${cnt})`; }
+        if (clrBtn) clrBtn.hidden = cnt === 0;
+        if (cmpBtn) {
+          cmpBtn.hidden = cnt === 0 && cmpBtn.dataset.canCompareDefault !== '1';
+          cmpBtn.textContent = cnt > 0 ? `Compare (${cnt})` : 'Compare';
+          cmpBtn.classList.toggle('is-primary', cnt > 0);
+          cmpBtn.classList.toggle('is-ghost', cnt === 0);
+        }
+      }
       return;
     }
     if ((e.key === 'Delete' || e.key === 'Backspace') && sel.length > 0) {
       e.preventDefault();
-      document.getElementById('btnBatchTrashSelected')?.click();
+      document.getElementById('btnLbHideSelected')?.click();
       return;
     }
     if (e.key === 'Escape' && sel.length > 0) {
@@ -23034,6 +23072,24 @@ function undoLightboxAction() {
       it[f] = Boolean(action.prevHidden);
     }
     saveVault('UNDO ROOM HIDE');
+  } else if (action.type === 'room_hide_batch') {
+    const f = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+    (action.entries || []).forEach(en => {
+      const it = (vault.items || []).find(i => i.id === en.id);
+      if (it) it[f] = Boolean(en.prevHidden);
+    });
+    saveVault('UNDO BATCH HIDE');
+  } else if (action.type === 'reorder_field') {
+    const field = action.field;
+    if (field) {
+      (action.entries || []).forEach(en => {
+        const it = (vault.items || []).find(i => i.id === en.id);
+        if (!it) return;
+        if (en.prevVal === undefined) delete it[field];
+        else it[field] = en.prevVal;
+      });
+      saveVault('UNDO REORDER');
+    }
   } else if (action.type === 'room_unhide_all') {
     const ids = new Set(action.itemIds || []);
     const field = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
@@ -23130,6 +23186,24 @@ function redoLightboxAction() {
       it[f] = Boolean(action.nextHidden);
     }
     saveVault('REDO ROOM HIDE');
+  } else if (action.type === 'room_hide_batch') {
+    const f = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+    (action.entries || []).forEach(en => {
+      const it = (vault.items || []).find(i => i.id === en.id);
+      if (it) it[f] = Boolean(en.nextHidden);
+    });
+    saveVault('REDO BATCH HIDE');
+  } else if (action.type === 'reorder_field') {
+    const field = action.field;
+    if (field) {
+      (action.entries || []).forEach(en => {
+        const it = (vault.items || []).find(i => i.id === en.id);
+        if (!it) return;
+        if (en.nextVal === undefined) delete it[field];
+        else it[field] = en.nextVal;
+      });
+      saveVault('REDO REORDER');
+    }
   } else if (action.type === 'room_unhide_all') {
     const ids = new Set(action.itemIds || []);
     const field = action.room === 'instagram' ? 'lbIgHidden' : (action.room === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
@@ -23501,9 +23575,20 @@ async function linkLocalFilesIntoLightbox(entries, opts = {}) {
     }
     targetProjId = existingProj.id;
     state.lightboxProjectId = targetProjId;
-  } else if (targetProjId === 'all') {
-    // If adding loose files while viewing All Projects, place in active/first project if only 0 exist, otherwise keep cleanly in Unsorted or create 'Local Selects'
-    targetProjId = 'unsorted';
+  } else if (targetProjId === 'all' || targetProjId === 'unsorted') {
+    if (lbProjects.length > 0) {
+      targetProjId = lbProjects[0].id;
+    } else {
+      const defaultProj = {
+        id: 'lbproj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        title: 'Studio Selects',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      lbProjects.unshift(defaultProj);
+      targetProjId = defaultProj.id;
+    }
+    state.lightboxProjectId = targetProjId;
   }
 
   if (opts.dirHandle && targetProjId && targetProjId !== 'all' && targetProjId !== 'unsorted') {
@@ -25836,6 +25921,9 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
     `;
   }).join('');
 
+  const activeRoom = getLightboxActiveRoom();
+  const isHiddenInRoom = isLightboxHiddenInRoom(it, activeRoom);
+
   inner.innerHTML = isPile
     ? `
       <button type="button" data-lb-menu-act="compare-pile-stack">
@@ -25850,21 +25938,6 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         <span class="lb-menu-icon" aria-hidden="true">✓</span>
         <span>Select All ${pile.items.length} Versions</span>
       </button>
-      <hr>
-      <button type="button" data-lb-menu-move="unsorted" ${currentProjId === 'unsorted' ? 'aria-disabled="true" disabled' : ''}>
-        <span class="lb-menu-icon" aria-hidden="true">${currentProjId === 'unsorted' ? '✓' : '📥'}</span>
-        <span>Move Stack to Unsorted</span>
-      </button>
-      ${projItemsHtml}
-      <button type="button" data-lb-menu-act="move-new-proj">
-        <span class="lb-menu-icon" aria-hidden="true">＋</span>
-        <span>Move Stack to New Project…</span>
-      </button>
-      <hr>
-      <button type="button" class="is-danger-item" data-lb-menu-act="trash-pile">
-        <span class="lb-menu-icon" aria-hidden="true">✕</span>
-        <span>Remove Stack (${pile.items.length}) from Lightbox…</span>
-      </button>
     `
     : `
       <button type="button" data-lb-menu-act="inspect">
@@ -25875,36 +25948,21 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
         <span class="lb-menu-icon" aria-hidden="true">${isAssetCompareSelected(it.id) ? '✕' : '✓'}</span>
         <span>${isAssetCompareSelected(it.id) ? 'Deselect' : 'Select'}</span>
       </button>
-      <button type="button" data-lb-menu-act="rename">
-        <span class="lb-menu-icon" aria-hidden="true">✎</span>
-        <span>Rename…</span>
+      <button type="button" data-lb-menu-act="hide-in-room">
+        <span class="lb-menu-icon" aria-hidden="true">${isHiddenInRoom ? '👁' : '✕'}</span>
+        <span>${isHiddenInRoom ? 'Unhide in Room' : 'Hide from Room'}</span>
       </button>
       <button type="button" data-lb-menu-act="reveal-finder">
         <span class="lb-menu-icon" aria-hidden="true">📂</span>
         <span>Reveal in Finder</span>
       </button>
-      <hr>
-      <button type="button" data-lb-menu-move="unsorted" ${currentProjId === 'unsorted' ? 'aria-disabled="true" disabled' : ''}>
-        <span class="lb-menu-icon" aria-hidden="true">${currentProjId === 'unsorted' ? '✓' : '📥'}</span>
-        <span>Move to Unsorted</span>
-      </button>
-      ${projItemsHtml}
-      <button type="button" data-lb-menu-act="move-new-proj">
-        <span class="lb-menu-icon" aria-hidden="true">＋</span>
-        <span>Move to New Project…</span>
-      </button>
-      <hr>
       ${dlHref ? `
+        <hr>
         <a href="${escapeHtml(dlHref)}" download="${escapeHtml(dlName)}" data-lb-menu-download="1">
           <span class="lb-menu-icon" aria-hidden="true">↓</span>
           <span>Download Copy</span>
         </a>
       ` : ''}
-      <button type="button" class="is-danger-item" data-lb-menu-act="trash-item">
-        <span class="lb-menu-icon" aria-hidden="true">✕</span>
-        <span>Remove from Lightbox…</span>
-        <span class="hint" aria-hidden="true">⌫</span>
-      </button>
     `;
 
   syncMenuRolesFallback(inner);
@@ -25963,8 +26021,8 @@ function openLightboxCardContextMenu(targetSpec, sourceElOrPoint, { fromKeyboard
           vaultItemId: it.id,
           notes: it.notes || ''
         });
-      } else if (act === 'rename') {
-        requestAnimationFrame(() => startInlineLightboxCardRename(it.id));
+      } else if (act === 'hide-in-room') {
+        toggleLightboxRoomHide(it.id, activeRoom, !isHiddenInRoom);
       } else if (act === 'reveal-finder') {
         revealLightboxItemInFinder(it);
       } else if (act === 'details') {
@@ -27502,9 +27560,19 @@ function renderLightboxView(ws, spaceObj) {
       const dir = parseInt(btn.dataset.dir, 10) || 0;
       const targetIdx = idx + dir;
       if (idx === -1 || targetIdx < 0 || targetIdx >= sorted.length) return;
+      const prevMap = new Map(sorted.map(item => [item.id, item.portfolioOrder]));
       const [moved] = sorted.splice(idx, 1);
       sorted.splice(targetIdx, 0, moved);
-      sorted.forEach((item, i) => { item.portfolioOrder = i + 1; });
+      const undoEntries = [];
+      sorted.forEach((item, i) => {
+        const nextVal = i + 1;
+        const prevVal = prevMap.get(item.id);
+        if (prevVal !== nextVal) undoEntries.push({ id: item.id, prevVal, nextVal });
+        item.portfolioOrder = nextVal;
+      });
+      if (undoEntries.length) {
+        pushLightboxUndo({ type: 'reorder_field', desc: 'Reordered Website layout', field: 'portfolioOrder', entries: undoEntries });
+      }
       saveVault('PORTFOLIO ORDER UPDATED');
       renderWorkspace();
     });
@@ -27522,9 +27590,15 @@ function renderLightboxView(ws, spaceObj) {
     if (!container) return;
     const itemById = new Map(filteredItems.map(i => [i.id, i]));
     const cards = [...container.querySelectorAll(cardSelector)];
+    const undoEntries = [];
     cards.forEach((card, idx) => {
       const item = itemById.get(card.dataset.lbItemId);
-      if (item) item[orderKey] = idx + 1;
+      if (item) {
+        const prevVal = item[orderKey];
+        const nextVal = idx + 1;
+        if (prevVal !== nextVal) undoEntries.push({ id: item.id, prevVal, nextVal });
+        item[orderKey] = nextVal;
+      }
       const badge = card.querySelector('.lb-ig-cell-badge');
       if (badge) {
         if (isReel) {
@@ -27539,6 +27613,9 @@ function renderLightboxView(ws, spaceObj) {
       if (prevBtn) prevBtn.hidden = idx === 0;
       if (nextBtn) nextBtn.hidden = idx >= cards.length - 1;
     });
+    if (undoEntries.length) {
+      pushLightboxUndo({ type: 'reorder_field', desc: isReel ? 'Reordered Reels' : 'Reordered Feed', field: orderKey, entries: undoEntries });
+    }
     saveVault(isReel ? 'IG REEL ORDER UPDATED' : 'IG FEED ORDER UPDATED');
   };
 
@@ -27933,9 +28010,15 @@ function renderLightboxView(ws, spaceObj) {
         const updatedThumbs = [...strip.querySelectorAll('.lb-ig-carousel-thumb')];
         const itemById = new Map(filteredItems.map(i => [i.id, i]));
         let newActiveIdx = state.lightboxIgCarouselIdx || 0;
+        const undoEntries = [];
         updatedThumbs.forEach((el, idx) => {
           const item = itemById.get(el.dataset.lbItemId);
-          if (item) item.igCarouselOrder = idx + 1;
+          if (item) {
+            const prevVal = item.igCarouselOrder;
+            const nextVal = idx + 1;
+            if (prevVal !== nextVal) undoEntries.push({ id: item.id, prevVal, nextVal });
+            item.igCarouselOrder = nextVal;
+          }
           const badge = el.querySelector('.lb-ig-cell-badge');
           if (badge && item) {
             const k = getLightboxMasterMediaKind(item);
@@ -27943,6 +28026,9 @@ function renderLightboxView(ws, spaceObj) {
           }
           if (el.classList.contains('is-active')) newActiveIdx = idx;
         });
+        if (undoEntries.length) {
+          pushLightboxUndo({ type: 'reorder_field', desc: 'Reordered Post slides', field: 'igCarouselOrder', entries: undoEntries });
+        }
         saveVault('IG CAROUSEL ORDER UPDATED');
         goToCarouselSlide(newActiveIdx);
       });
@@ -27998,9 +28084,30 @@ function renderLightboxView(ws, spaceObj) {
   });
   ws.querySelector('#btnLbHideSelected')?.addEventListener('click', () => {
     const ids = (state.selectedCompareAssets || []).map(a => a.vaultItemId || a.id).filter(Boolean);
-    ids.forEach(id => toggleLightboxRoomHide(id, activeRoom, true));
+    if (!ids.length || !['instagram', 'website', 'source'].includes(activeRoom)) return;
+    const field = activeRoom === 'instagram' ? 'lbIgHidden' : (activeRoom === 'website' ? 'lbWebHidden' : 'lbGlobalHidden');
+    const entries = [];
+    ids.forEach(id => {
+      const it = (vault.items || []).find(i => i.id === id);
+      if (!it) return;
+      const prevHidden = Boolean(it[field]);
+      if (!prevHidden) {
+        it[field] = true;
+        entries.push({ id: it.id, prevHidden: false, nextHidden: true });
+      }
+    });
+    if (entries.length) {
+      const roomLabel = activeRoom === 'instagram' ? 'Instagram' : (activeRoom === 'website' ? 'Website' : 'All');
+      pushLightboxUndo({
+        type: 'room_hide_batch',
+        desc: `Hid ${entries.length} file(s) in ${roomLabel}`,
+        room: activeRoom,
+        entries
+      });
+      saveVault(`HIDDEN ${entries.length} IN ${roomLabel.toUpperCase()}`);
+    }
     state.selectedCompareAssets = [];
-    renderWorkspace();
+    renderAll();
   });
   ws.querySelector('#btnLbCompareAllKept')?.addEventListener('click', () => {
     if (state.selectedCompareAssets && state.selectedCompareAssets.length > 0) {
@@ -28561,10 +28668,19 @@ function renderLightboxView(ws, spaceObj) {
       }
 
       const itemById = new Map((vault.items || []).map(i => [i.id, i]));
+      const undoEntries = [];
       [...gridEl.querySelectorAll('.lb-studio-card[data-lb-item-id]')].forEach((c, idx) => {
         const it = itemById.get(c.dataset.lbItemId);
-        if (it) it[orderKey] = idx + 1;
+        if (it) {
+          const prevVal = it[orderKey];
+          const nextVal = idx + 1;
+          if (prevVal !== nextVal) undoEntries.push({ id: it.id, prevVal, nextVal });
+          it[orderKey] = nextVal;
+        }
       });
+      if (undoEntries.length) {
+        pushLightboxUndo({ type: 'reorder_field', desc: 'Reordered cards', field: orderKey, entries: undoEntries });
+      }
       saveVault('GRID ORDER UPDATED');
     });
 
