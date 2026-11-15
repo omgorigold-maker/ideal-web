@@ -17146,24 +17146,12 @@ dialog.compare-dialog::backdrop {
   overflow: hidden;
 }
 
-.inc-bottom-hud {
-  position: fixed;
-  bottom: 20px;
-  left: 24px;
-  z-index: 420;
-  transition: left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.app-shell.sidebar-open .inc-bottom-hud {
-  left: 308px;
-}
-
 .inc-floating-popover {
   position: fixed;
-  bottom: 72px;
-  left: 24px;
+  top: 76px;
+  right: 84px;
   width: 300px;
-  max-height: 360px;
+  max-height: 380px;
   z-index: 430;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -17174,11 +17162,6 @@ dialog.compare-dialog::backdrop {
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
-  transition: left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.app-shell.sidebar-open .inc-floating-popover {
-  left: 308px;
 }
 
 .inc-popover-head {

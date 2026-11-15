@@ -6069,17 +6069,19 @@ function renderHeaderAndToolbar() {
 
   const mode = ui.layoutMode || (isMovingForward ? 'vertical' : 'wall');
 
+  const isIncubatorSpace = (type === 'space' && obj.id === 'incubator');
+
   // Hide view switcher group on Lightbox, Drive & PSD Assets (Eagle-only), Tool Dock, Gmail, and Customize
   if (hudViewModeGroup) {
     hudViewModeGroup.hidden = (type === 'space' && ['lightbox', 'gdrive_assets', 'tool_dock', 'gmail', 'customize'].includes(obj.id));
   }
 
-  // Show ONLY Vertical & Horizontal view buttons in Moving Forward; show standard view buttons elsewhere
+  // Show ONLY Vertical & Horizontal in Moving Forward; ONLY Wall & Graph in Incubator; standard view buttons elsewhere
   ['btnViewGiantWall', 'btnViewWall', 'btnViewList', 'btnViewKanban'].forEach(id => {
     const b = document.getElementById(id);
     if (b) {
-      b.hidden = isMovingForward;
-      b.classList.toggle('active', !isMovingForward && b.dataset.mode === mode);
+      b.hidden = isMovingForward || isIncubatorSpace;
+      b.classList.toggle('active', !isMovingForward && !isIncubatorSpace && b.dataset.mode === mode);
     }
   });
   if (btnViewSphere) {
@@ -6092,6 +6094,32 @@ function renderHeaderAndToolbar() {
       b.classList.toggle('active', isMovingForward && b.dataset.mode === mode);
     }
   });
+  const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
+  ['btnViewIncWall', 'btnViewIncGraph'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) {
+      b.hidden = !isIncubatorSpace;
+      b.classList.toggle('active', isIncubatorSpace && b.dataset.incView === incView);
+    }
+  });
+  const incTopPill = document.getElementById('incTopActionsPill');
+  if (incTopPill) {
+    incTopPill.hidden = !isIncubatorSpace;
+  }
+  const btnTopIncTags = document.getElementById('btnTopIncTags');
+  if (btnTopIncTags && isIncubatorSpace) {
+    btnTopIncTags.textContent = state.incubatorActiveTag ? `#${state.incubatorActiveTag} ×` : '# Tags';
+    btnTopIncTags.classList.toggle('active', !!state.incubatorTagsOpen || !!state.incubatorActiveTag);
+  }
+  const btnTopIncDump = document.getElementById('btnTopIncDump');
+  if (btnTopIncDump && isIncubatorSpace) {
+    btnTopIncDump.classList.toggle('active', !!state.incubatorDumpOpen);
+  }
+  const btnTopIncLink = document.getElementById('btnTopIncLink');
+  if (btnTopIncLink && isIncubatorSpace) {
+    btnTopIncLink.textContent = state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link';
+    btnTopIncLink.classList.toggle('active', !!state.incubatorLinkMode);
+  }
 
   // Milanote Creation Rail (on the Right): strictly locked on all Creative Studio spaces (Studio Projects, Idea Incubator, Project Boards)
   const showMilanoteRail = (
@@ -6126,9 +6154,6 @@ function renderHeaderAndToolbar() {
   const hudDensityPill = document.getElementById('hudDensityPill');
   if (hudDensityPill) {
     hudDensityPill.hidden = isGiantWall || isCustomizeSpace;
-  }
-  if (hudViewModeGroup && type === 'space' && obj.id === 'incubator') {
-    hudViewModeGroup.hidden = true;
   }
   const sizeSlider = document.getElementById('sizeSlider');
   if (sizeSlider) {
@@ -13903,17 +13928,6 @@ function renderIncubatorStudio(ws, spaceObj, items) {
           </div>
         </div>
       ` : ''}
-
-      <div class="inc-bottom-hud">
-        <div class="giant-wall-hud-pill">
-          <button type="button" class="${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">Infinite Wall</button>
-          <button type="button" class="${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
-          <button type="button" class="${dumpOpen ? 'is-active' : ''}" id="btnToggleIncDump">+ Quick Dump</button>
-          <button type="button" class="${tagsOpen || activeTag ? 'is-active' : ''}" id="btnToggleIncTags">${activeTag ? `#${escapeHtml(activeTag)} ×` : '# Tags'}</button>
-          <button type="button" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">Smart Cluster</button>
-          <button type="button" class="${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
-        </div>
-      </div>
     </div>
   `;
 
@@ -13954,16 +13968,19 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     }
   });
 
-  ws.querySelector('#btnToggleIncDump')?.addEventListener('click', () => {
+  const topWallBtn = document.getElementById('btnViewIncWall');
+  const topGraphBtn = document.getElementById('btnViewIncGraph');
+  if (topWallBtn) topWallBtn.onclick = () => { state.incubatorViewMode = 'wall'; renderAll(); };
+  if (topGraphBtn) topGraphBtn.onclick = () => { state.incubatorViewMode = 'graph'; renderAll(); };
+
+  const topDumpBtn = document.getElementById('btnTopIncDump');
+  if (topDumpBtn) topDumpBtn.onclick = () => {
     state.incubatorDumpOpen = !state.incubatorDumpOpen;
     state.incubatorTagsOpen = false;
-    renderWorkspace();
-  });
-  ws.querySelector('#btnCloseIncDump')?.addEventListener('click', () => {
-    state.incubatorDumpOpen = false;
-    renderWorkspace();
-  });
-  ws.querySelector('#btnToggleIncTags')?.addEventListener('click', () => {
+    renderAll();
+  };
+  const topTagsBtn = document.getElementById('btnTopIncTags');
+  if (topTagsBtn) topTagsBtn.onclick = () => {
     if (activeTag) {
       state.incubatorActiveTag = '';
       state.incubatorTagsOpen = false;
@@ -13971,11 +13988,24 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       state.incubatorTagsOpen = !state.incubatorTagsOpen;
       state.incubatorDumpOpen = false;
     }
-    renderWorkspace();
+    renderAll();
+  };
+  const topClusterBtn = document.getElementById('btnTopIncCluster');
+  if (topClusterBtn) topClusterBtn.onclick = () => runIncubatorSmartCluster();
+  const topLinkBtn = document.getElementById('btnTopIncLink');
+  if (topLinkBtn) topLinkBtn.onclick = () => {
+    state.incubatorLinkMode = !state.incubatorLinkMode;
+    state.incubatorLinkSourceId = null;
+    renderAll();
+  };
+
+  ws.querySelector('#btnCloseIncDump')?.addEventListener('click', () => {
+    state.incubatorDumpOpen = false;
+    renderAll();
   });
   ws.querySelector('#btnCloseIncTags')?.addEventListener('click', () => {
     state.incubatorTagsOpen = false;
-    renderWorkspace();
+    renderAll();
   });
 
   ws.querySelectorAll('[data-inc-tag]').forEach(btn => {
@@ -13983,21 +14013,8 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       const t = btn.dataset.incTag || '';
       state.incubatorActiveTag = state.incubatorActiveTag === t ? '' : t;
       state.incubatorTagsOpen = false;
-      renderWorkspace();
+      renderAll();
     });
-  });
-
-  ws.querySelectorAll('[data-inc-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.incubatorViewMode = btn.dataset.incView;
-      renderWorkspace();
-    });
-  });
-  ws.querySelector('#btnIncSmartCluster')?.addEventListener('click', () => runIncubatorSmartCluster());
-  ws.querySelector('#btnIncLinkMode')?.addEventListener('click', () => {
-    state.incubatorLinkMode = !state.incubatorLinkMode;
-    state.incubatorLinkSourceId = null;
-    renderWorkspace();
   });
 
   const stageHost = ws.querySelector('#incStageHost');
