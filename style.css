@@ -17293,6 +17293,34 @@ dialog.compare-dialog::backdrop {
   min-height: 100%;
 }
 
+/* Guarantee full, uncropped images & full readable text on Incubator cards */
+.inc-stage-host .wall-pin {
+  height: auto !important;
+}
+
+.inc-stage-host .wall-pin-media {
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  overflow: visible !important;
+}
+
+.inc-stage-host .wall-pin-media img,
+.inc-stage-host .wall-pin-media video {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  display: block;
+}
+
+.inc-stage-host .wall-pin-body,
+.inc-stage-host .wall-pin-note-text {
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: pre-wrap !important;
+}
+
 /* Obsidian Visual Graph */
 .inc-graph-stage {
   position: relative;
@@ -17326,44 +17354,52 @@ dialog.compare-dialog::backdrop {
 .inc-graph-node {
   position: absolute;
   transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px 6px 6px;
-  border-radius: 999px;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
   background: var(--surface-pill);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 12px;
+  text-align: left;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: transform 0.14s ease, border-color 0.14s ease;
 }
 
 .inc-graph-node:hover,
 .inc-graph-node.is-selected {
-  transform: translate(-50%, -50%) scale(1.06);
+  transform: translate(-50%, -50%) scale(1.03);
   border-color: var(--accent);
   z-index: 5;
 }
 
-.inc-graph-node img {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
+.inc-graph-node-img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  object-fit: contain;
+  display: block;
 }
 
-.inc-graph-node-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface-stage);
-  color: var(--accent);
-  font-size: 12px;
+.inc-graph-node-title {
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.inc-graph-node-notes {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .inc-graph-empty {

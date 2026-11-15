@@ -13872,7 +13872,7 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     <div class="inc-studio-shell">
       <aside class="inc-bear-sidebar" id="incBearSidebar">
         <div class="inc-dump-box">
-          <div class="kicker-mono" style="font-size:10px;color:var(--accent);margin-bottom:6px;">⚡ INSTANT DUMP</div>
+          <div class="kicker-mono" style="font-size:10px;color:var(--accent);margin-bottom:6px;">INSTANT DUMP</div>
           <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="3" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
         </div>
         <div class="inc-bear-section">
@@ -13891,13 +13891,13 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       <div class="inc-studio-main">
         <div class="inc-studio-topbar">
           <div class="inc-mode-switch">
-            <button type="button" class="inc-mode-btn ${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">◈ Infinite Wall</button>
-            <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">◎ Visual Graph</button>
+            <button type="button" class="inc-mode-btn ${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">Infinite Wall</button>
+            <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
           </div>
           <div class="inc-topbar-actions">
             ${activeTag ? `<button type="button" class="cmp-chip-btn is-active" id="btnIncClearTag">#${escapeHtml(activeTag)} ×</button>` : ''}
-            <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">✦ Smart Cluster</button>
-            <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">🔗 ${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Sparks'}</button>
+            <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">Smart Cluster</button>
+            <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
           </div>
         </div>
         <div class="inc-stage-host" id="incStageHost"></div>
@@ -14052,8 +14052,9 @@ function renderIncubatorGraphView(host, items) {
           const isSelected = state.incubatorEditorId === n.id;
           return `
             <button type="button" class="inc-graph-node ${isVisual ? 'is-visual' : ''} ${isSelected ? 'is-selected' : ''}" data-node-id="${escapeHtml(n.id)}" style="left:${p.x}px;top:${p.y}px;">
-              ${isVisual ? `<img src="${escapeHtml(n.url)}" alt="">` : `<span class="inc-graph-node-icon">${n.kind === 'link' ? '🔗' : (n.kind === 'checklist' ? '☑' : '✦')}</span>`}
-              <span class="inc-graph-node-label">${escapeHtml((n.title || 'Spark').slice(0, 26))}</span>
+              ${isVisual ? `<img class="inc-graph-node-img" src="${escapeHtml(n.url)}" alt="${escapeHtml(n.title || '')}" onerror="this.style.display='none'">` : ''}
+              <div class="inc-graph-node-title">${escapeHtml(n.title || 'Spark')}</div>
+              ${n.notes ? `<div class="inc-graph-node-notes">${escapeHtml(n.notes)}</div>` : ''}
             </button>
           `;
         }).join('')}
