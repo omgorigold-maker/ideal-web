@@ -17131,15 +17131,13 @@ dialog.compare-dialog::backdrop {
   overflow: hidden;
 }
 
+.app-shell.has-milanote-rail .workspace:has(> .inc-iframe-host) {
+  padding: 66px 84px 0 0 !important;
+}
+
 .inc-iframe-host {
   width: 100%;
   height: calc(100vh - 66px);
-  transition: margin-left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.app-shell.sidebar-open .inc-iframe-host {
-  margin-left: 288px;
-  width: calc(100% - 288px);
 }
 
 .inc-standalone-frame {

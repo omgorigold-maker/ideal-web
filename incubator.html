@@ -435,10 +435,6 @@
         <textarea id="dumpInput" class="dump-input" rows="3" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
       </div>
       <div>
-        <div class="sec-head">STAGES</div>
-        <div id="stageList"></div>
-      </div>
-      <div>
         <div class="sec-head"># TAGS</div>
         <div id="tagList"></div>
       </div>
@@ -531,6 +527,8 @@
       try {
         if (window.parent && window.parent !== window && typeof window.parent.saveVault === 'function') {
           window.parent.saveVault('INCUBATOR UPDATED');
+          if (typeof window.parent.renderTopBar === 'function') window.parent.renderTopBar();
+          if (typeof window.parent.renderSidebar === 'function') window.parent.renderSidebar();
           return;
         }
       } catch (_) {}
@@ -541,6 +539,45 @@
       });
     }
 
+    function softDeleteItem(id) {
+      if (!vault || !Array.isArray(vault.items)) return;
+      const idx = vault.items.findIndex(x => x.id === id);
+      if (idx === -1) return;
+      const [removed] = vault.items.splice(idx, 1);
+      vault.itemsTrash = Array.isArray(vault.itemsTrash) ? vault.itemsTrash : [];
+      vault.itemsTrash.unshift({ ...removed, deletedAt: Date.now() });
+      if (state.selectedId === id) state.selectedId = null;
+      saveVaultSafe();
+      render();
+      toast('Moved to Vault Trash');
+    }
+
+    function reflowColumns(itemsToLayout, forceAll = false) {
+      const colX = [48, 356, 664];
+      const colY = [36, 36, 36];
+      const layer = document.getElementById('cardsLayer');
+      const cardsById = new Map();
+      layer.querySelectorAll('.card').forEach(el => {
+        if (el.dataset.id) cardsById.set(el.dataset.id, el);
+      });
+      let changed = false;
+      itemsToLayout.forEach((it, idx) => {
+        if (!forceAll && typeof it.wallX === 'number' && typeof it.wallY === 'number') return;
+        const c = colY.indexOf(Math.min(...colY));
+        it.wallX = colX[c];
+        it.wallY = colY[c];
+        const el = cardsById.get(it.id);
+        if (el) {
+          el.style.left = it.wallX + 'px';
+          el.style.top = it.wallY + 'px';
+        }
+        const h = el ? Math.max(160, el.offsetHeight) : 280;
+        colY[c] += h + 24;
+        changed = true;
+      });
+      return changed;
+    }
+
     function applyCamera() {
       const plane = document.getElementById('plane');
       plane.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
@@ -548,16 +585,13 @@
     }
 
     function render() {
+      try {
+        if (window.parent && window.parent !== window && window.parent.state?.activeCategory) {
+          state.stage = window.parent.state.activeCategory;
+        }
+      } catch (_) {}
       const all = getIncubatorItems();
       all.forEach(autoClassify);
-
-      // Stages
-      const stages = ['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'];
-      document.getElementById('stageList').innerHTML = stages.map(s => {
-        const cnt = s === 'All' ? all.length : all.filter(i => i.section === s).length;
-        return `<button type="button" class="nav-btn ${state.stage === s && !state.tag ? 'active' : ''}" data-stage="${s}"><span>${s}</span><span class="count">${cnt}</span></button>`;
-      }).join('');
-      document.querySelectorAll('[data-stage]').forEach(b => b.onclick = () => { state.stage = b.dataset.stage; state.tag = ''; render(); });
 
       // Tags
       const tagMap = new Map();
@@ -603,8 +637,8 @@
         });
       } else {
         visible.forEach((n, idx) => {
-          const x = typeof n.wallX === 'number' ? n.wallX : 60 + (idx % 3) * 310;
-          const y = typeof n.wallY === 'number' ? n.wallY : 40 + Math.floor(idx / 3) * 280;
+          const x = typeof n.wallX === 'number' ? n.wallX : 48 + (idx % 3) * 308;
+          const y = typeof n.wallY === 'number' ? n.wallY : 36 + Math.floor(idx / 3) * 380;
           pos.set(n.id, { x, y });
         });
       }
@@ -615,6 +649,7 @@
       visible.forEach(it => {
         const p = pos.get(it.id);
         const card = document.createElement('div');
+        card.dataset.id = it.id;
         card.className = `card ${state.selectedId === it.id ? 'selected' : ''} ${state.linkSourceId === it.id ? 'link-source' : ''}`;
         card.style.left = p.x + 'px';
         card.style.top = p.y + 'px';
@@ -640,6 +675,7 @@
             <div style="display:flex;gap:4px">
               <button type="button" class="mini-btn btn-link">Link${(it.linkedIds||[]).length ? ` (${it.linkedIds.length})` : ''}</button>
               <button type="button" class="mini-btn btn-edit">Open</button>
+              <button type="button" class="mini-btn btn-del" title="Move to Trash">Delete</button>
             </div>
           </div>
         `;
@@ -682,6 +718,10 @@
           state.selectedId = it.id;
           render();
         };
+        card.querySelector('.btn-del').onclick = (e) => {
+          e.stopPropagation();
+          softDeleteItem(it.id);
+        };
         card.onclick = () => {
           if (state.linkMode) handleLinkClick(it.id);
           else { state.selectedId = it.id; render(); }
@@ -690,6 +730,9 @@
         layer.appendChild(card);
       });
 
+      if (state.view === 'wall' && reflowColumns(visible, false)) {
+        visible.forEach(it => pos.set(it.id, { x: it.wallX, y: it.wallY }));
+      }
       drawLinks(visible, pos);
       renderEditor();
       applyCamera();
@@ -763,7 +806,11 @@
           <select id="edStage" class="ed-select">
             ${['Hatching Up', 'Sparks & Notes', 'Clusters'].map(s => `<option value="${s}" ${it.section === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
-          <button type="button" class="mini-btn" id="edClose">Close</button>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="mini-btn" id="edPromote">Promote</button>
+            <button type="button" class="mini-btn" id="edDelete">Delete</button>
+            <button type="button" class="mini-btn" id="edClose">Close</button>
+          </div>
         </div>
         <input type="text" id="edTitle" class="ed-title" value="${escapeHtml(it.title || '')}">
         <div class="card-tags">
@@ -774,6 +821,12 @@
         <textarea id="edNotes" class="ed-notes" placeholder="Write notes…">${escapeHtml(it.notes || '')}</textarea>
       `;
       ed.querySelector('#edClose').onclick = () => { state.selectedId = null; render(); };
+      ed.querySelector('#edDelete').onclick = () => { softDeleteItem(it.id); };
+      ed.querySelector('#edPromote').onclick = () => {
+        if (window.parent && typeof window.parent.promoteIncubatorItemToProject === 'function') {
+          window.parent.promoteIncubatorItemToProject(it.id);
+        }
+      };
       ed.querySelector('#edStage').onchange = (e) => { it.section = e.target.value; saveVaultSafe(); render(); };
       ed.querySelector('#edTitle').onchange = (e) => { it.title = e.target.value.trim() || 'Spark'; saveVaultSafe(); render(); };
       ed.querySelector('#edNotes').onchange = (e) => { it.notes = e.target.value; saveVaultSafe(); render(); };
@@ -813,6 +866,32 @@
       }
       applyCamera();
     };
+    stageEl.ondblclick = (e) => {
+      if (e.target.closest('.card') || e.target.closest('.zoom-hud')) return;
+      const rect = stageEl.getBoundingClientRect();
+      const x = Math.max(24, Math.round(((e.clientX - rect.left - state.panX) / state.zoom) / 12) * 12);
+      const y = Math.max(24, Math.round(((e.clientY - rect.top - state.panY) / state.zoom) / 12) * 12);
+      const newItem = autoClassify({
+        id: 'itm_' + Date.now(),
+        parentType: 'space',
+        parentId: 'incubator',
+        section: state.stage !== 'All' ? state.stage : 'Sparks & Notes',
+        kind: 'note',
+        title: 'New Spark',
+        notes: '',
+        tags: ['Note'],
+        linkedIds: [],
+        wallX: x,
+        wallY: y,
+        createdAt: Date.now()
+      });
+      vault.items.unshift(newItem);
+      state.selectedId = newItem.id;
+      saveVaultSafe();
+      render();
+      const titleInp = document.getElementById('edTitle');
+      if (titleInp) { titleInp.focus(); titleInp.select(); }
+    };
 
     // Controls
     document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { state.view = b.dataset.view; render(); });
@@ -820,10 +899,7 @@
     document.getElementById('btnZoomOut').onclick = () => { state.zoom = Math.max(0.35, state.zoom - 0.15); applyCamera(); };
     document.getElementById('btnZoomReset').onclick = () => { state.zoom = 1; state.panX = 0; state.panY = 0; applyCamera(); };
     document.getElementById('btnTidy').onclick = () => {
-      getIncubatorItems().forEach((it, idx) => {
-        it.wallX = 60 + (idx % 3) * 310;
-        it.wallY = 40 + Math.floor(idx / 3) * 290;
-      });
+      reflowColumns(getIncubatorItems(), true);
       saveVaultSafe(); render(); toast('Board tidied');
     };
     document.getElementById('btnLinkMode').onclick = () => {
@@ -832,6 +908,33 @@
     document.getElementById('btnSmartCluster').onclick = async () => {
       const items = getIncubatorItems();
       if (items.length < 2) return toast('Add at least 2 sparks to cluster');
+      try {
+        const res = await fetch('/api/incubator/cluster', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: items.map(i => ({ id: i.id, title: i.title, notes: i.notes, tags: i.tags })) })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.mode === 'ai' && Array.isArray(data.clusters) && data.clusters.length) {
+            data.clusters.forEach((c, ci) => {
+              const bx = 60 + (ci % 2) * 660, by = 40 + Math.floor(ci / 2) * 440;
+              const arr = (c.itemIds || []).map(id => items.find(x => x.id === id)).filter(Boolean);
+              arr.forEach((it, idx) => {
+                it.section = 'Clusters';
+                if (c.tag) it.tags = Array.from(new Set([...(it.tags || []), c.tag.replace(/^#/, '')]));
+                it.wallX = bx + (idx % 2) * 308;
+                it.wallY = by + Math.floor(idx / 2) * 340;
+                if (idx > 0) {
+                  it.linkedIds = Array.from(new Set([...(it.linkedIds || []), arr[0].id]));
+                  arr[0].linkedIds = Array.from(new Set([...(arr[0].linkedIds || []), it.id]));
+                }
+              });
+            });
+            saveVaultSafe(); render(); toast('Sparks clustered'); return;
+          }
+        }
+      } catch (_) {}
       const groups = new Map();
       items.forEach(it => {
         const t = (it.tags && it.tags[0]) || 'General';
@@ -844,8 +947,8 @@
         const bx = 60 + (ci % 2) * 660, by = 40 + Math.floor(ci / 2) * 440;
         arr.forEach((it, idx) => {
           it.section = 'Clusters';
-          it.wallX = bx + (idx % 2) * 300;
-          it.wallY = by + Math.floor(idx / 2) * 260;
+          it.wallX = bx + (idx % 2) * 308;
+          it.wallY = by + Math.floor(idx / 2) * 340;
           if (idx > 0) {
             it.linkedIds = Array.from(new Set([...(it.linkedIds || []), arr[0].id]));
             arr[0].linkedIds = Array.from(new Set([...(arr[0].linkedIds || []), it.id]));
@@ -890,9 +993,9 @@
       const inp = document.getElementById('dumpInput');
       inp.value = 'https://'; inp.focus();
     };
-    document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
-    document.getElementById('fileInput').onchange = async (e) => {
-      for (const file of Array.from(e.target.files || [])) {
+    async function uploadFiles(files, baseX, baseY) {
+      let i = 0;
+      for (const file of Array.from(files || [])) {
         const res = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'X-File-Name': encodeURIComponent(file.name) },
@@ -912,13 +1015,26 @@
             notes: '',
             tags: [],
             linkedIds: [],
-            wallX: 60 + (getIncubatorItems().length % 3) * 310,
-            wallY: 40 + Math.floor(getIncubatorItems().length / 3) * 290,
+            wallX: typeof baseX === 'number' ? baseX + i * 24 : undefined,
+            wallY: typeof baseY === 'number' ? baseY + i * 24 : undefined,
             createdAt: Date.now()
           }));
+          i++;
         }
       }
-      saveVaultSafe(); render(); toast('Uploaded original to Vault');
+      if (i > 0) { saveVaultSafe(); render(); toast('Uploaded original to Vault'); }
+    }
+
+    document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = (e) => uploadFiles(e.target.files);
+    stageEl.ondragover = (e) => { e.preventDefault(); };
+    stageEl.ondrop = (e) => {
+      e.preventDefault();
+      if (!e.dataTransfer?.files?.length) return;
+      const rect = stageEl.getBoundingClientRect();
+      const x = Math.max(24, Math.round(((e.clientX - rect.left - state.panX) / state.zoom) / 12) * 12);
+      const y = Math.max(24, Math.round(((e.clientY - rect.top - state.panY) / state.zoom) / 12) * 12);
+      uploadFiles(e.dataTransfer.files, x, y);
     };
 
     loadVault();

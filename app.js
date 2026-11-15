@@ -6075,10 +6075,8 @@ function renderHeaderAndToolbar() {
   if (hudViewModeGroup) {
     hudViewModeGroup.hidden = (type === 'space' && ['incubator', 'lightbox', 'gdrive_assets', 'tool_dock', 'gmail', 'customize'].includes(obj.id));
   }
-  const incTopPillHide = document.getElementById('incTopActionsPill');
-  if (incTopPillHide) incTopPillHide.hidden = true;
 
-  // Show ONLY Vertical & Horizontal in Moving Forward; ONLY Wall & Graph in Incubator; standard view buttons elsewhere
+  // Show ONLY Vertical & Horizontal in Moving Forward; standard view buttons elsewhere
   ['btnViewGiantWall', 'btnViewWall', 'btnViewList', 'btnViewKanban'].forEach(id => {
     const b = document.getElementById(id);
     if (b) {
@@ -6096,37 +6094,11 @@ function renderHeaderAndToolbar() {
       b.classList.toggle('active', isMovingForward && b.dataset.mode === mode);
     }
   });
-  const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
-  ['btnViewIncWall', 'btnViewIncGraph'].forEach(id => {
-    const b = document.getElementById(id);
-    if (b) {
-      b.hidden = !isIncubatorSpace;
-      b.classList.toggle('active', isIncubatorSpace && b.dataset.incView === incView);
-    }
-  });
-  const incTopPill = document.getElementById('incTopActionsPill');
-  if (incTopPill) {
-    incTopPill.hidden = !isIncubatorSpace;
-  }
-  const btnTopIncTags = document.getElementById('btnTopIncTags');
-  if (btnTopIncTags && isIncubatorSpace) {
-    btnTopIncTags.textContent = state.incubatorActiveTag ? `#${state.incubatorActiveTag} ×` : '# Tags';
-    btnTopIncTags.classList.toggle('active', !!state.incubatorTagsOpen || !!state.incubatorActiveTag);
-  }
-  const btnTopIncDump = document.getElementById('btnTopIncDump');
-  if (btnTopIncDump && isIncubatorSpace) {
-    btnTopIncDump.classList.toggle('active', !!state.incubatorDumpOpen);
-  }
-  const btnTopIncLink = document.getElementById('btnTopIncLink');
-  if (btnTopIncLink && isIncubatorSpace) {
-    btnTopIncLink.textContent = state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link';
-    btnTopIncLink.classList.toggle('active', !!state.incubatorLinkMode);
-  }
 
-  // Milanote Creation Rail (on the Right): strictly locked on all Creative Studio spaces (Studio Projects, Idea Incubator, Project Boards)
+  // Right-side Creation Rail: enabled on Studio Projects, Incubator, and Project Boards
   const showMilanoteRail = (
     type === 'project' ||
-    (type === 'space' && ['projects'].includes(obj.id))
+    (type === 'space' && ['projects', 'incubator'].includes(obj.id))
   );
   if (railEl) {
     railEl.hidden = !showMilanoteRail;
@@ -13880,9 +13852,15 @@ async function runIncubatorSmartCluster() {
 }
 
 function renderIncubatorStudio(ws, spaceObj, items) {
+  window.vault = vault;
+  window.saveVault = saveVault;
+  window.state = state;
+  window.renderTopBar = renderTopBar;
+  window.renderSidebar = renderSidebar;
+  window.promoteIncubatorItemToProject = promoteIncubatorItemToProject;
   ws.innerHTML = `
     <div class="inc-iframe-host">
-      <iframe src="incubator.html?v=1" class="inc-standalone-frame" title="Idea Incubator"></iframe>
+      <iframe src="incubator.html?v=3" class="inc-standalone-frame" title="Idea Incubator"></iframe>
     </div>
   `;
 }
