@@ -12115,7 +12115,7 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
         </div>
       `;
     } else if (isVisual) {
-      bodyHtml = `<div class="wall-pin-media"><img src="${escapeHtml(it.url)}" alt="${escapeHtml(it.title)}" draggable="false"></div>`;
+      bodyHtml = `<div class="wall-pin-media"><img src="${escapeHtml(it.url)}" alt="${escapeHtml(it.title)}" draggable="false" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\\'padding:18px 12px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text-faint);\\'>✦ VISUAL SPARK</div>';"></div>`;
     } else if (it.kind === 'sketch') {
       bodyHtml = `
         <div class="wall-pin-body mn-sketch-body" style="display:flex;flex-direction:column;gap:6px;">
@@ -13867,29 +13867,16 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     : items;
 
   const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
-  const stageTabs = ['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'];
-  const stageCount = (tabName) => tabName === 'All'
-    ? allIncItems.length
-    : allIncItems.filter(i => i.section === tabName).length;
 
   ws.innerHTML = `
     <div class="inc-studio-shell">
       <aside class="inc-bear-sidebar" id="incBearSidebar">
         <div class="inc-dump-box">
           <div class="kicker-mono" style="font-size:10px;color:var(--accent);margin-bottom:6px;">⚡ INSTANT DUMP</div>
-          <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="2" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
+          <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="3" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
         </div>
         <div class="inc-bear-section">
-          <div class="inc-bear-heading">STAGES</div>
-          ${stageTabs.map(t => `
-            <button type="button" class="inc-bear-nav-btn ${(state.activeCategory || 'All') === t && !activeTag ? 'is-active' : ''}" data-inc-stage="${escapeHtml(t)}">
-              <span>${t === 'All' ? '◈ All Sparks' : (t === 'Hatching Up' ? '🌱 Hatching Up' : (t === 'Sparks & Notes' ? '✎ Sparks & Notes' : '✦ Clusters'))}</span>
-              <span class="inc-bear-count">${stageCount(t)}</span>
-            </button>
-          `).join('')}
-        </div>
-        <div class="inc-bear-section">
-          <div class="inc-bear-heading"># TAGS (BEAR)</div>
+          <div class="inc-bear-heading"># TAGS</div>
           <div class="inc-bear-tag-list">
             ${Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]).map(([tag, cnt]) => `
               <button type="button" class="inc-bear-tag-btn ${activeTag === tag ? 'is-active' : ''}" data-inc-tag="${escapeHtml(tag)}">
@@ -13904,8 +13891,8 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       <div class="inc-studio-main">
         <div class="inc-studio-topbar">
           <div class="inc-mode-switch">
-            <button type="button" class="inc-mode-btn ${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">◈ Visual Wall</button>
-            <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">◎ Obsidian Graph</button>
+            <button type="button" class="inc-mode-btn ${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">◈ Infinite Wall</button>
+            <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">◎ Visual Graph</button>
           </div>
           <div class="inc-topbar-actions">
             ${activeTag ? `<button type="button" class="cmp-chip-btn is-active" id="btnIncClearTag">#${escapeHtml(activeTag)} ×</button>` : ''}

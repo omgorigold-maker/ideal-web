@@ -17125,16 +17125,27 @@ dialog.compare-dialog::backdrop {
 /* ==========================================================================
    02 INCUBATOR — Rebuilt Bear + Obsidian Visual Studio (Infinite Board + Graph)
    ========================================================================== */
+.workspace:has(> .inc-studio-shell) {
+  padding: 68px 0 0 0 !important;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .inc-studio-shell {
   display: flex;
   align-items: stretch;
   width: 100%;
-  height: calc(100vh - 134px);
+  height: calc(100vh - 68px);
   min-height: 540px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border-top: 1px solid var(--border);
   background: var(--bg);
   overflow: hidden;
+  transition: margin-left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.app-shell.sidebar-open .inc-studio-shell {
+  margin-left: 288px;
+  width: calc(100% - 288px);
 }
 
 .inc-bear-sidebar {
@@ -17232,7 +17243,7 @@ dialog.compare-dialog::backdrop {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 14px;
+  padding: 8px 96px 8px 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   z-index: 15;
