@@ -6170,11 +6170,9 @@ function renderHeaderAndToolbar() {
     if (compBar) compBar.hidden = true;
   }
 
-  // Sync IG Status Filter Pill (hidden on Studio Projects & Project Boards)
+  // Sync IG Status Filter Pill (hidden on Incubator, Studio Projects & Project Boards)
   const igFilterBar = document.getElementById('igStatusFilterBar');
-  const showIgFilter = (
-    type === 'space' && ['incubator'].includes(obj.id)
-  );
+  const showIgFilter = false;
   if (igFilterBar) {
     igFilterBar.hidden = !showIgFilter;
     if (!showIgFilter && state.igStatusFilter && state.igStatusFilter !== 'all') {
