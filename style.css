@@ -17182,6 +17182,13 @@ dialog.compare-dialog::backdrop {
   height: 100%;
 }
 
+.inc-stage-host .giant-wall-hud {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 25;
+}
+
 .inc-stage-host .wall-pin-item {
   height: auto !important;
   overflow: visible !important;

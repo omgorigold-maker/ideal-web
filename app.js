@@ -14098,8 +14098,8 @@ function renderIncubatorGraphView(host, items) {
     </div>
   `;
 
-  // Measure actual rendered heights to guarantee zero overlap & draw curved links
-  requestAnimationFrame(() => {
+  // Measure actual rendered heights (and re-run on image load/error) to guarantee zero overlap & draw curved links
+  const layoutGraph = () => {
     const nodesWrap = host.querySelector('.inc-graph-nodes');
     const svg = host.querySelector('.inc-graph-svg');
     if (!nodesWrap) return;
@@ -14156,6 +14156,13 @@ function renderIncubatorGraphView(host, items) {
         });
       });
       svg.innerHTML = linesSvg;
+    }
+  };
+  requestAnimationFrame(layoutGraph);
+  host.querySelectorAll('.inc-graph-node-img').forEach(img => {
+    if (!img.complete) {
+      img.addEventListener('load', layoutGraph, { once: true });
+      img.addEventListener('error', layoutGraph, { once: true });
     }
   });
 
