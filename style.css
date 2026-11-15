@@ -17125,26 +17125,66 @@ dialog.compare-dialog::backdrop {
 /* ==========================================================================
    02 INCUBATOR — Rebuilt Bear + Obsidian Visual Studio (Infinite Board + Graph)
    ========================================================================== */
-.workspace:has(> .inc-studio-shell) {
-  padding: 66px 0 0 0 !important;
+.workspace:has(> .inc-canvas-root) {
+  padding: 0 !important;
   height: 100vh;
   overflow: hidden;
 }
 
-.inc-studio-shell {
-  display: flex;
-  align-items: stretch;
+.inc-canvas-root {
+  position: relative;
   width: 100%;
-  height: calc(100vh - 66px);
-  min-height: 540px;
-  background: var(--bg);
+  height: 100vh;
   overflow: hidden;
-  transition: margin-left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+  background: var(--bg);
 }
 
-.app-shell.sidebar-open .inc-studio-shell {
-  margin-left: 288px;
-  width: calc(100% - 288px);
+.inc-stage-host {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.inc-bottom-hud {
+  position: fixed;
+  bottom: 20px;
+  left: 24px;
+  z-index: 420;
+  transition: left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.app-shell.sidebar-open .inc-bottom-hud {
+  left: 308px;
+}
+
+.inc-floating-popover {
+  position: fixed;
+  bottom: 72px;
+  left: 24px;
+  width: 300px;
+  max-height: 360px;
+  z-index: 430;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  transition: left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.app-shell.sidebar-open .inc-floating-popover {
+  left: 308px;
+}
+
+.inc-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .inc-bear-sidebar {
@@ -17350,6 +17390,7 @@ dialog.compare-dialog::backdrop {
   position: relative;
   width: 100%;
   height: 100%;
+  padding-top: 86px;
   background: radial-gradient(circle at center, color-mix(in srgb, var(--accent) 4%, transparent) 0%, transparent 70%);
   overflow: auto;
 }
