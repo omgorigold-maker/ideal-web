@@ -13852,17 +13852,165 @@ async function runIncubatorSmartCluster() {
 }
 
 function renderIncubatorStudio(ws, spaceObj, items) {
-  window.vault = vault;
-  window.saveVault = saveVault;
-  window.state = state;
-  window.renderTopBar = renderTopBar;
-  window.renderSidebar = renderSidebar;
-  window.promoteIncubatorItemToProject = promoteIncubatorItemToProject;
+  const allIncItems = (vault.items || []).filter(
+    it => it.parentType === 'space' && it.parentId === 'incubator' && !['line', 'sphere'].includes(it.kind)
+  );
+  const tagCounts = new Map();
+  allIncItems.forEach(it => {
+    (it.tags || []).forEach(t => {
+      if (!t || t === 'All') return;
+      tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+    });
+  });
+
+  const activeTag = state.incubatorActiveTag || '';
+  const visibleItems = activeTag
+    ? items.filter(it => Array.isArray(it.tags) && it.tags.includes(activeTag))
+    : items;
+
+  const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
+  const dumpOpen = !!state.incubatorDumpOpen;
+  const tagsOpen = !!state.incubatorTagsOpen;
+
   ws.innerHTML = `
-    <div class="inc-iframe-host">
-      <iframe src="incubator.html?v=3" class="inc-standalone-frame" title="Idea Incubator"></iframe>
+    <div class="inc-canvas-root">
+      <div class="inc-top-strip">
+        <div class="giant-wall-hud-pill">
+          <button type="button" class="${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">Infinite Wall</button>
+          <button type="button" class="${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
+          <button type="button" class="${dumpOpen ? 'is-active' : ''}" id="btnToggleIncDump">+ Quick Dump</button>
+          <button type="button" class="${tagsOpen || activeTag ? 'is-active' : ''}" id="btnToggleIncTags">${activeTag ? `#${escapeHtml(activeTag)} ×` : '# Tags'}</button>
+          <button type="button" id="btnIncSmartCluster" title="Auto-tag &amp; group related sparks into visual clusters">Smart Cluster</button>
+          <button type="button" class="${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
+        </div>
+      </div>
+
+      <div class="inc-stage-host" id="incStageHost"></div>
+
+      ${dumpOpen ? `
+        <div class="inc-floating-popover" id="incDumpPopover">
+          <div class="inc-popover-head">
+            <span class="kicker-mono">INSTANT DUMP</span>
+            <button type="button" class="icon-close-btn" id="btnCloseIncDump">×</button>
+          </div>
+          <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="4" placeholder="Dump a thought, URL, #tag, or [ ] checklist… (Enter to save)"></textarea>
+        </div>
+      ` : ''}
+
+      ${tagsOpen ? `
+        <div class="inc-floating-popover" id="incTagsPopover">
+          <div class="inc-popover-head">
+            <span class="kicker-mono"># TAGS</span>
+            <button type="button" class="icon-close-btn" id="btnCloseIncTags">×</button>
+          </div>
+          <div class="inc-bear-tag-list">
+            ${Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]).map(([tag, cnt]) => `
+              <button type="button" class="inc-bear-tag-btn ${activeTag === tag ? 'is-active' : ''}" data-inc-tag="${escapeHtml(tag)}">
+                <span>#${escapeHtml(tag)}</span>
+                <span class="inc-bear-count">${cnt}</span>
+              </button>
+            `).join('') || '<div class="inc-bear-empty">Drop or dump ideas to auto-tag</div>'}
+          </div>
+        </div>
+      ` : ''}
     </div>
   `;
+
+  const dumpInput = ws.querySelector('#incQuickDumpInput');
+  if (dumpInput) dumpInput.focus();
+  dumpInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const raw = (dumpInput.value || '').trim();
+      if (!raw) return;
+      const isUrl = /^https?:\/\/\S+$/i.test(raw);
+      const hashTags = Array.from(raw.matchAll(/#([a-zA-Z0-9_-]+)/g)).map(m => m[1]);
+      const spot = findNextOpenBoardSpot();
+      const newItem = {
+        id: 'itm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        parentType: 'space',
+        parentId: 'incubator',
+        folderId: state.activeFolderId || null,
+        section: (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '',
+        kind: isUrl ? 'link' : (raw.includes('[ ]') ? 'checklist' : 'note'),
+        title: isUrl ? raw.replace(/^https?:\/\//, '').slice(0, 48) : raw.split('\n')[0].slice(0, 56),
+        status: isUrl ? 'Link' : 'Spark',
+        url: '',
+        link: isUrl ? raw : '',
+        notes: isUrl ? '' : raw,
+        tags: hashTags,
+        linkedIds: [],
+        wallX: spot.x,
+        wallY: spot.y,
+        wallW: 264,
+        createdAt: Date.now()
+      };
+      autoClassifyIncubatorItem(newItem, (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '');
+      vault.items.unshift(newItem);
+      state.incubatorDumpOpen = false;
+      saveVault('DUMPED TO INCUBATOR');
+      renderAll();
+    }
+  });
+
+  ws.querySelector('#btnToggleIncDump')?.addEventListener('click', () => {
+    state.incubatorDumpOpen = !state.incubatorDumpOpen;
+    state.incubatorTagsOpen = false;
+    renderWorkspace();
+  });
+  ws.querySelector('#btnCloseIncDump')?.addEventListener('click', () => {
+    state.incubatorDumpOpen = false;
+    renderWorkspace();
+  });
+  ws.querySelector('#btnToggleIncTags')?.addEventListener('click', () => {
+    if (activeTag) {
+      state.incubatorActiveTag = '';
+      state.incubatorTagsOpen = false;
+    } else {
+      state.incubatorTagsOpen = !state.incubatorTagsOpen;
+      state.incubatorDumpOpen = false;
+    }
+    renderWorkspace();
+  });
+  ws.querySelector('#btnCloseIncTags')?.addEventListener('click', () => {
+    state.incubatorTagsOpen = false;
+    renderWorkspace();
+  });
+
+  ws.querySelectorAll('[data-inc-tag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.incTag || '';
+      state.incubatorActiveTag = state.incubatorActiveTag === t ? '' : t;
+      state.incubatorTagsOpen = false;
+      renderWorkspace();
+    });
+  });
+
+  ws.querySelectorAll('[data-inc-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.incubatorViewMode = btn.dataset.incView;
+      renderWorkspace();
+    });
+  });
+  ws.querySelector('#btnIncSmartCluster')?.addEventListener('click', () => runIncubatorSmartCluster());
+  ws.querySelector('#btnIncLinkMode')?.addEventListener('click', () => {
+    state.incubatorLinkMode = !state.incubatorLinkMode;
+    state.incubatorLinkSourceId = null;
+    renderWorkspace();
+  });
+
+  const stageHost = ws.querySelector('#incStageHost');
+  if (incView === 'graph') {
+    renderIncubatorGraphView(stageHost, visibleItems);
+  } else {
+    spaceObj.ui = spaceObj.ui || {};
+    if (typeof spaceObj.ui.cameraZoom !== 'number' || spaceObj.ui.cameraZoom < 0.65) {
+      spaceObj.ui.cameraZoom = 0.92;
+      spaceObj.ui.cameraPanX = 0;
+      spaceObj.ui.cameraPanY = 0;
+    }
+    renderGiantWallView(stageHost, 'space', spaceObj, visibleItems);
+  }
 }
 
 function renderIncubatorGraphView(host, items) {
