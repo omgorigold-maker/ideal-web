@@ -17143,6 +17143,11 @@ dialog.compare-dialog::backdrop {
   gap: 10px;
   flex-wrap: wrap;
   flex-shrink: 0;
+  transition: padding-left 0.18s ease;
+}
+
+.app-shell.sidebar-open .inc-top-strip {
+  padding-left: 236px;
 }
 
 .inc-top-strip .giant-wall-hud-pill {
@@ -17162,8 +17167,8 @@ dialog.compare-dialog::backdrop {
 
 .inc-floating-popover {
   position: fixed;
-  top: 76px;
-  right: 84px;
+  top: 112px;
+  right: 96px;
   width: 300px;
   max-height: 380px;
   z-index: 430;
