@@ -6127,6 +6127,9 @@ function renderHeaderAndToolbar() {
   if (hudDensityPill) {
     hudDensityPill.hidden = isGiantWall || isCustomizeSpace;
   }
+  if (hudViewModeGroup && type === 'space' && obj.id === 'incubator') {
+    hudViewModeGroup.hidden = true;
+  }
   const sizeSlider = document.getElementById('sizeSlider');
   if (sizeSlider) {
     sizeSlider.min = "1";
@@ -13895,9 +13898,9 @@ function renderIncubatorStudio(ws, spaceObj, items) {
             <button type="button" class="inc-mode-btn ${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
           </div>
           <div class="inc-topbar-actions">
-            ${activeTag ? `<button type="button" class="cmp-chip-btn is-active" id="btnIncClearTag">#${escapeHtml(activeTag)} ×</button>` : ''}
-            <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">Smart Cluster</button>
-            <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
+            ${activeTag ? `<button type="button" class="inc-pill-btn is-active" id="btnIncClearTag">#${escapeHtml(activeTag)} ×</button>` : ''}
+            <button type="button" class="inc-pill-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">Smart Cluster</button>
+            <button type="button" class="inc-pill-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
           </div>
         </div>
         <div class="inc-stage-host" id="incStageHost"></div>
@@ -13982,6 +13985,12 @@ function renderIncubatorStudio(ws, spaceObj, items) {
   if (incView === 'graph') {
     renderIncubatorGraphView(stageHost, visibleItems);
   } else {
+    spaceObj.ui = spaceObj.ui || {};
+    if (typeof spaceObj.ui.cameraZoom !== 'number' || spaceObj.ui.cameraZoom < 0.65) {
+      spaceObj.ui.cameraZoom = 0.92;
+      spaceObj.ui.cameraPanX = 0;
+      spaceObj.ui.cameraPanY = 0;
+    }
     renderGiantWallView(stageHost, 'space', spaceObj, visibleItems);
   }
 

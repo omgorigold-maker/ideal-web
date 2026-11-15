@@ -17126,7 +17126,7 @@ dialog.compare-dialog::backdrop {
    02 INCUBATOR — Rebuilt Bear + Obsidian Visual Studio (Infinite Board + Graph)
    ========================================================================== */
 .workspace:has(> .inc-studio-shell) {
-  padding: 68px 0 0 0 !important;
+  padding: 66px 0 0 0 !important;
   height: 100vh;
   overflow: hidden;
 }
@@ -17135,9 +17135,8 @@ dialog.compare-dialog::backdrop {
   display: flex;
   align-items: stretch;
   width: 100%;
-  height: calc(100vh - 68px);
+  height: calc(100vh - 66px);
   min-height: 540px;
-  border-top: 1px solid var(--border);
   background: var(--bg);
   overflow: hidden;
   transition: margin-left 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -17149,10 +17148,13 @@ dialog.compare-dialog::backdrop {
 }
 
 .inc-bear-sidebar {
-  width: 248px;
+  width: 236px;
   flex-shrink: 0;
+  margin: 12px 0 12px 12px;
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   padding: 14px 12px;
   display: flex;
   flex-direction: column;
@@ -17279,6 +17281,28 @@ dialog.compare-dialog::backdrop {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.inc-pill-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-pill);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+}
+
+.inc-pill-btn:hover {
+  border-color: var(--text-mid);
+}
+
+.inc-pill-btn.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-pill));
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .inc-stage-host {
