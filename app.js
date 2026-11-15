@@ -12112,12 +12112,13 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
     } else if (it.kind === 'audio' && it.url) {
       bodyHtml = `
         <div class="wall-pin-body" style="display:flex;flex-direction:column;gap:8px;">
-          <div class="kicker-mono" style="color:var(--accent);">🔊 AUDIO CLIP</div>
+          <div class="kicker-mono" style="color:var(--accent);">AUDIO CLIP</div>
           <audio src="${escapeHtml(it.url)}" controls style="width:100%;height:32px;"></audio>
         </div>
       `;
     } else if (isVisual) {
-      bodyHtml = `<div class="wall-pin-media"><img src="${escapeHtml(it.url)}" alt="${escapeHtml(it.title)}" draggable="false" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\\'padding:18px 12px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text-faint);\\'>✦ VISUAL SPARK</div>';"></div>`;
+      const incNotes = (parentType === 'space' && parentObj?.id === 'incubator' && it.notes) ? `<div class="inc-pin-notes">${escapeHtml(it.notes)}</div>` : '';
+      bodyHtml = `<div class="wall-pin-media"><img src="${escapeHtml(it.url)}" alt="${escapeHtml(it.title)}" draggable="false" onerror="this.parentElement.style.display='none';"></div>${incNotes}`;
     } else if (it.kind === 'sketch') {
       bodyHtml = `
         <div class="wall-pin-body mn-sketch-body" style="display:flex;flex-direction:column;gap:6px;">
@@ -12190,14 +12191,15 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
       ${isVisual ? `<button type="button" class="node-ig-quick-btn ${igStat === 'published' ? 'is-published' : (igStat === 'queued' ? 'is-queued' : '')}" title="Cycle IG / Website Status">${igStat === 'published' ? '●' : (igStat === 'website' ? '🌐' : '◈')}</button>` : ''}
       ${igBadge}
       ${bodyHtml}
+      ${(isIncubatorPin && Array.isArray(it.tags) && it.tags.length > 0) ? `<div class="inc-pin-tags">${it.tags.slice(0, 5).map(t => `<span class="tag-chip">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
       <div class="wall-pin-caption">
         ${isVisual ? `<span class="pin-title" data-editable-title="1" title="Click to rename: ${escapeHtml(it.title)}">${escapeHtml(it.title)}</span>` : `<span class="kicker-mono" style="font-size:9px;opacity:0.55;">${escapeHtml((it.kind || 'NOTE').toUpperCase())}</span>`}
         <div style="display:flex;gap:4px;align-items:center;">
           ${isIncubatorPin ? `<button type="button" class="hover-act-btn incubator-stage-pill" style="opacity:1;padding:1px 6px;" title="Click to move between Hatching Up, Sparks & Notes, and Clusters">${escapeHtml(it.section || 'Hatching Up')}</button>` : ''}
-          ${isIncubatorPin ? `<button type="button" class="hover-act-btn btn-inc-link-pin ${incLinkCount > 0 ? 'has-links' : ''}" style="opacity:1;padding:1px 6px;" title="Connect / link to another spark">🔗${incLinkCount > 0 ? ` ${incLinkCount}` : ''}</button>` : ''}
+          ${isIncubatorPin ? `<button type="button" class="hover-act-btn btn-inc-link-pin ${incLinkCount > 0 ? 'has-links' : ''}" style="opacity:1;padding:1px 6px;" title="Connect / link to another spark">Link${incLinkCount > 0 ? ` (${incLinkCount})` : ''}</button>` : ''}
           ${sourceProj ? `<button type="button" class="hover-act-btn btn-pin-source-board" style="opacity:1;padding:1px 6px;" title="Open ${escapeHtml(sourceProj.title)}">Board ↗</button>` : ''}
           ${(it.link && it.kind !== 'link' && it.kind !== 'map') ? `<button type="button" class="hover-act-btn btn-pin-link" style="opacity:1;padding:1px 6px;">↗</button>` : ''}
-          <button type="button" class="hover-act-btn btn-pin-inspect" style="opacity:1;padding:1px 6px;">•••</button>
+          <button type="button" class="hover-act-btn btn-pin-inspect" style="opacity:1;padding:1px 6px;">${isIncubatorPin ? 'Edit' : '•••'}</button>
         </div>
       </div>
       <div class="wall-resize-handle" title="Drag corner to resize card"></div>
@@ -12217,7 +12219,7 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
         if (!state.incubatorLinkMode) {
           state.incubatorLinkMode = true;
           state.incubatorLinkSourceId = it.id;
-          showStatusToast('🔗 Now click another card to link them');
+          showStatusToast('Now click another card to link them');
           renderWorkspace();
           return;
         }
@@ -12225,7 +12227,7 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
           const linked = toggleIncubatorLink(state.incubatorLinkSourceId, it.id);
           state.incubatorLinkMode = false;
           state.incubatorLinkSourceId = null;
-          showStatusToast(linked ? '🔗 Sparks linked!' : 'Unlinked sparks');
+          showStatusToast(linked ? 'Sparks linked' : 'Unlinked sparks');
           renderWorkspace();
         } else {
           state.incubatorLinkMode = false;
@@ -12244,7 +12246,7 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
             const linked = toggleIncubatorLink(state.incubatorLinkSourceId, it.id);
             state.incubatorLinkMode = false;
             state.incubatorLinkSourceId = null;
-            showStatusToast(linked ? '🔗 Sparks linked!' : 'Unlinked sparks');
+            showStatusToast(linked ? 'Sparks linked' : 'Unlinked sparks');
             renderWorkspace();
           }
         });
@@ -12445,6 +12447,11 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
 
   pin.querySelector('.btn-pin-inspect')?.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (isIncubatorPin) {
+      state.incubatorEditorId = (state.incubatorEditorId === it.id) ? null : it.id;
+      renderWorkspace();
+      return;
+    }
     openItemInspector(it.id);
   });
 
@@ -13869,55 +13876,54 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     : items;
 
   const incView = state.incubatorViewMode === 'graph' ? 'graph' : 'wall';
-  const dumpOpen = !!state.incubatorDumpOpen;
-  const tagsOpen = !!state.incubatorTagsOpen;
+  const sidebarOpen = !state.incubatorSidebarCollapsed;
+  const editorItem = state.incubatorEditorId
+    ? allIncItems.find(x => x.id === state.incubatorEditorId)
+    : null;
 
   ws.innerHTML = `
     <div class="inc-canvas-root">
-      <div class="inc-top-strip">
-        <div class="giant-wall-hud-pill">
-          <button type="button" class="${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">Infinite Wall</button>
-          <button type="button" class="${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
-          <button type="button" class="${dumpOpen ? 'is-active' : ''}" id="btnToggleIncDump">+ Quick Dump</button>
-          <button type="button" class="${tagsOpen || activeTag ? 'is-active' : ''}" id="btnToggleIncTags">${activeTag ? `#${escapeHtml(activeTag)} ×` : '# Tags'}</button>
-          <button type="button" id="btnIncSmartCluster" title="Auto-tag &amp; group related sparks into visual clusters">Smart Cluster</button>
-          <button type="button" class="${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
+      ${sidebarOpen ? `
+        <aside class="inc-bear-sidebar">
+          <div class="inc-dump-box">
+            <div class="inc-bear-heading" style="padding:0 0 6px;">INSTANT DUMP</div>
+            <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="3" placeholder="Dump a thought, URL, #tag, or [ ] checklist… (Enter to save)"></textarea>
+          </div>
+          <div>
+            <div class="inc-bear-heading" style="display:flex;justify-content:space-between;align-items:center;">
+              <span># TAGS</span>
+              ${activeTag ? `<button type="button" class="quiet-action-link" id="btnClearIncTag" style="font-size:10px;padding:0;">Clear</button>` : ''}
+            </div>
+            <div class="inc-bear-tag-list">
+              ${Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]).map(([tag, cnt]) => `
+                <button type="button" class="inc-bear-tag-btn ${activeTag === tag ? 'is-active' : ''}" data-inc-tag="${escapeHtml(tag)}">
+                  <span>#${escapeHtml(tag)}</span>
+                  <span class="inc-bear-count">${cnt}</span>
+                </button>
+              `).join('') || '<div class="inc-bear-empty">Dump or upload to auto-tag</div>'}
+            </div>
+          </div>
+        </aside>
+      ` : ''}
+
+      <div class="inc-studio-main">
+        <div class="inc-top-strip">
+          <div class="giant-wall-hud-pill">
+            <button type="button" class="${sidebarOpen ? 'is-active' : ''}" id="btnToggleIncSidebar">Dump &amp; Tags</button>
+            <button type="button" class="${incView === 'wall' ? 'is-active' : ''}" data-inc-view="wall">Infinite Wall</button>
+            <button type="button" class="${incView === 'graph' ? 'is-active' : ''}" data-inc-view="graph">Visual Graph</button>
+            <button type="button" id="btnIncSmartCluster" title="Auto-tag &amp; group related sparks into visual clusters">Smart Cluster</button>
+            <button type="button" class="${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to connect them">${state.incubatorLinkMode ? 'Click 2 Cards…' : 'Link Cards'}</button>
+          </div>
         </div>
+        <div class="inc-stage-host" id="incStageHost"></div>
       </div>
 
-      <div class="inc-stage-host" id="incStageHost"></div>
-
-      ${dumpOpen ? `
-        <div class="inc-floating-popover" id="incDumpPopover">
-          <div class="inc-popover-head">
-            <span class="kicker-mono">INSTANT DUMP</span>
-            <button type="button" class="icon-close-btn" id="btnCloseIncDump">×</button>
-          </div>
-          <textarea id="incQuickDumpInput" class="inc-dump-textarea" rows="4" placeholder="Dump a thought, URL, #tag, or [ ] checklist… (Enter to save)"></textarea>
-        </div>
-      ` : ''}
-
-      ${tagsOpen ? `
-        <div class="inc-floating-popover" id="incTagsPopover">
-          <div class="inc-popover-head">
-            <span class="kicker-mono"># TAGS</span>
-            <button type="button" class="icon-close-btn" id="btnCloseIncTags">×</button>
-          </div>
-          <div class="inc-bear-tag-list">
-            ${Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]).map(([tag, cnt]) => `
-              <button type="button" class="inc-bear-tag-btn ${activeTag === tag ? 'is-active' : ''}" data-inc-tag="${escapeHtml(tag)}">
-                <span>#${escapeHtml(tag)}</span>
-                <span class="inc-bear-count">${cnt}</span>
-              </button>
-            `).join('') || '<div class="inc-bear-empty">Drop or dump ideas to auto-tag</div>'}
-          </div>
-        </div>
-      ` : ''}
+      ${editorItem ? `<aside class="inc-bear-editor" id="incBearEditor"></aside>` : ''}
     </div>
   `;
 
   const dumpInput = ws.querySelector('#incQuickDumpInput');
-  if (dumpInput) dumpInput.focus();
   dumpInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -13947,33 +13953,17 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       };
       autoClassifyIncubatorItem(newItem, (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '');
       vault.items.unshift(newItem);
-      state.incubatorDumpOpen = false;
       saveVault('DUMPED TO INCUBATOR');
       renderAll();
     }
   });
 
-  ws.querySelector('#btnToggleIncDump')?.addEventListener('click', () => {
-    state.incubatorDumpOpen = !state.incubatorDumpOpen;
-    state.incubatorTagsOpen = false;
+  ws.querySelector('#btnToggleIncSidebar')?.addEventListener('click', () => {
+    state.incubatorSidebarCollapsed = !state.incubatorSidebarCollapsed;
     renderWorkspace();
   });
-  ws.querySelector('#btnCloseIncDump')?.addEventListener('click', () => {
-    state.incubatorDumpOpen = false;
-    renderWorkspace();
-  });
-  ws.querySelector('#btnToggleIncTags')?.addEventListener('click', () => {
-    if (activeTag) {
-      state.incubatorActiveTag = '';
-      state.incubatorTagsOpen = false;
-    } else {
-      state.incubatorTagsOpen = !state.incubatorTagsOpen;
-      state.incubatorDumpOpen = false;
-    }
-    renderWorkspace();
-  });
-  ws.querySelector('#btnCloseIncTags')?.addEventListener('click', () => {
-    state.incubatorTagsOpen = false;
+  ws.querySelector('#btnClearIncTag')?.addEventListener('click', () => {
+    state.incubatorActiveTag = '';
     renderWorkspace();
   });
 
@@ -13981,7 +13971,6 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     btn.addEventListener('click', () => {
       const t = btn.dataset.incTag || '';
       state.incubatorActiveTag = state.incubatorActiveTag === t ? '' : t;
-      state.incubatorTagsOpen = false;
       renderWorkspace();
     });
   });
@@ -13999,6 +13988,10 @@ function renderIncubatorStudio(ws, spaceObj, items) {
     renderWorkspace();
   });
 
+  if (editorItem) {
+    renderIncubatorBearEditor(ws.querySelector('#incBearEditor'), editorItem.id);
+  }
+
   const stageHost = ws.querySelector('#incStageHost');
   if (incView === 'graph') {
     renderIncubatorGraphView(stageHost, visibleItems);
@@ -14010,6 +14003,31 @@ function renderIncubatorStudio(ws, spaceObj, items) {
       spaceObj.ui.cameraPanY = 0;
     }
     renderGiantWallView(stageHost, 'space', spaceObj, visibleItems);
+    const canvas = stageHost.querySelector('.giant-wall-canvas');
+    if (canvas) {
+      const linkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      linkSvg.setAttribute('class', 'inc-wall-links-svg');
+      linkSvg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible;';
+      const drawn = new Set();
+      let paths = '';
+      visibleItems.forEach(a => {
+        const ax = (a.wallX || 0) + ((a.wallW || 264) / 2);
+        const ay = (a.wallY || 0) + 70;
+        (a.linkedIds || []).forEach(bid => {
+          const b = visibleItems.find(x => x.id === bid);
+          if (!b) return;
+          const k = a.id < bid ? `${a.id}|${bid}` : `${bid}|${a.id}`;
+          if (drawn.has(k)) return;
+          drawn.add(k);
+          const bx = (b.wallX || 0) + ((b.wallW || 264) / 2);
+          const by = (b.wallY || 0) + 70;
+          const mx = (ax + bx) / 2;
+          paths += `<path d="M ${ax} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${bx} ${by}" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-opacity="0.48" stroke-dasharray="5 4" />`;
+        });
+      });
+      linkSvg.innerHTML = paths;
+      canvas.prepend(linkSvg);
+    }
   }
 }
 
@@ -14091,18 +14109,19 @@ function renderIncubatorGraphView(host, items) {
       if (state.incubatorLinkMode) {
         if (!state.incubatorLinkSourceId) {
           state.incubatorLinkSourceId = id;
-          showStatusToast('🔗 Now click a second node to connect');
+          showStatusToast('Now click a second node to connect');
           renderWorkspace();
         } else if (state.incubatorLinkSourceId !== id) {
           const linked = toggleIncubatorLink(state.incubatorLinkSourceId, id);
           state.incubatorLinkMode = false;
           state.incubatorLinkSourceId = null;
-          showStatusToast(linked ? '🔗 Nodes connected!' : 'Connection removed');
+          showStatusToast(linked ? 'Nodes connected' : 'Connection removed');
           renderWorkspace();
         }
         return;
       }
-      openItemInspector(id);
+      state.incubatorEditorId = (state.incubatorEditorId === id) ? null : id;
+      renderWorkspace();
     });
   });
 }
@@ -14125,6 +14144,7 @@ function renderIncubatorBearEditor(panel, itemId) {
       </select>
       <div style="display:flex;gap:6px;align-items:center;">
         <button type="button" class="hover-act-btn" id="btnIncEdPromote" style="opacity:1;" title="Promote to Studio Project">↗ Project</button>
+        <button type="button" class="hover-act-btn" id="btnIncEdDelete" style="opacity:1;color:#c93b3b;" title="Move to Vault Trash">Delete</button>
         <button type="button" class="icon-close-btn" id="btnIncEdClose">×</button>
       </div>
     </div>
@@ -14133,14 +14153,14 @@ function renderIncubatorBearEditor(panel, itemId) {
       ${(it.tags || []).map(t => `<span class="tag-chip">#${escapeHtml(t)} <button type="button" class="inc-tag-x" data-rm-tag="${escapeHtml(t)}">×</button></span>`).join('')}
       <input type="text" id="incEdAddTag" class="inc-editor-tag-input" placeholder="+ #tag">
     </div>
-    ${it.url && it.kind !== 'audio' ? `<div class="inc-editor-media"><img src="${escapeHtml(it.url)}" alt=""></div>` : ''}
+    ${it.url && it.kind !== 'audio' ? `<div class="inc-editor-media"><img src="${escapeHtml(it.url)}" alt="" onerror="this.parentElement.style.display='none';"></div>` : ''}
     ${it.link ? `<a href="${escapeHtml(it.link)}" target="_blank" rel="noopener" class="inc-editor-link">↗ ${escapeHtml(it.link)}</a>` : ''}
     <textarea id="incEdNotes" class="inc-editor-notes" placeholder="Write thoughts, [[links]], or [ ] checklist items…">${escapeHtml(it.notes || '')}</textarea>
     <div class="inc-editor-links-box">
       <div class="inc-bear-heading" style="margin-bottom:6px;">CONNECTED SPARKS (${linkedItems.length})</div>
       <div class="inc-editor-links-list">
         ${linkedItems.map(li => `
-          <span class="tag-chip" style="cursor:pointer;" data-jump-id="${escapeHtml(li.id)}">🔗 ${escapeHtml((li.title || 'Spark').slice(0, 24))} <button type="button" class="inc-tag-x" data-unlink-id="${escapeHtml(li.id)}">×</button></span>
+          <span class="tag-chip" style="cursor:pointer;" data-jump-id="${escapeHtml(li.id)}">${escapeHtml((li.title || 'Spark').slice(0, 28))} <button type="button" class="inc-tag-x" data-unlink-id="${escapeHtml(li.id)}">×</button></span>
         `).join('') || '<span style="font-size:11px;color:var(--text-faint);">No connections yet</span>'}
       </div>
       <select id="incEdLinkSelect" class="inspector-input" style="margin-top:8px;font-size:11.5px;">
@@ -14155,6 +14175,9 @@ function renderIncubatorBearEditor(panel, itemId) {
     renderWorkspace();
   });
   panel.querySelector('#btnIncEdPromote')?.addEventListener('click', () => promoteIncubatorItemToProject(it.id));
+  panel.querySelector('#btnIncEdDelete')?.addEventListener('click', () => {
+    deleteItemDirectly(it.id);
+  });
   panel.querySelector('#incEdStage')?.addEventListener('change', (e) => {
     it.section = e.target.value;
     saveVault('UPDATED STAGE');

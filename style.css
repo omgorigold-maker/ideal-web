@@ -17125,14 +17125,30 @@ dialog.compare-dialog::backdrop {
 /* ==========================================================================
    02 INCUBATOR — Rebuilt Bear + Obsidian Visual Studio (Infinite Board + Graph)
    ========================================================================== */
+.app-shell.sidebar-open.has-milanote-rail .workspace:has(> .inc-canvas-root) {
+  padding: 66px 86px 12px 264px !important;
+}
+
+.app-shell:not(.sidebar-open).has-milanote-rail .workspace:has(> .inc-canvas-root) {
+  padding: 66px 86px 12px 16px !important;
+}
+
+.app-shell.sidebar-open:not(.has-milanote-rail) .workspace:has(> .inc-canvas-root) {
+  padding: 66px 16px 12px 264px !important;
+}
+
+.app-shell:not(.sidebar-open):not(.has-milanote-rail) .workspace:has(> .inc-canvas-root) {
+  padding: 66px 16px 12px 16px !important;
+}
+
 .inc-canvas-root {
   position: relative;
   width: 100%;
-  height: calc(100vh - 156px);
+  height: calc(100vh - 78px);
   min-height: 520px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 12px;
   background: transparent;
 }
 
@@ -17143,11 +17159,6 @@ dialog.compare-dialog::backdrop {
   gap: 10px;
   flex-wrap: wrap;
   flex-shrink: 0;
-  transition: padding-left 0.18s ease;
-}
-
-.app-shell.sidebar-open .inc-top-strip {
-  padding-left: 236px;
 }
 
 .inc-top-strip .giant-wall-hud-pill {
@@ -17161,8 +17172,43 @@ dialog.compare-dialog::backdrop {
   flex: 1;
   min-height: 0;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.inc-stage-host .giant-wall-stage {
+  min-height: 100%;
+  height: 100%;
+}
+
+.inc-stage-host .wall-pin-item {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.inc-stage-host .wall-pin-media img {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  display: block;
+}
+
+.inc-pin-notes {
+  padding: 6px 10px 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.inc-pin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 2px 10px 6px;
 }
 
 .inc-floating-popover {
@@ -17190,9 +17236,9 @@ dialog.compare-dialog::backdrop {
 }
 
 .inc-bear-sidebar {
-  width: 236px;
+  width: 214px;
   flex-shrink: 0;
-  margin: 12px 0 12px 12px;
+  margin: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -17480,12 +17526,14 @@ dialog.compare-dialog::backdrop {
   text-align: center;
 }
 
-/* Bear Slide-In Note / Spark Editor */
+/* Spark Slide-In Note / Visual Editor */
 .inc-bear-editor {
-  width: 310px;
+  width: 292px;
   flex-shrink: 0;
   background: var(--surface);
-  border-left: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -17554,10 +17602,12 @@ dialog.compare-dialog::backdrop {
 
 .inc-editor-media img {
   width: 100%;
-  max-height: 180px;
-  object-fit: cover;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
   border-radius: 6px;
   border: 1px solid var(--border);
+  display: block;
 }
 
 .inc-editor-link {
