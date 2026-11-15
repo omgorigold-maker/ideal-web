@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ideal • Incubator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F6F4EF;
+      --surface: #FAF8F5;
+      --surface-2: #EFECE5;
+      --border: #DDD8CE;
+      --text: #181715;
+      --text-mid: #656159;
+      --text-faint: #948E84;
+      --accent: #C84B31;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+    html.dark {
+      --bg: #121211;
+      --surface: #1A1A18;
+      --surface-2: #242421;
+      --border: #2E2E2B;
+      --text: #F3F1EC;
+      --text-mid: #A39E93;
+      --text-faint: #6E6A61;
+      --accent: #E06D53;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 256px 1fr auto;
+      grid-template-rows: 48px 1fr;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Top Bar */
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-left, .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .seg-group {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      gap: 2px;
+    }
+    .seg-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-mid);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .pill-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .pill-btn:hover { border-color: var(--text-mid); }
+    .pill-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    }
+    .pill-btn.primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    /* Left Sidebar (Instant Dump + Stages + #Tags) */
+    .sidebar {
+      grid-row: 2;
+      grid-column: 1;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .dump-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .dump-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .dump-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      line-height: 1.45;
+      resize: none;
+      outline: none;
+    }
+    .sec-head {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+      padding: 0 6px 6px;
+    }
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-mid);
+      font-size: 12.5px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .nav-btn:hover { background: var(--surface-2); color: var(--text); }
+    .nav-btn.active {
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .count {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-faint);
+    }
+
+    /* Main Canvas (Infinite Board & Visual Graph) */
+    .stage {
+      grid-row: 2;
+      grid-column: 2;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--bg);
+      background-image: radial-gradient(color-mix(in srgb, var(--text-faint) 35%, transparent) 1px, transparent 1px);
+      background-size: 24px 24px;
+      cursor: grab;
+    }
+    .stage.panning { cursor: grabbing; }
+    .plane {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      width: 6000px;
+      height: 6000px;
+    }
+    .links-svg {
+      position: absolute;
+      inset: 0;
+      width: 6000px;
+      height: 6000px;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .link-line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 1.75px;
+      stroke-opacity: 0.5;
+      stroke-dasharray: 5 4;
+    }
+
+    /* Cards — ALWAYS full uncropped images & full text */
+    .card {
+      position: absolute;
+      width: 280px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      cursor: default;
+      user-select: none;
+    }
+    .card:hover { border-color: var(--text-mid); }
+    .card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+    .card.link-source { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .card-drag {
+      padding: 8px 10px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: grab;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+    }
+    .card-media img, .card-media video {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .card-body {
+      padding: 8px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .card-title {
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .card-notes {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--text-mid);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .card-link {
+      font-size: 11.5px;
+      color: var(--accent);
+      word-break: break-all;
+      text-decoration: none;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding-top: 2px;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--text-mid);
+    }
+    .card-foot {
+      padding: 6px 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .mini-btn {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Zoom HUD */
+    .zoom-hud {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      z-index: 10;
+    }
+    .zoom-hud button {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 3px 7px;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+    .zoom-hud button:hover { background: var(--surface-2); }
+
+    /* Right Editor Drawer (Clean CSS Grid Column — Zero Overlaps) */
+    .editor {
+      grid-row: 2;
+      grid-column: 3;
+      width: 320px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .editor[hidden] { display: none; }
+    .ed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .ed-select {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+    .ed-title {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 4px 0;
+      outline: none;
+    }
+    .ed-notes {
+      flex: 1;
+      min-height: 160px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 10px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+    }
+    .ed-media img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      object-fit: contain;
+    }
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="seg-group">
+          <button type="button" class="seg-btn active" data-view="wall">Infinite Wall</button>
+          <button type="button" class="seg-btn" data-view="graph">Visual Graph</button>
+        </div>
+        <button type="button" class="pill-btn" id="btnSmartCluster">Smart Cluster</button>
+        <button type="button" class="pill-btn" id="btnLinkMode">Link Cards</button>
+      </div>
+      <div class="topbar-right">
+        <button type="button" class="pill-btn" id="btnAddNote">+ Note</button>
+        <button type="button" class="pill-btn" id="btnAddLink">+ Link</button>
+        <button type="button" class="pill-btn primary" id="btnUpload">+ Upload</button>
+        <input type="file" id="fileInput" multiple hidden>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="dump-box">
+        <div class="dump-label">INSTANT DUMP</div>
+        <textarea id="dumpInput" class="dump-input" rows="3" placeholder="Dump a thought, URL, #tag, or drop files anywhere… (Enter to save)"></textarea>
+      </div>
+      <div>
+        <div class="sec-head">STAGES</div>
+        <div id="stageList"></div>
+      </div>
+      <div>
+        <div class="sec-head"># TAGS</div>
+        <div id="tagList"></div>
+      </div>
+    </aside>
+
+    <main class="stage" id="stage">
+      <div class="plane" id="plane">
+        <svg class="links-svg" id="linksSvg"></svg>
+        <div id="cardsLayer"></div>
+      </div>
+      <div class="zoom-hud">
+        <button type="button" id="btnZoomOut">−</button>
+        <button type="button" id="btnZoomReset">100%</button>
+        <button type="button" id="btnZoomIn">+</button>
+        <button type="button" id="btnTidy">Tidy</button>
+      </div>
+    </main>
+
+    <aside class="editor" id="editor" hidden></aside>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let vault = null;
+    let state = {
+      view: 'wall',
+      stage: 'All',
+      tag: '',
+      linkMode: false,
+      linkSourceId: null,
+      selectedId: null,
+      zoom: 0.95,
+      panX: 0,
+      panY: 0
+    };
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function getIncubatorItems() {
+      if (!vault || !Array.isArray(vault.items)) return [];
+      return vault.items.filter(it => it.parentType === 'space' && it.parentId === 'incubator' && !['line', 'sphere'].includes(it.kind));
+    }
+
+    function autoClassify(it) {
+      const valid = ['Hatching Up', 'Sparks & Notes', 'Clusters'];
+      if (!it.section || !valid.includes(it.section)) {
+        it.section = ['note', 'checklist', 'link', 'sketch', 'table'].includes(it.kind) ? 'Sparks & Notes' : 'Hatching Up';
+      }
+      const tags = new Set((it.tags || []).filter(t => t && t !== 'All'));
+      if (it.kind === 'image' || it.kind === 'sketch') tags.add('Visual Spark');
+      else if (it.kind === 'video') tags.add('Motion');
+      else if (it.kind === 'audio') tags.add('Audio');
+      else if (it.kind === 'link') tags.add('Reference Link');
+      else if (it.kind === 'note' || it.kind === 'checklist') tags.add('Note');
+      it.tags = Array.from(tags).slice(0, 6);
+      if (!Array.isArray(it.linkedIds)) it.linkedIds = [];
+      return it;
+    }
+
+    async function loadVault() {
+      try {
+        if (window.parent && window.parent !== window && window.parent.vault) {
+          vault = window.parent.vault;
+          applyThemeFromVault();
+          render();
+          return;
+        }
+      } catch (_) {}
+      const res = await fetch('/api/vault');
+      if (res.ok) {
+        const data = await res.json();
+        vault = data.vault || data;
+        applyThemeFromVault();
+        render();
+      }
+    }
+
+    function applyThemeFromVault() {
+      const preset = vault?.customization?.themePreset || '';
+      document.documentElement.classList.toggle('dark', preset.includes('dark') || preset.includes('oled'));
+    }
+
+    async function saveVaultSafe() {
+      try {
+        if (window.parent && window.parent !== window && typeof window.parent.saveVault === 'function') {
+          window.parent.saveVault('INCUBATOR UPDATED');
+          return;
+        }
+      } catch (_) {}
+      await fetch('/api/vault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vault })
+      });
+    }
+
+    function applyCamera() {
+      const plane = document.getElementById('plane');
+      plane.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      document.getElementById('btnZoomReset').textContent = `${Math.round(state.zoom * 100)}%`;
+    }
+
+    function render() {
+      const all = getIncubatorItems();
+      all.forEach(autoClassify);
+
+      // Stages
+      const stages = ['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'];
+      document.getElementById('stageList').innerHTML = stages.map(s => {
+        const cnt = s === 'All' ? all.length : all.filter(i => i.section === s).length;
+        return `<button type="button" class="nav-btn ${state.stage === s && !state.tag ? 'active' : ''}" data-stage="${s}"><span>${s}</span><span class="count">${cnt}</span></button>`;
+      }).join('');
+      document.querySelectorAll('[data-stage]').forEach(b => b.onclick = () => { state.stage = b.dataset.stage; state.tag = ''; render(); });
+
+      // Tags
+      const tagMap = new Map();
+      all.forEach(i => (i.tags || []).forEach(t => tagMap.set(t, (tagMap.get(t) || 0) + 1)));
+      document.getElementById('tagList').innerHTML = Array.from(tagMap.entries()).sort((a,b) => b[1]-a[1]).map(([t, c]) =>
+        `<button type="button" class="nav-btn ${state.tag === t ? 'active' : ''}" data-tag="${t}"><span>#${t}</span><span class="count">${c}</span></button>`
+      ).join('') || '<div style="padding:6px;font-size:11.5px;color:var(--text-faint)">No tags yet</div>';
+      document.querySelectorAll('[data-tag]').forEach(b => b.onclick = () => { state.tag = state.tag === b.dataset.tag ? '' : b.dataset.tag; render(); });
+
+      // Filtered items
+      const visible = all.filter(i => {
+        if (state.stage !== 'All' && i.section !== state.stage) return false;
+        if (state.tag && !(i.tags || []).includes(state.tag)) return false;
+        return true;
+      });
+
+      // Topbar state
+      document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === state.view));
+      const linkBtn = document.getElementById('btnLinkMode');
+      linkBtn.classList.toggle('active', state.linkMode);
+      linkBtn.textContent = state.linkMode ? 'Click 2 Cards…' : 'Link Cards';
+
+      // Layout positions for Graph vs Wall
+      const pos = new Map();
+      if (state.view === 'graph') {
+        const groups = new Map();
+        visible.forEach(n => {
+          const k = (n.tags && n.tags[0]) || n.section || 'Hatching Up';
+          if (!groups.has(k)) groups.set(k, []);
+          groups.get(k).push(n);
+        });
+        const keys = Array.from(groups.keys());
+        keys.forEach((k, gi) => {
+          const g = groups.get(k);
+          const ang = (gi / Math.max(1, keys.length)) * Math.PI * 2;
+          const cx = keys.length === 1 ? 460 : 520 + Math.cos(ang) * 320;
+          const cy = keys.length === 1 ? 300 : 380 + Math.sin(ang) * 240;
+          g.forEach((n, ni) => {
+            const a2 = (ni / Math.max(1, g.length)) * Math.PI * 2;
+            const r = g.length === 1 ? 0 : 190;
+            pos.set(n.id, { x: Math.round(cx + Math.cos(a2) * r), y: Math.round(cy + Math.sin(a2) * r) });
+          });
+        });
+      } else {
+        visible.forEach((n, idx) => {
+          const x = typeof n.wallX === 'number' ? n.wallX : 60 + (idx % 3) * 310;
+          const y = typeof n.wallY === 'number' ? n.wallY : 40 + Math.floor(idx / 3) * 280;
+          pos.set(n.id, { x, y });
+        });
+      }
+
+      // Render Cards
+      const layer = document.getElementById('cardsLayer');
+      layer.innerHTML = '';
+      visible.forEach(it => {
+        const p = pos.get(it.id);
+        const card = document.createElement('div');
+        card.className = `card ${state.selectedId === it.id ? 'selected' : ''} ${state.linkSourceId === it.id ? 'link-source' : ''}`;
+        card.style.left = p.x + 'px';
+        card.style.top = p.y + 'px';
+        const isImg = it.url && it.kind !== 'audio' && it.kind !== 'video';
+        const isVid = it.url && it.kind === 'video';
+        const isAud = it.url && it.kind === 'audio';
+        card.innerHTML = `
+          <div class="card-drag">
+            <span>${(it.kind || 'NOTE').toUpperCase()}</span>
+            <span>${it.section || 'Hatching Up'}</span>
+          </div>
+          ${isImg ? `<div class="card-media"><img src="/${it.url.replace(/^\//,'')}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
+          ${isVid ? `<div class="card-media"><video src="/${it.url.replace(/^\//,'')}" controls muted loop playsinline></video></div>` : ''}
+          ${isAud ? `<div class="card-body"><audio src="/${it.url.replace(/^\//,'')}" controls style="width:100%"></audio></div>` : ''}
+          <div class="card-body">
+            <div class="card-title">${escapeHtml(it.title || 'Untitled Spark')}</div>
+            ${it.notes ? `<div class="card-notes">${escapeHtml(it.notes)}</div>` : ''}
+            ${it.link ? `<a class="card-link" href="${escapeHtml(it.link)}" target="_blank">${escapeHtml(it.link)}</a>` : ''}
+            <div class="card-tags">${(it.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
+          </div>
+          <div class="card-foot">
+            <button type="button" class="mini-btn btn-stage">${escapeHtml(it.section || 'Hatching Up')}</button>
+            <div style="display:flex;gap:4px">
+              <button type="button" class="mini-btn btn-link">Link${(it.linkedIds||[]).length ? ` (${it.linkedIds.length})` : ''}</button>
+              <button type="button" class="mini-btn btn-edit">Open</button>
+            </div>
+          </div>
+        `;
+
+        // Drag card on Wall
+        const dragHandle = card.querySelector('.card-drag');
+        dragHandle.onpointerdown = (e) => {
+          if (state.view === 'graph') return;
+          e.stopPropagation();
+          const sx = e.clientX, sy = e.clientY, ox = p.x, oy = p.y;
+          const onMove = (ev) => {
+            const nx = Math.round((ox + (ev.clientX - sx) / state.zoom) / 12) * 12;
+            const ny = Math.round((oy + (ev.clientY - sy) / state.zoom) / 12) * 12;
+            it.wallX = nx; it.wallY = ny;
+            card.style.left = nx + 'px'; card.style.top = ny + 'px';
+            pos.set(it.id, { x: nx, y: ny });
+            drawLinks(visible, pos);
+          };
+          const onUp = () => {
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            saveVaultSafe();
+          };
+          window.addEventListener('pointermove', onMove);
+          window.addEventListener('pointerup', onUp);
+        };
+
+        card.querySelector('.btn-stage').onclick = (e) => {
+          e.stopPropagation();
+          const list = ['Hatching Up', 'Sparks & Notes', 'Clusters'];
+          it.section = list[(list.indexOf(it.section) + 1) % list.length];
+          saveVaultSafe(); render();
+        };
+        card.querySelector('.btn-link').onclick = (e) => {
+          e.stopPropagation();
+          handleLinkClick(it.id);
+        };
+        card.querySelector('.btn-edit').onclick = (e) => {
+          e.stopPropagation();
+          state.selectedId = it.id;
+          render();
+        };
+        card.onclick = () => {
+          if (state.linkMode) handleLinkClick(it.id);
+          else { state.selectedId = it.id; render(); }
+        };
+
+        layer.appendChild(card);
+      });
+
+      drawLinks(visible, pos);
+      renderEditor();
+      applyCamera();
+    }
+
+    function drawLinks(items, pos) {
+      const svg = document.getElementById('linksSvg');
+      const drawn = new Set();
+      let html = '';
+      items.forEach(a => {
+        const pa = pos.get(a.id);
+        if (!pa) return;
+        (a.linkedIds || []).forEach(bid => {
+          const pb = pos.get(bid);
+          if (!pb) return;
+          const k = a.id < bid ? `${a.id}|${bid}` : `${bid}|${a.id}`;
+          if (drawn.has(k)) return;
+          drawn.add(k);
+          const ax = pa.x + 140, ay = pa.y + 80;
+          const bx = pb.x + 140, by = pb.y + 80;
+          const mx = (ax + bx) / 2;
+          html += `<path class="link-line" d="M ${ax} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${bx} ${by}" />`;
+        });
+      });
+      svg.innerHTML = html;
+    }
+
+    function handleLinkClick(id) {
+      if (!state.linkMode) {
+        state.linkMode = true;
+        state.linkSourceId = id;
+        toast('Click a second card to connect');
+        render();
+        return;
+      }
+      if (!state.linkSourceId) {
+        state.linkSourceId = id;
+        render();
+        return;
+      }
+      if (state.linkSourceId !== id) {
+        const a = vault.items.find(x => x.id === state.linkSourceId);
+        const b = vault.items.find(x => x.id === id);
+        if (a && b) {
+          a.linkedIds = a.linkedIds || [];
+          b.linkedIds = b.linkedIds || [];
+          if (a.linkedIds.includes(b.id)) {
+            a.linkedIds = a.linkedIds.filter(x => x !== b.id);
+            b.linkedIds = b.linkedIds.filter(x => x !== a.id);
+            toast('Connection removed');
+          } else {
+            a.linkedIds.push(b.id);
+            b.linkedIds.push(a.id);
+            toast('Cards connected');
+          }
+          saveVaultSafe();
+        }
+      }
+      state.linkMode = false;
+      state.linkSourceId = null;
+      render();
+    }
+
+    function renderEditor() {
+      const ed = document.getElementById('editor');
+      const it = vault?.items?.find(x => x.id === state.selectedId);
+      if (!it) { ed.hidden = true; return; }
+      ed.hidden = false;
+      ed.innerHTML = `
+        <div class="ed-head">
+          <select id="edStage" class="ed-select">
+            ${['Hatching Up', 'Sparks & Notes', 'Clusters'].map(s => `<option value="${s}" ${it.section === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button type="button" class="mini-btn" id="edClose">Close</button>
+        </div>
+        <input type="text" id="edTitle" class="ed-title" value="${escapeHtml(it.title || '')}">
+        <div class="card-tags">
+          ${(it.tags || []).map(t => `<span class="tag">#${escapeHtml(t)} <button type="button" data-rm="${escapeHtml(t)}" style="border:none;background:none;color:inherit;cursor:pointer">×</button></span>`).join('')}
+          <input type="text" id="edAddTag" placeholder="+ tag" style="border:1px dashed var(--border);border-radius:999px;background:none;color:var(--text);font-size:10.5px;padding:2px 7px;width:64px;outline:none">
+        </div>
+        ${it.url && it.kind !== 'audio' && it.kind !== 'video' ? `<div class="ed-media"><img src="/${it.url.replace(/^\//,'')}" alt=""></div>` : ''}
+        <textarea id="edNotes" class="ed-notes" placeholder="Write notes…">${escapeHtml(it.notes || '')}</textarea>
+      `;
+      ed.querySelector('#edClose').onclick = () => { state.selectedId = null; render(); };
+      ed.querySelector('#edStage').onchange = (e) => { it.section = e.target.value; saveVaultSafe(); render(); };
+      ed.querySelector('#edTitle').onchange = (e) => { it.title = e.target.value.trim() || 'Spark'; saveVaultSafe(); render(); };
+      ed.querySelector('#edNotes').onchange = (e) => { it.notes = e.target.value; saveVaultSafe(); render(); };
+      ed.querySelector('#edAddTag').onkeydown = (e) => {
+        if (e.key === 'Enter' && e.target.value.trim()) {
+          it.tags = Array.from(new Set([...(it.tags || []), e.target.value.trim().replace(/^#/, '')]));
+          saveVaultSafe(); render();
+        }
+      };
+      ed.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+        it.tags = (it.tags || []).filter(t => t !== b.dataset.rm);
+        saveVaultSafe(); render();
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Pan & Zoom Stage
+    const stageEl = document.getElementById('stage');
+    stageEl.onpointerdown = (e) => {
+      if (e.target.closest('.card') || e.target.closest('.zoom-hud')) return;
+      stageEl.classList.add('panning');
+      const sx = e.clientX, sy = e.clientY, px = state.panX, py = state.panY;
+      const onMove = (ev) => { state.panX = px + ev.clientX - sx; state.panY = py + ev.clientY - sy; applyCamera(); };
+      const onUp = () => { stageEl.classList.remove('panning'); window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    };
+    stageEl.onwheel = (e) => {
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        state.zoom = Math.min(2, Math.max(0.35, state.zoom - e.deltaY * 0.002));
+      } else {
+        state.panX -= e.deltaX; state.panY -= e.deltaY;
+      }
+      applyCamera();
+    };
+
+    // Controls
+    document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { state.view = b.dataset.view; render(); });
+    document.getElementById('btnZoomIn').onclick = () => { state.zoom = Math.min(2, state.zoom + 0.15); applyCamera(); };
+    document.getElementById('btnZoomOut').onclick = () => { state.zoom = Math.max(0.35, state.zoom - 0.15); applyCamera(); };
+    document.getElementById('btnZoomReset').onclick = () => { state.zoom = 1; state.panX = 0; state.panY = 0; applyCamera(); };
+    document.getElementById('btnTidy').onclick = () => {
+      getIncubatorItems().forEach((it, idx) => {
+        it.wallX = 60 + (idx % 3) * 310;
+        it.wallY = 40 + Math.floor(idx / 3) * 290;
+      });
+      saveVaultSafe(); render(); toast('Board tidied');
+    };
+    document.getElementById('btnLinkMode').onclick = () => {
+      state.linkMode = !state.linkMode; state.linkSourceId = null; render();
+    };
+    document.getElementById('btnSmartCluster').onclick = async () => {
+      const items = getIncubatorItems();
+      if (items.length < 2) return toast('Add at least 2 sparks to cluster');
+      const groups = new Map();
+      items.forEach(it => {
+        const t = (it.tags && it.tags[0]) || 'General';
+        if (!groups.has(t)) groups.set(t, []);
+        groups.get(t).push(it);
+      });
+      let ci = 0;
+      groups.forEach((arr) => {
+        if (arr.length < 2) return;
+        const bx = 60 + (ci % 2) * 660, by = 40 + Math.floor(ci / 2) * 440;
+        arr.forEach((it, idx) => {
+          it.section = 'Clusters';
+          it.wallX = bx + (idx % 2) * 300;
+          it.wallY = by + Math.floor(idx / 2) * 260;
+          if (idx > 0) {
+            it.linkedIds = Array.from(new Set([...(it.linkedIds || []), arr[0].id]));
+            arr[0].linkedIds = Array.from(new Set([...(arr[0].linkedIds || []), it.id]));
+          }
+        });
+        ci++;
+      });
+      saveVaultSafe(); render(); toast('Sparks clustered');
+    };
+
+    // Instant Dump
+    document.getElementById('dumpInput').onkeydown = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const raw = e.target.value.trim();
+        if (!raw) return;
+        const isUrl = /^https?:\/\/\S+$/i.test(raw);
+        const tags = Array.from(raw.matchAll(/#([a-zA-Z0-9_-]+)/g)).map(m => m[1]);
+        const newItem = autoClassify({
+          id: 'itm_' + Date.now(),
+          parentType: 'space',
+          parentId: 'incubator',
+          section: state.stage !== 'All' ? state.stage : '',
+          kind: isUrl ? 'link' : 'note',
+          title: isUrl ? raw.replace(/^https?:\/\//, '').slice(0, 48) : raw.split('\n')[0].slice(0, 56),
+          notes: isUrl ? '' : raw,
+          link: isUrl ? raw : '',
+          tags,
+          linkedIds: [],
+          wallX: 60 + (getIncubatorItems().length % 3) * 310,
+          wallY: 40 + Math.floor(getIncubatorItems().length / 3) * 290,
+          createdAt: Date.now()
+        });
+        vault.items.unshift(newItem);
+        e.target.value = '';
+        saveVaultSafe(); render(); toast('Saved to Incubator');
+      }
+    };
+
+    document.getElementById('btnAddNote').onclick = () => { document.getElementById('dumpInput').focus(); };
+    document.getElementById('btnAddLink').onclick = () => {
+      const inp = document.getElementById('dumpInput');
+      inp.value = 'https://'; inp.focus();
+    };
+    document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = async (e) => {
+      for (const file of Array.from(e.target.files || [])) {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'X-File-Name': encodeURIComponent(file.name) },
+          body: file
+        });
+        if (res.ok) {
+          const u = await res.json();
+          const kind = file.type.startsWith('video/') ? 'video' : (file.type.startsWith('audio/') ? 'audio' : 'image');
+          vault.items.unshift(autoClassify({
+            id: 'itm_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+            parentType: 'space',
+            parentId: 'incubator',
+            section: state.stage !== 'All' ? state.stage : 'Hatching Up',
+            kind,
+            title: u.fileName || file.name,
+            url: (u.fileUrl || '').replace(/^\//, ''),
+            notes: '',
+            tags: [],
+            linkedIds: [],
+            wallX: 60 + (getIncubatorItems().length % 3) * 310,
+            wallY: 40 + Math.floor(getIncubatorItems().length / 3) * 290,
+            createdAt: Date.now()
+          }));
+        }
+      }
+      saveVaultSafe(); render(); toast('Uploaded original to Vault');
+    };
+
+    loadVault();
+  </script>
+</body>
+</html>
