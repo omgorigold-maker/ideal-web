@@ -2760,6 +2760,11 @@ function ensureVaultSleekAndGDrive(v) {
         it.section = 'Hatching Up';
       }
     }
+    if (it.parentType === 'space' && it.parentId === 'incubator') {
+      if (!it.section || ['All', 'Visual Sparks', 'Starting / WIP', 'IG Not Ready Yet', 'To Sort', 'Tasks', 'Voice & Audio'].includes(it.section)) {
+        it.section = (it.kind === 'note' || it.kind === 'checklist' || it.kind === 'link' || it.kind === 'sketch') ? 'Sparks & Notes' : 'Hatching Up';
+      }
+    }
     if (it.parentType === 'space' && it.parentId === 'gdrive_vault') {
       it.parentId = 'gdrive_assets';
     }
@@ -3038,7 +3043,7 @@ function ensureVaultSleekAndGDrive(v) {
       title: keepTitle('incubator', 'Incubator'),
       kicker: 'I. CREATIVE STUDIO / 02',
       heading: keepHeading('incubator', 'Incubator'),
-      categories: ['All', 'Hatching Up', 'Starting / WIP', 'IG Not Ready Yet', 'Sparks & Notes'],
+      categories: ['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'],
       ui: {
         ...(oldSpacesMap.incubator?.ui || {}),
         layoutMode: keepLayout('incubator', ['giant_wall', 'wall', 'list', 'kanban'], 'giant_wall'),
@@ -12175,6 +12180,10 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
     }
 
     const sourceProj = (!parentObj || parentObj.id !== it.parentId) && it.parentType === 'project' ? (vault.projects || []).find(p => p.id === it.parentId) : null;
+    const isIncubatorPin = parentType === 'space' && parentObj?.id === 'incubator';
+    const incLinkCount = isIncubatorPin && Array.isArray(it.linkedIds) ? it.linkedIds.length : 0;
+    const isLinkSource = isIncubatorPin && state.incubatorLinkMode && state.incubatorLinkSourceId === it.id;
+    if (isLinkSource) pin.classList.add('is-link-source');
 
     pin.innerHTML = `
       ${isVisual ? `<button type="button" class="asset-select-check ${isCmp ? 'is-selected' : ''}" title="Select to Compare">✓</button>` : ''}
@@ -12184,6 +12193,8 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
       <div class="wall-pin-caption">
         ${isVisual ? `<span class="pin-title" data-editable-title="1" title="Click to rename: ${escapeHtml(it.title)}">${escapeHtml(it.title)}</span>` : `<span class="kicker-mono" style="font-size:9px;opacity:0.55;">${escapeHtml((it.kind || 'NOTE').toUpperCase())}</span>`}
         <div style="display:flex;gap:4px;align-items:center;">
+          ${isIncubatorPin ? `<button type="button" class="hover-act-btn incubator-stage-pill" style="opacity:1;padding:1px 6px;" title="Click to move between Hatching Up, Sparks & Notes, and Clusters">${escapeHtml(it.section || 'Hatching Up')}</button>` : ''}
+          ${isIncubatorPin ? `<button type="button" class="hover-act-btn btn-inc-link-pin ${incLinkCount > 0 ? 'has-links' : ''}" style="opacity:1;padding:1px 6px;" title="Connect / link to another spark">🔗${incLinkCount > 0 ? ` ${incLinkCount}` : ''}</button>` : ''}
           ${sourceProj ? `<button type="button" class="hover-act-btn btn-pin-source-board" style="opacity:1;padding:1px 6px;" title="Open ${escapeHtml(sourceProj.title)}">Board ↗</button>` : ''}
           ${(it.link && it.kind !== 'link' && it.kind !== 'map') ? `<button type="button" class="hover-act-btn btn-pin-link" style="opacity:1;padding:1px 6px;">↗</button>` : ''}
           <button type="button" class="hover-act-btn btn-pin-inspect" style="opacity:1;padding:1px 6px;">•••</button>
@@ -12191,6 +12202,54 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
       </div>
       <div class="wall-resize-handle" title="Drag corner to resize card"></div>
     `;
+
+    if (isIncubatorPin) {
+      pin.querySelector('.incubator-stage-pill')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const stages = ['Hatching Up', 'Sparks & Notes', 'Clusters'];
+        const nextIdx = (stages.indexOf(it.section) + 1) % stages.length;
+        it.section = stages[nextIdx];
+        saveVault(`MOVED TO ${it.section.toUpperCase()}`);
+        renderWorkspace();
+      });
+      pin.querySelector('.btn-inc-link-pin')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!state.incubatorLinkMode) {
+          state.incubatorLinkMode = true;
+          state.incubatorLinkSourceId = it.id;
+          showStatusToast('🔗 Now click another card to link them');
+          renderWorkspace();
+          return;
+        }
+        if (state.incubatorLinkSourceId && state.incubatorLinkSourceId !== it.id) {
+          const linked = toggleIncubatorLink(state.incubatorLinkSourceId, it.id);
+          state.incubatorLinkMode = false;
+          state.incubatorLinkSourceId = null;
+          showStatusToast(linked ? '🔗 Sparks linked!' : 'Unlinked sparks');
+          renderWorkspace();
+        } else {
+          state.incubatorLinkMode = false;
+          state.incubatorLinkSourceId = null;
+          renderWorkspace();
+        }
+      });
+      if (state.incubatorLinkMode) {
+        pin.addEventListener('click', (e) => {
+          if (e.target.closest('button, input, textarea, [contenteditable="true"]')) return;
+          e.stopPropagation();
+          if (!state.incubatorLinkSourceId) {
+            state.incubatorLinkSourceId = it.id;
+            renderWorkspace();
+          } else if (state.incubatorLinkSourceId !== it.id) {
+            const linked = toggleIncubatorLink(state.incubatorLinkSourceId, it.id);
+            state.incubatorLinkMode = false;
+            state.incubatorLinkSourceId = null;
+            showStatusToast(linked ? '🔗 Sparks linked!' : 'Unlinked sparks');
+            renderWorkspace();
+          }
+        });
+      }
+    }
 
     pin.querySelector('.btn-pin-source-board')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -12491,6 +12550,10 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
     it.wallY = snappedY;
     pin.style.left = `${snappedX}px`;
     pin.style.top = `${snappedY}px`;
+    if (parentType === 'space' && parentObj?.id === 'incubator' && pin.parentElement) {
+      const incVis = (vault.items || []).filter(x => x.parentType === 'space' && x.parentId === 'incubator' && !x.columnId && !x.sphereId);
+      renderIncubatorLinksSvg(pin.parentElement, incVis);
+    }
 
     if (batchPeerOffsets.length > 0) {
       const actualDx = snappedX - origPinX;
@@ -13485,40 +13548,10 @@ function promoteIncubatorItemToProject(itemId) {
   const it = vault.items.find(x => x.id === itemId);
   if (!it) return;
 
-  if (it.kind === 'folder') {
-    const newProjId = 'proj_' + uid();
-    const childItems = vault.items.filter(c => c.parentType === it.parentType && c.parentId === it.parentId && c.folderId === it.id);
-    const firstVisual = childItems.find(c => c.url && c.kind !== 'audio');
-    const projSpot = findNextOpenProjectClusterSpot();
-    const newProj = {
-      id: newProjId,
-      title: it.title || 'Promoted Studio Project',
-      category: '3D & Motion',
-      status: 'Active',
-      lifecycleState: 'active',
-      summary: it.notes || `Promoted from Incubator (${childItems.length} items)`,
-      coverUrl: firstVisual ? firstVisual.url : '',
-      sections: ['All', 'WIP', 'References', 'Notes', 'Final'],
-      tags: it.tags || [],
-      boardX: projSpot.x,
-      boardY: projSpot.y,
-      boardW: 360,
-      ui: { layoutMode: 'giant_wall', sortOrder: 'manual' },
-      createdAt: Date.now()
-    };
-    vault.projects.unshift(newProj);
-    childItems.forEach((c, idx) => {
-      c.parentType = 'project';
-      c.parentId = newProjId;
-      delete c.folderId;
-      c.wallX = 336 + (idx % 3) * 312;
-      c.wallY = 144 + Math.floor(idx / 3) * 312;
-    });
-    vault.items = vault.items.filter(x => x.id !== it.id);
-    saveVault(`PROMOTED "${newProj.title.toUpperCase()}" TO 01 STUDIO PROJECTS`);
-    openProjectBoard(newProjId);
-    return;
-  }
+  const isFolder = it.kind === 'folder';
+  const childItems = isFolder
+    ? vault.items.filter(c => c.parentType === it.parentType && c.parentId === it.parentId && c.folderId === it.id)
+    : [];
 
   let modal = document.getElementById('promoteIncubatorModal');
   if (modal) modal.remove();
@@ -13591,8 +13624,8 @@ function promoteIncubatorItemToProject(itemId) {
         category: '3D & Motion',
         status: 'Active',
         lifecycleState: 'active',
-        summary: it.notes || 'Promoted from 02 Incubator',
-        coverUrl: (it.url && it.kind !== 'audio') ? it.url : '',
+        summary: it.notes || (isFolder ? `Promoted from Incubator (${childItems.length} items)` : 'Promoted from 02 Incubator'),
+        coverUrl: (isFolder ? childItems.find(c => c.url && c.kind !== 'audio')?.url : (it.url && it.kind !== 'audio' ? it.url : '')) || '',
         sections: ['All', 'WIP', 'References', 'Notes', 'Final'],
         tags: it.tags || [],
         boardX: projSpot.x,
@@ -13602,15 +13635,214 @@ function promoteIncubatorItemToProject(itemId) {
         createdAt: Date.now()
       });
     }
-    it.parentType = 'project';
-    it.parentId = targetProjId;
-    delete it.folderId;
-    it.wallX = 336;
-    it.wallY = 144;
+    if (isFolder) {
+      childItems.forEach((c, idx) => {
+        c.parentType = 'project';
+        c.parentId = targetProjId;
+        delete c.folderId;
+        c.wallX = 336 + (idx % 3) * 312;
+        c.wallY = 144 + Math.floor(idx / 3) * 312;
+      });
+      vault.items = vault.items.filter(x => x.id !== it.id);
+    } else {
+      it.parentType = 'project';
+      it.parentId = targetProjId;
+      delete it.folderId;
+      it.wallX = 336;
+      it.wallY = 144;
+    }
     close();
     saveVault('PROMOTED TO STUDIO PROJECT');
     openProjectBoard(targetProjId);
   });
+}
+
+/* --------------------------------------------------------------------------
+   INCUBATOR (OBSIDIAN + BEAR VISUAL DUMP, AUTO-SORT & CLUSTERING)
+   -------------------------------------------------------------------------- */
+function autoClassifyIncubatorItem(it, preferredSection = '') {
+  if (!it || it.parentType !== 'space' || it.parentId !== 'incubator') return it;
+  const validTabs = ['Hatching Up', 'Sparks & Notes', 'Clusters'];
+  if (preferredSection && validTabs.includes(preferredSection)) {
+    it.section = preferredSection;
+  } else if (!it.section || !validTabs.includes(it.section)) {
+    const isTextSpark = ['note', 'checklist', 'link', 'sketch', 'table'].includes(it.kind);
+    it.section = isTextSpark ? 'Sparks & Notes' : 'Hatching Up';
+  }
+
+  const textBlob = `${it.title || ''} ${it.notes || ''} ${it.link || ''}`.toLowerCase();
+  const autoTags = new Set(Array.isArray(it.tags) ? it.tags.filter(t => t && t !== 'All') : []);
+  if (it.kind === 'image' || it.kind === 'sketch') autoTags.add('Visual Spark');
+  else if (it.kind === 'video') autoTags.add('Motion / Video');
+  else if (it.kind === 'audio') autoTags.add('Audio');
+  else if (it.kind === 'link') autoTags.add('Reference Link');
+  else if (it.kind === 'checklist') autoTags.add('Checklist');
+  else if (it.kind === 'color') autoTags.add('Palette');
+  else if (it.kind === 'note') autoTags.add('Note');
+
+  if (/\b(3d|blender|c4d|cinema|render|shader|sculpt|mesh|glb|fbx|octane)\b/.test(textBlob)) autoTags.add('3D / Render');
+  if (/\b(type|font|poster|layout|brand|graphic|editorial|print)\b/.test(textBlob)) autoTags.add('Graphic Design');
+  if (/\b(draw|illustrat|ink|sketch|paint|character)\b/.test(textBlob)) autoTags.add('Illustration');
+  if (/\b(story|essay|poem|write|script|concept|quote)\b/.test(textBlob)) autoTags.add('Writing');
+  if (/\b(ig|instagram|reel|carousel|post)\b/.test(textBlob)) autoTags.add('Instagram Idea');
+
+  it.tags = Array.from(autoTags).slice(0, 6);
+  if (!Array.isArray(it.linkedIds)) it.linkedIds = [];
+  return it;
+}
+
+function toggleIncubatorLink(idA, idB) {
+  if (!idA || !idB || idA === idB) return false;
+  const a = vault.items.find(x => x.id === idA);
+  const b = vault.items.find(x => x.id === idB);
+  if (!a || !b) return false;
+  a.linkedIds = Array.isArray(a.linkedIds) ? a.linkedIds : [];
+  b.linkedIds = Array.isArray(b.linkedIds) ? b.linkedIds : [];
+  const exists = a.linkedIds.includes(idB);
+  if (exists) {
+    a.linkedIds = a.linkedIds.filter(id => id !== idB);
+    b.linkedIds = b.linkedIds.filter(id => id !== idA);
+    saveVault('UNLINKED INCUBATOR SPARKS');
+    return false;
+  }
+  a.linkedIds.push(idB);
+  b.linkedIds.push(idA);
+  saveVault('LINKED INCUBATOR SPARKS');
+  return true;
+}
+
+function renderIncubatorLinksSvg(plane, items) {
+  if (!plane) return;
+  let svg = plane.querySelector('#incubatorLinksSvg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'incubatorLinksSvg';
+    svg.setAttribute('class', 'incubator-links-svg');
+    plane.insertBefore(svg, plane.firstChild);
+  }
+  const byId = new Map(items.map(it => [it.id, it]));
+  const drawn = new Set();
+  let pathsHtml = '';
+  items.forEach(a => {
+    const links = Array.isArray(a.linkedIds) ? a.linkedIds : [];
+    links.forEach(bId => {
+      const b = byId.get(bId);
+      if (!b) return;
+      const pairKey = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+      if (drawn.has(pairKey)) return;
+      drawn.add(pairKey);
+      const ax = (a.wallX || 264) + (a.wallW || 264) / 2;
+      const ay = (a.wallY || 120) + 90;
+      const bx = (b.wallX || 264) + (b.wallW || 264) / 2;
+      const by = (b.wallY || 120) + 90;
+      const mx = (ax + bx) / 2;
+      const d = `M ${ax} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${bx} ${by}`;
+      pathsHtml += `<path class="incubator-link-line" d="${d}" />`;
+    });
+  });
+  svg.innerHTML = pathsHtml;
+}
+
+async function runIncubatorSmartCluster() {
+  const incItems = (vault.items || []).filter(
+    it => it.parentType === 'space' && it.parentId === 'incubator' && !['line', 'sphere', 'folder', 'column'].includes(it.kind)
+  );
+  if (incItems.length < 2) {
+    showStatusToast('Add at least 2 sparks in Incubator to auto-cluster.');
+    return;
+  }
+
+  incItems.forEach(it => autoClassifyIncubatorItem(it, it.section));
+  showStatusToast('✦ Smart-sorting & clustering your Incubator sparks…');
+
+  let clusters = [];
+  let links = [];
+  let usedMode = 'local';
+
+  try {
+    const res = await fetch('/api/incubator/cluster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: incItems.map(it => ({
+          id: it.id,
+          kind: it.kind,
+          title: it.title,
+          notes: it.notes,
+          tags: it.tags || [],
+          link: it.link || ''
+        }))
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.mode === 'ai' && Array.isArray(data.clusters) && data.clusters.length > 0) {
+        clusters = data.clusters;
+        links = Array.isArray(data.links) ? data.links : [];
+        usedMode = 'ai';
+      }
+    }
+  } catch (_) {}
+
+  // Fast deterministic fallback: group by shared medium/topic tag
+  if (clusters.length === 0) {
+    const groups = new Map();
+    incItems.forEach(it => {
+      const primaryTag = (it.tags || []).find(t => !['All', 'Hatching Up', 'Sparks & Notes', 'Clusters'].includes(t)) || 'General Sparks';
+      if (!groups.has(primaryTag)) groups.set(primaryTag, []);
+      groups.get(primaryTag).push(it.id);
+    });
+    groups.forEach((ids, tag) => {
+      if (ids.length >= 2) {
+        clusters.push({ name: tag, tag, itemIds: ids });
+      }
+    });
+  }
+
+  const byId = new Map(incItems.map(it => [it.id, it]));
+  let clusteredCount = 0;
+
+  clusters.forEach((cl, cIdx) => {
+    const validIds = (cl.itemIds || []).filter(id => byId.has(id));
+    if (validIds.length < 2) return;
+    const baseX = 264 + (cIdx % 3) * 648;
+    const baseY = 120 + Math.floor(cIdx / 3) * 480;
+    validIds.forEach((id, idx) => {
+      const item = byId.get(id);
+      if (!item) return;
+      item.section = 'Clusters';
+      item.tags = Array.from(new Set([...(item.tags || []), cl.tag || cl.name].filter(Boolean))).slice(0, 6);
+      item.linkedIds = Array.isArray(item.linkedIds) ? item.linkedIds : [];
+      if (idx > 0 && !item.linkedIds.includes(validIds[0])) {
+        item.linkedIds.push(validIds[0]);
+        const root = byId.get(validIds[0]);
+        if (root) {
+          root.linkedIds = Array.isArray(root.linkedIds) ? root.linkedIds : [];
+          if (!root.linkedIds.includes(id)) root.linkedIds.push(id);
+        }
+      }
+      item.wallX = snapCoord(baseX + (idx % 2) * 288);
+      item.wallY = snapCoord(baseY + Math.floor(idx / 2) * 240);
+      clusteredCount++;
+    });
+  });
+
+  links.forEach(pair => {
+    if (Array.isArray(pair) && pair.length >= 2 && byId.has(pair[0]) && byId.has(pair[1]) && pair[0] !== pair[1]) {
+      const a = byId.get(pair[0]);
+      const b = byId.get(pair[1]);
+      a.linkedIds = Array.from(new Set([...(a.linkedIds || []), b.id]));
+      b.linkedIds = Array.from(new Set([...(b.linkedIds || []), a.id]));
+    }
+  });
+
+  saveVault('SMART CLUSTERED INCUBATOR');
+  renderAll();
+  showStatusToast(
+    clusteredCount > 0
+      ? `✦ Grouped ${clusteredCount} sparks into ${clusters.filter(c => (c.itemIds || []).length >= 2).length} visual clusters (${usedMode === 'ai' ? 'AI' : 'Smart Auto-Sort'})`
+      : '✦ Auto-tagged your sparks! Link any two cards with 🔗 Link Sparks to form a cluster.'
+  );
 }
 
 /* --------------------------------------------------------------------------
@@ -13621,8 +13853,16 @@ function renderGiantWallView(ws, parentType, parentObj, items) {
   const isIncubator = parentType === 'space' && parentObj.id === 'incubator';
   const isDelivered = isProject && parentObj.lifecycleState === 'delivered';
 
+  const incubatorBarHtml = isIncubator ? `
+    <div class="incubator-smart-bar" id="incubatorSmartBar">
+      <button type="button" class="cmp-chip-btn" id="btnIncSmartCluster" title="Auto-tag & group related sparks into visual clusters">✦ Smart Cluster</button>
+      <button type="button" class="cmp-chip-btn ${state.incubatorLinkMode ? 'is-active' : ''}" id="btnIncLinkMode" title="Click two cards to draw a visual Obsidian-style connection line">🔗 ${state.incubatorLinkMode ? 'Linking: Click 2 Cards' : 'Link Sparks'}</button>
+    </div>
+  ` : '';
+
   ws.innerHTML = `
     <div class="giant-wall-stage" id="giantWallStage">
+      ${incubatorBarHtml}
       <div class="giant-wall-plane" id="giantWallPlane">
         <div class="wall-snap-preview" id="wallSnapPreview" hidden></div>
       </div>
@@ -13641,6 +13881,15 @@ function renderGiantWallView(ws, parentType, parentObj, items) {
   const stage = ws.querySelector('#giantWallStage');
   const plane = ws.querySelector('#giantWallPlane');
   if (!stage || !plane) return;
+
+  if (isIncubator) {
+    ws.querySelector('#btnIncSmartCluster')?.addEventListener('click', () => runIncubatorSmartCluster());
+    ws.querySelector('#btnIncLinkMode')?.addEventListener('click', () => {
+      state.incubatorLinkMode = !state.incubatorLinkMode;
+      state.incubatorLinkSourceId = null;
+      renderWorkspace();
+    });
+  }
 
   ws.querySelector('#btnWallDeliverProj')?.addEventListener('click', () => {
     deliverProjectAndSpawnShowcase(parentObj.id);
@@ -13674,6 +13923,9 @@ function renderGiantWallView(ws, parentType, parentObj, items) {
     const pin = buildSpatialPinEl(it, parentType, parentObj, idx);
     if (pin) plane.appendChild(pin);
   });
+  if (isIncubator) {
+    renderIncubatorLinksSvg(plane, items);
+  }
   if (state.batchSelectedIds && state.batchSelectedIds.size > 0) {
     renderBatchActionBar(stage, plane);
   }
@@ -19792,7 +20044,7 @@ function openQuickComposer(kind = 'note') {
       createdAt: Date.now()
     };
 
-    vault.items.unshift(newItem);
+    vault.items.unshift(autoClassifyIncubatorItem(newItem, (targetParentType === 'space' && targetParentId === 'incubator' && state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : ''));
     bar.hidden = true;
     saveVault();
     renderAll();
@@ -20276,7 +20528,10 @@ async function handleFilesUpload(fileListOrCaptured, dropOpts = null) {
   const destProjObj = targetParentType === 'project' ? vault.projects.find(p => p.id === targetParentId) : null;
   const destLabel = destProjObj ? destProjObj.title : (isLightbox ? 'Unsorted' : (obj?.title || 'Vault'));
 
-  const secDefault = (state.activeCategory && !state.activeCategory.startsWith('All') && type !== 'space') ? state.activeCategory : 'All';
+  const isIncubatorTarget = targetParentType === 'space' && targetParentId === 'incubator';
+  const secDefault = (state.activeCategory && !state.activeCategory.startsWith('All') && (type !== 'space' || isIncubatorTarget))
+    ? state.activeCategory
+    : (isIncubatorTarget ? 'Hatching Up' : 'All');
   const totalFiles = resolvedFiles.length;
   const isBatchDrop = totalFiles > 1;
   showStatusToast(`⚡ Uploading ${totalFiles} original file${totalFiles === 1 ? '' : 's'} to ${destLabel}…`);
@@ -20429,6 +20684,9 @@ async function handleFilesUpload(fileListOrCaptured, dropOpts = null) {
           wallW: 264,
           createdAt: Date.now()
         };
+        if (targetParentType === 'space' && targetParentId === 'incubator') {
+          autoClassifyIncubatorItem(newItem, (state.activeCategory && !state.activeCategory.startsWith('All')) ? state.activeCategory : '');
+        }
 
         vault.items.unshift(newItem);
         newlyCreatedItems.push(newItem);

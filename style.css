@@ -17058,3 +17058,67 @@ dialog.compare-dialog::backdrop {
   outline: 2.5px solid #2563eb;
   outline-offset: -2px;
 }
+
+/* ==========================================================================
+   02 INCUBATOR — Obsidian + Bear Visual Connections & Smart Clustering Bar
+   ========================================================================== */
+.incubator-smart-bar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface-pill);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.incubator-links-svg {
+  position: absolute;
+  inset: 0;
+  width: 6000px;
+  height: 6000px;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.incubator-link-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.75px;
+  stroke-opacity: 0.45;
+  stroke-dasharray: 5 4;
+}
+
+.wall-pin.is-link-source {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.incubator-stage-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  background: var(--surface-stage);
+  color: var(--text-mid);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.incubator-stage-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-inc-link-pin.has-links {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
