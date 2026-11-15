@@ -4221,6 +4221,7 @@ function getActiveGDriveLaneInfo(catName) {
 
 async function syncFromServerOnBoot() {
   let localSaved = null;
+  let mergedLocalChanges = false;
   try {
     const rawLocal = localStorage.getItem('ideal_vault_v5');
     if (rawLocal) localSaved = JSON.parse(rawLocal);
@@ -4250,6 +4251,7 @@ async function syncFromServerOnBoot() {
           localSaved.projects.forEach(lp => {
             if (lp && lp.id && !serverProjIds.has(lp.id)) {
               serverVault.projects.push(lp);
+              mergedLocalChanges = true;
             }
           });
         }
@@ -4259,6 +4261,7 @@ async function syncFromServerOnBoot() {
             if (!li || !li.id || serverItemIds.has(li.id)) return;
             if (li.parentType === 'space' && li.parentId === 'lightbox' && !localSaved.lightboxCleanV104) return;
             serverVault.items.push(li);
+            mergedLocalChanges = true;
           });
         }
         if (localSaved && localSaved.lightboxCleanV104 && Array.isArray(localSaved.lightboxProjects)) {
@@ -4269,6 +4272,7 @@ async function syncFromServerOnBoot() {
             if (lp && lp.id && !sLbProjIds.has(lp.id)) {
               serverVault.lightboxProjects.push(lp);
               sLbProjIds.add(lp.id);
+              mergedLocalChanges = true;
             }
           });
         }
@@ -4428,37 +4432,40 @@ async function syncFromServerOnBoot() {
 
         vault = ensureVaultSleekAndGDrive(serverVault);
         ensureLightboxCleanWorkspace(vault);
+        state.custSavedSnapshot = captureCustomizationSnapshot(vault);
         localStorage.setItem(LS_KEY, JSON.stringify(vault));
+        applyCustomizationToDOM();
         hydrateLightboxLocalHandles(false);
         renderAll();
-        fetch('/api/vault', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(vault)
-        }).catch(() => {});
-      } else {
+        if (mergedLocalChanges) {
+          fetch('/api/vault', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(vault)
+          }).catch(() => {});
+        }
+      } else if (!localSaved) {
         vault = createSeedVault();
         localStorage.setItem(LS_KEY, JSON.stringify(vault));
-        await fetch('/api/vault', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(vault)
-        });
+        applyCustomizationToDOM();
+        renderAll();
       }
     }
   } catch (e) {
     // Offline fallback is already loaded
   }
 
-  try {
-    const fRes = await fetch('/api/finland-projects');
-    if (fRes.ok) {
-      const fData = await fRes.json();
-      if (fData && Array.isArray(fData.projects)) {
-        state.finlandProjects = fData.projects;
+  (async () => {
+    try {
+      const fRes = await fetch('/api/finland-projects');
+      if (fRes.ok) {
+        const fData = await fRes.json();
+        if (fData && Array.isArray(fData.projects)) {
+          state.finlandProjects = fData.projects;
+        }
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  })();
 
   if (state._pendingNavProject && Array.isArray(vault?.projects)) {
     const foundProj = vault.projects.find(p => p.id === state._pendingNavProject.activeProjectId);
@@ -30703,17 +30710,39 @@ function finishBootReveal() {
   } catch (e) {}
 }
 
-function bootIdealApp() {
+async function bootIdealApp() {
+  let hasLocalVault = false;
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) hasLocalVault = isValidV5Vault(JSON.parse(raw));
+  } catch (e) {}
+
   state.custSavedSnapshot = captureCustomizationSnapshot(vault);
   state.custDirty = false;
   initEvents();
-  applyCustomizationToDOM();
-  hydrateLightboxLocalHandles(false);
-  renderAll();
-  syncFromServerOnBoot();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(finishBootReveal);
-  });
+
+  if (hasLocalVault) {
+    applyCustomizationToDOM();
+    hydrateLightboxLocalHandles(false);
+    renderAll();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(finishBootReveal);
+    });
+    syncFromServerOnBoot();
+  } else {
+    // Keep the loading snake visible until the real vault & active template load
+    await Promise.race([
+      syncFromServerOnBoot(),
+      new Promise(resolve => setTimeout(resolve, 12000))
+    ]);
+    applyCustomizationToDOM();
+    hydrateLightboxLocalHandles(false);
+    renderAll();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(finishBootReveal);
+    });
+  }
+
   if (typeof requestIdleCallback === 'function') {
     requestIdleCallback(() => ensureGDriveSeedLoaded(), { timeout: 2500 });
   } else {
