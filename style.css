@@ -17433,60 +17433,66 @@ dialog.compare-dialog::backdrop {
   white-space: pre-wrap !important;
 }
 
-/* Obsidian Visual Graph */
+/* Visual Graph */
 .inc-graph-stage {
   position: relative;
   width: 100%;
   height: 100%;
-  padding-top: 86px;
+  padding: 12px;
   background: radial-gradient(circle at center, color-mix(in srgb, var(--accent) 4%, transparent) 0%, transparent 70%);
   overflow: auto;
 }
 
 .inc-graph-svg {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
   pointer-events: none;
 }
 
 .inc-graph-edge {
+  fill: none;
   stroke: var(--accent);
-  stroke-width: 1.5px;
-  stroke-opacity: 0.45;
+  stroke-width: 1.6px;
+  stroke-opacity: 0.5;
   stroke-dasharray: 4 3;
 }
 
 .inc-graph-nodes {
   position: relative;
-  width: 100%;
-  height: 100%;
+}
+
+.inc-graph-group-label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
 .inc-graph-node {
   position: absolute;
-  transform: translate(-50%, -50%);
-  width: 232px;
+  width: 244px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-  padding: 8px;
-  border-radius: 8px;
-  background: var(--surface-pill);
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 12px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   transition: transform 0.14s ease, border-color 0.14s ease;
 }
 
 .inc-graph-node:hover,
 .inc-graph-node.is-selected {
-  transform: translate(-50%, -50%) scale(1.03);
+  transform: translateY(-2px);
   border-color: var(--accent);
   z-index: 5;
 }

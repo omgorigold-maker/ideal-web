@@ -12447,7 +12447,7 @@ function buildSpatialPinEl(it, parentType, parentObj, idx = 0) {
 
   pin.querySelector('.btn-pin-inspect')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (isIncubatorPin) {
+    if (parentType === 'space' && parentObj?.id === 'incubator') {
       state.incubatorEditorId = (state.incubatorEditorId === it.id) ? null : it.id;
       renderWorkspace();
       return;
@@ -14039,7 +14039,7 @@ function renderIncubatorGraphView(host, items) {
     return;
   }
 
-  // Group nodes into cluster rings by section/primary tag
+  // Group nodes cleanly by cluster/stage into non-overlapping columns
   const groups = new Map();
   nodes.forEach(n => {
     const key = (n.section === 'Clusters' && n.tags?.[0]) ? n.tags[0] : (n.section || 'Hatching Up');
@@ -14047,52 +14047,47 @@ function renderIncubatorGraphView(host, items) {
     groups.get(key).push(n);
   });
 
-  const width = Math.max(920, host.clientWidth || 960);
-  const height = Math.max(580, host.clientHeight || 620);
-  const posMap = new Map();
   const groupKeys = Array.from(groups.keys());
+  const cardW = 244;
+  const colGap = 36;
+  const rowGap = 24;
+  const posMap = new Map();
+  let curX = 28;
+  let maxH = Math.max(580, host.clientHeight || 620);
 
-  groupKeys.forEach((gKey, gIdx) => {
+  groupKeys.forEach((gKey) => {
     const gNodes = groups.get(gKey);
-    const angle = (gIdx / Math.max(1, groupKeys.length)) * Math.PI * 2 - Math.PI / 2;
-    const cx = groupKeys.length === 1 ? width / 2 : width / 2 + Math.cos(angle) * (width * 0.24);
-    const cy = groupKeys.length === 1 ? height / 2 : height / 2 + Math.sin(angle) * (height * 0.22);
+    const cols = gNodes.length > 3 ? 2 : 1;
+    const colY = new Array(cols).fill(52);
     gNodes.forEach((n, idx) => {
-      const subAngle = (idx / Math.max(1, gNodes.length)) * Math.PI * 2;
-      const r = gNodes.length === 1 ? 0 : Math.min(130, 55 + gNodes.length * 14);
-      posMap.set(n.id, {
-        x: Math.round(cx + Math.cos(subAngle) * r),
-        y: Math.round(cy + Math.sin(subAngle) * r),
-        group: gKey
-      });
+      const c = colY.indexOf(Math.min(...colY));
+      const estH = 120 + (n.url && n.kind !== 'audio' ? 160 : 0) + Math.min(180, Math.ceil((n.notes || '').length / 28) * 18);
+      const x = curX + c * (cardW + colGap);
+      const y = colY[c];
+      posMap.set(n.id, { x, y, w: cardW, h: estH, group: gKey });
+      colY[c] += estH + rowGap;
+      maxH = Math.max(maxH, colY[c] + 40);
     });
+    curX += cols * (cardW + colGap) + 40;
   });
 
-  const drawn = new Set();
-  let linesSvg = '';
-  nodes.forEach(a => {
-    const pa = posMap.get(a.id);
-    if (!pa) return;
-    (a.linkedIds || []).forEach(bId => {
-      const pb = posMap.get(bId);
-      if (!pb) return;
-      const key = a.id < bId ? `${a.id}|${bId}` : `${bId}|${a.id}`;
-      if (drawn.has(key)) return;
-      drawn.add(key);
-      linesSvg += `<line class="inc-graph-edge" x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" />`;
-    });
-  });
+  const totalW = Math.max(host.clientWidth || 960, curX + 20);
+  const totalH = maxH;
 
   host.innerHTML = `
     <div class="inc-graph-stage">
-      <svg class="inc-graph-svg" viewBox="0 0 ${width} ${height}">${linesSvg}</svg>
-      <div class="inc-graph-nodes">
+      <div class="inc-graph-nodes" style="width:${totalW}px;height:${totalH}px;">
+        <svg class="inc-graph-svg" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}"></svg>
+        ${groupKeys.map((gKey, gIdx) => {
+          const first = posMap.get(groups.get(gKey)[0].id);
+          return `<div class="inc-graph-group-label" style="left:${first.x}px;top:16px;">${escapeHtml(gKey)} (${groups.get(gKey).length})</div>`;
+        }).join('')}
         ${nodes.map(n => {
           const p = posMap.get(n.id);
           const isVisual = n.url && n.kind !== 'audio';
           const isSelected = state.incubatorEditorId === n.id;
           return `
-            <button type="button" class="inc-graph-node ${isVisual ? 'is-visual' : ''} ${isSelected ? 'is-selected' : ''}" data-node-id="${escapeHtml(n.id)}" style="left:${p.x}px;top:${p.y}px;">
+            <button type="button" class="inc-graph-node ${isVisual ? 'is-visual' : ''} ${isSelected ? 'is-selected' : ''}" data-node-id="${escapeHtml(n.id)}" style="left:${p.x}px;top:${p.y}px;width:${cardW}px;">
               ${isVisual ? `<img class="inc-graph-node-img" src="${escapeHtml(n.url)}" alt="${escapeHtml(n.title || '')}" onerror="this.style.display='none'">` : ''}
               <div class="inc-graph-node-title">${escapeHtml(n.title || 'Spark')}</div>
               ${n.notes ? `<div class="inc-graph-node-notes">${escapeHtml(n.notes)}</div>` : ''}
@@ -14102,6 +14097,67 @@ function renderIncubatorGraphView(host, items) {
       </div>
     </div>
   `;
+
+  // Measure actual rendered heights to guarantee zero overlap & draw curved links
+  requestAnimationFrame(() => {
+    const nodesWrap = host.querySelector('.inc-graph-nodes');
+    const svg = host.querySelector('.inc-graph-svg');
+    if (!nodesWrap) return;
+    const btnById = new Map();
+    nodesWrap.querySelectorAll('.inc-graph-node').forEach(b => btnById.set(b.dataset.nodeId, b));
+
+    let xCursor = 28;
+    let finalH = 580;
+    groupKeys.forEach((gKey) => {
+      const gNodes = groups.get(gKey);
+      const cols = gNodes.length > 3 ? 2 : 1;
+      const colY = new Array(cols).fill(52);
+      const lbl = Array.from(nodesWrap.querySelectorAll('.inc-graph-group-label')).find(el => el.textContent.startsWith(gKey + ' '));
+      if (lbl) lbl.style.left = xCursor + 'px';
+      gNodes.forEach((n) => {
+        const b = btnById.get(n.id);
+        const c = colY.indexOf(Math.min(...colY));
+        const x = xCursor + c * (cardW + colGap);
+        const y = colY[c];
+        if (b) {
+          b.style.left = x + 'px';
+          b.style.top = y + 'px';
+        }
+        const realH = b ? Math.max(90, b.offsetHeight) : 140;
+        posMap.set(n.id, { x, y, w: cardW, h: realH, group: gKey });
+        colY[c] += realH + rowGap;
+        finalH = Math.max(finalH, colY[c] + 40);
+      });
+      xCursor += cols * (cardW + colGap) + 40;
+    });
+
+    const finalW = Math.max(host.clientWidth || 960, xCursor + 20);
+    nodesWrap.style.width = finalW + 'px';
+    nodesWrap.style.height = finalH + 'px';
+    if (svg) {
+      svg.setAttribute('width', String(finalW));
+      svg.setAttribute('height', String(finalH));
+      svg.setAttribute('viewBox', `0 0 ${finalW} ${finalH}`);
+      const drawn = new Set();
+      let linesSvg = '';
+      nodes.forEach(a => {
+        const pa = posMap.get(a.id);
+        if (!pa) return;
+        const ax = pa.x + pa.w / 2, ay = pa.y + pa.h / 2;
+        (a.linkedIds || []).forEach(bId => {
+          const pb = posMap.get(bId);
+          if (!pb) return;
+          const key = a.id < bId ? `${a.id}|${bId}` : `${bId}|${a.id}`;
+          if (drawn.has(key)) return;
+          drawn.add(key);
+          const bx = pb.x + pb.w / 2, by = pb.y + pb.h / 2;
+          const mx = (ax + bx) / 2;
+          linesSvg += `<path class="inc-graph-edge" d="M ${ax} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${bx} ${by}" />`;
+        });
+      });
+      svg.innerHTML = linesSvg;
+    }
+  });
 
   host.querySelectorAll('.inc-graph-node').forEach(btn => {
     btn.addEventListener('click', () => {
