@@ -6250,8 +6250,8 @@ function renderFilterActionRow() {
 
   const { type, obj } = getActiveContainer();
 
-  // Hide filter bar on 09 Customize view
-  if (type === 'space' && obj.id === 'customize') {
+  // Hide filter bar on Customize & Build Notes views
+  if (type === 'space' && (obj.id === 'customize' || obj.id === 'build_notes')) {
     row.innerHTML = '';
     row.style.display = 'none';
     return;
@@ -6823,9 +6823,10 @@ function renderWorkspace() {
   const ws = document.getElementById('workspace');
   if (!ws) return;
 
-  if (typeof captureBuildNotesLiveInputsToDraft === 'function' && document.getElementById('buildNotesShell')) {
+  if (!state._bnSkipDraftCaptureOnce && typeof captureBuildNotesLiveInputsToDraft === 'function' && document.getElementById('buildNotesShell')) {
     captureBuildNotesLiveInputsToDraft();
   }
+  state._bnSkipDraftCaptureOnce = false;
 
   saveNavState();
   if (typeof renderCompareFloatingBar === 'function') renderCompareFloatingBar();
@@ -20464,38 +20465,15 @@ function renderCustomizeView(ws) {
 }
 
 /* ==========================================================================
-   BUILD NOTES (Temporary App Build & Improvement Command Board)
+   BUILD NOTES (Clean, Simple Note Cards + Named Links + File Attachments)
    ========================================================================== */
-const BUILD_NOTES_SECTIONS = [
-  'All / General',
-  '01 Studio Projects',
-  '02 Incubator',
-  '03 The Lightbox',
-  '04 Assets & Vaults',
-  '05 Tool Dock & R&D',
-  '06 Mail',
-  '07–10 Moving Forward',
-  '11 Customize & Design',
-  'Global / UI & Presets'
-];
-
 function createDefaultBuildNotesSeed() {
   return {
-    scratchpad: '',
     draft: {
       title: '',
       notes: '',
-      link: '',
-      lane: 'build',
-      targetSection: 'All / General',
-      priority: 'Next',
+      links: [],
       attachments: []
-    },
-    laneTitles: {
-      build: '01 / TO BUILD',
-      improve: '02 / IMPROVEMENTS',
-      fix: '03 / FIXES & POLISH',
-      done: '04 / DONE'
     },
     items: [],
     trash: []
@@ -20508,48 +20486,45 @@ function normalizeBuildNotesData(v = vault) {
     v.buildNotes = createDefaultBuildNotesSeed();
   }
   const bn = v.buildNotes;
-  if (typeof bn.scratchpad !== 'string') bn.scratchpad = '';
   if (!bn.draft || typeof bn.draft !== 'object') {
     bn.draft = {
       title: '',
       notes: '',
-      link: '',
-      lane: 'build',
-      targetSection: 'All / General',
-      priority: 'Next',
+      links: [],
       attachments: []
     };
   } else {
     if (typeof bn.draft.title !== 'string') bn.draft.title = '';
     if (typeof bn.draft.notes !== 'string') bn.draft.notes = '';
-    if (typeof bn.draft.link !== 'string') bn.draft.link = '';
-    if (!['build', 'improve', 'fix', 'done'].includes(bn.draft.lane)) bn.draft.lane = 'build';
-    if (typeof bn.draft.targetSection !== 'string' || !bn.draft.targetSection) bn.draft.targetSection = 'All / General';
-    if (!['High', 'Next', 'Later'].includes(bn.draft.priority)) bn.draft.priority = 'Next';
+    if (!Array.isArray(bn.draft.links)) bn.draft.links = [];
     if (!Array.isArray(bn.draft.attachments)) bn.draft.attachments = [];
-  }
-  if (!bn.laneTitles || typeof bn.laneTitles !== 'object') {
-    bn.laneTitles = {
-      build: '01 / TO BUILD',
-      improve: '02 / IMPROVEMENTS',
-      fix: '03 / FIXES & POLISH',
-      done: '04 / DONE'
-    };
   }
   if (!Array.isArray(bn.items)) bn.items = [];
   if (!Array.isArray(bn.trash)) bn.trash = [];
   bn.items.forEach(item => {
     if (!item || typeof item !== 'object') return;
     if (!item.id) item.id = uid('bn');
-    if (!['build', 'improve', 'fix', 'done'].includes(item.lane)) item.lane = 'build';
-    if (!item.priority) item.priority = 'Next';
-    if (!item.targetSection) item.targetSection = 'All / General';
-    if (!Array.isArray(item.checklist)) item.checklist = [];
+    if (typeof item.title !== 'string') item.title = '';
+    if (typeof item.notes !== 'string') item.notes = '';
+    // Migrate any old checklist steps into plain note lines so nothing is ever lost
+    if (Array.isArray(item.checklist) && item.checklist.length > 0) {
+      const migratedLines = item.checklist.map(c => `• ${c.text || ''}`).filter(s => s !== '• ').join('\n');
+      if (migratedLines) {
+        item.notes = item.notes ? `${item.notes}\n${migratedLines}` : migratedLines;
+      }
+      item.checklist = [];
+    }
     if (!Array.isArray(item.links)) {
       item.links = item.link ? [{ id: uid('bnl'), url: String(item.link).trim(), label: String(item.link).trim() }] : [];
     }
+    item.links.forEach(lk => {
+      if (!lk.id) lk.id = uid('bnl');
+      if (typeof lk.url !== 'string') lk.url = '';
+      if (typeof lk.label !== 'string' || !lk.label.trim()) {
+        lk.label = formatBuildNoteLinkDisplay(lk.url);
+      }
+    });
     if (!Array.isArray(item.attachments)) item.attachments = [];
-    if (typeof item.notes !== 'string') item.notes = '';
   });
 }
 
@@ -20559,22 +20534,11 @@ function captureBuildNotesLiveInputsToDraft() {
   const d = vault.buildNotes.draft;
   const titleEl = document.getElementById('bnQuickTitleInput');
   const notesEl = document.getElementById('bnQuickNotesInput');
-  const linkEl = document.getElementById('bnQuickLinkInput');
-  const laneEl = document.getElementById('bnQuickLaneSelect');
-  const secEl = document.getElementById('bnQuickSectionSelect');
-  const prioEl = document.getElementById('bnQuickPrioSelect');
-  const scratchEl = document.getElementById('bnScratchpadTextarea');
   if (titleEl) d.title = titleEl.value;
   if (notesEl) d.notes = notesEl.value;
-  if (linkEl) d.link = linkEl.value;
-  if (laneEl && laneEl.value) d.lane = laneEl.value;
-  if (secEl && secEl.value) d.targetSection = secEl.value;
-  if (prioEl && prioEl.value) d.priority = prioEl.value;
-  if (scratchEl) vault.buildNotes.scratchpad = scratchEl.value;
 }
 
 let _bnDraftSaveTimer = null;
-let _bnScratchSaveTimer = null;
 
 async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   const files = Array.from(fileList || []).filter(Boolean);
@@ -20583,7 +20547,7 @@ async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   const bn = vault.buildNotes;
   captureBuildNotesLiveInputsToDraft();
 
-  showStatusToast(`⚡ Attaching ${files.length} original file${files.length === 1 ? '' : 's'}…`);
+  showStatusToast(`⚡ Attaching ${files.length} file${files.length === 1 ? '' : 's'}…`);
   const uploaded = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -20630,7 +20594,7 @@ async function uploadBuildNotesFiles(fileList, targetCardId = null) {
       card.updatedAt = Date.now();
       saveVault('ATTACHED FILE TO BUILD NOTE');
       renderWorkspace();
-      showStatusToast(`✓ Attached ${uploaded.length} file${uploaded.length === 1 ? '' : 's'} to note`);
+      showStatusToast(`✓ Attached ${uploaded.length} file${uploaded.length === 1 ? '' : 's'}`);
       return;
     }
   }
@@ -20639,324 +20603,232 @@ async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   bn.draft.attachments.push(...uploaded);
   saveVault('STAGED BUILD NOTE ATTACHMENT');
   renderWorkspace();
-  showStatusToast(`✓ Attached ${uploaded.length} file${uploaded.length === 1 ? '' : 's'} to draft`);
+  showStatusToast(`✓ Attached ${uploaded.length} file${uploaded.length === 1 ? '' : 's'}`);
 }
 
 function formatBuildNoteLinkDisplay(rawUrl) {
   const s = String(rawUrl || '').trim();
-  if (!s) return '';
+  if (!s) return 'Link';
   if (s.startsWith('~') || s.startsWith('/')) {
     const parts = s.split('/').filter(Boolean);
     return parts.length > 2 ? `…/${parts.slice(-2).join('/')}` : s;
   }
-  return s.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+  return s.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '') || s;
 }
 
 function renderBuildNotesView(ws, spaceObj) {
   normalizeBuildNotesData(vault);
   const bn = vault.buildNotes;
   const draft = bn.draft;
-  const laneTitles = bn.laneTitles || {};
-
-  const allLanes = [
-    { key: 'build', title: laneTitles.build || '01 / TO BUILD', badge: 'New Features & Ideas' },
-    { key: 'improve', title: laneTitles.improve || '02 / IMPROVEMENTS', badge: 'UX & Workflow Upgrades' },
-    { key: 'fix', title: laneTitles.fix || '03 / FIXES & POLISH', badge: 'Tweaks & Refinements' },
-    { key: 'done', title: laneTitles.done || '04 / DONE', badge: 'Completed & Shipped' }
-  ];
-
-  const catToLane = {
-    'To Build': 'build',
-    'Improvements': 'improve',
-    'Fixes & Polish': 'fix',
-    'Done': 'done'
-  };
-  const activeLaneFilter = catToLane[state.activeCategory] || null;
-  const visibleLanes = activeLaneFilter
-    ? allLanes.filter(l => l.key === activeLaneFilter)
-    : allLanes;
-
-  const activeSectionFilter = state.bnSectionFilter || 'All';
   const searchQ = (state.searchQuery || '').trim().toLowerCase();
 
-  const totalOpen = (bn.items || []).filter(n => n && !n.trashed && n.lane !== 'done').length;
-  const totalDone = (bn.items || []).filter(n => n && !n.trashed && n.lane === 'done').length;
+  const visibleItems = (bn.items || []).filter(item => {
+    if (!item || item.trashed) return false;
+    if (searchQ) {
+      const linksText = (item.links || []).map(l => `${l.label || ''} ${l.url || ''}`).join(' ');
+      const attText = (item.attachments || []).map(a => a.name || '').join(' ');
+      const hay = `${item.title || ''} ${item.notes || ''} ${linksText} ${attText}`.toLowerCase();
+      if (!hay.includes(searchQ)) return false;
+    }
+    return true;
+  });
 
-  const selectedDraftSec = draft.targetSection || 'All / General';
-  const selectedDraftLane = activeLaneFilter || draft.lane || 'build';
-  const selectedDraftPrio = draft.priority || 'Next';
-  const sortOrder = spaceObj?.ui?.sortOrder || 'manual';
-  const prioWeight = { 'High': 0, 'Next': 1, 'Later': 2 };
-
-  const sectionOptionsHtml = BUILD_NOTES_SECTIONS.map(sec =>
-    `<option value="${escapeHtml(sec)}" ${sec === selectedDraftSec ? 'selected' : ''}>${escapeHtml(sec)}</option>`
-  ).join('');
-
-  const allNonDoneItems = (bn.items || []).filter(n => n && !n.trashed);
-  const sectionFilterPillsHtml = ['All', ...BUILD_NOTES_SECTIONS.filter(s => s !== 'All / General')].map(sec => {
-    const isAct = activeSectionFilter === sec;
-    const cnt = sec === 'All'
-      ? allNonDoneItems.length
-      : allNonDoneItems.filter(n => (n.targetSection || 'All / General') === sec).length;
-    return `<button type="button" class="bn-sec-filter-chip ${isAct ? 'active' : ''}" data-bn-sec-filter="${escapeHtml(sec)}"><span>${escapeHtml(sec)}</span>${cnt > 0 ? `<span class="bn-sec-chip-count">${cnt}</span>` : ''}</button>`;
-  }).join('');
-
+  const draftLinks = Array.isArray(draft.links) ? draft.links : [];
   const draftAttachments = Array.isArray(draft.attachments) ? draft.attachments : [];
-  const draftAttachmentsHtml = draftAttachments.length > 0 ? `
-    <div class="bn-draft-attachments-strip">
-      <span class="kicker-mono">STAGED ATTACHMENTS (${draftAttachments.length}):</span>
-      <div class="bn-attachments-grid">
-        ${draftAttachments.map((att, idx) => `
-          <div class="bn-att-chip">
-            ${att.kind === 'image' ? `<img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.name)}" class="bn-att-chip-thumb">` : `<span class="bn-att-ext-badge">${escapeHtml(att.ext || 'FILE')}</span>`}
-            <span class="bn-att-chip-name" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</span>
-            <button type="button" class="bn-att-chip-del" data-bn-del-draft-att="${idx}" title="Remove staged file">×</button>
-          </div>
-        `).join('')}
-      </div>
+
+  const draftLinksHtml = draftLinks.length > 0 ? `
+    <div class="bn-staged-row">
+      ${draftLinks.map((lk, idx) => `
+        <div class="bn-link-pill-wrap">
+          <button type="button" class="bn-link-pill" data-bn-open-link="${escapeHtml(lk.url)}" title="${escapeHtml(lk.url)}">
+            <span>↗</span>
+            <span class="bn-link-pill-text">${escapeHtml(lk.label || formatBuildNoteLinkDisplay(lk.url))}</span>
+          </button>
+          <button type="button" class="bn-link-pill-del" data-bn-del-draft-link="${idx}" title="Remove link">×</button>
+        </div>
+      `).join('')}
     </div>
   ` : '';
 
-  const lanesHtml = visibleLanes.map(lane => {
-    const rawLaneItems = (bn.items || []).filter(item => {
-      if (!item || item.trashed) return false;
-      if ((item.lane || 'build') !== lane.key) return false;
-      if (activeSectionFilter !== 'All' && item.targetSection !== activeSectionFilter) return false;
-      if (searchQ) {
-        const chkText = (item.checklist || []).map(c => c.text || '').join(' ');
-        const linksText = (item.links || []).map(l => `${l.label || ''} ${l.url || ''}`).join(' ');
-        const attText = (item.attachments || []).map(a => a.name || '').join(' ');
-        const hay = `${item.title || ''} ${item.notes || ''} ${item.targetSection || ''} ${item.priority || ''} ${chkText} ${linksText} ${attText}`.toLowerCase();
-        if (!hay.includes(searchQ)) return false;
-      }
-      return true;
-    });
+  const draftAttachmentsHtml = draftAttachments.length > 0 ? `
+    <div class="bn-staged-row">
+      ${draftAttachments.map((att, idx) => `
+        <div class="bn-att-chip">
+          ${att.kind === 'image' ? `<img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.name)}" class="bn-att-chip-thumb">` : `<span class="bn-att-ext-badge">${escapeHtml(att.ext || 'FILE')}</span>`}
+          <span class="bn-att-chip-name" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</span>
+          <button type="button" class="bn-att-chip-del" data-bn-del-draft-att="${idx}" title="Remove file">×</button>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
 
-    const laneItems = [...rawLaneItems];
-    if (sortOrder === 'alpha') {
-      laneItems.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
-    } else if (sortOrder === 'newest') {
-      laneItems.sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
-    } else if (sortOrder === 'priority') {
-      laneItems.sort((a, b) => (prioWeight[a.priority || 'Next'] ?? 1) - (prioWeight[b.priority || 'Next'] ?? 1));
-    }
+  const draftLinkAdderOpen = Boolean(state.bnDraftLinkOpen);
+  const draftLinkAdderHtml = draftLinkAdderOpen ? `
+    <div class="bn-inline-link-editor">
+      <input type="text" id="bnDraftLinkLabelIn" class="inspector-input" placeholder="Link name (e.g. Reference site, Figma, Folder)..." autocomplete="off">
+      <input type="text" id="bnDraftLinkUrlIn" class="inspector-input" placeholder="URL or local path (https://... or ~/Desktop/...)..." autocomplete="off">
+      <button type="button" class="primary-block-btn" id="btnBnSaveDraftLink" style="width:auto;padding:6px 14px;">Add</button>
+      <button type="button" class="outline-btn" id="btnBnCancelDraftLink" style="padding:6px 10px;">Cancel</button>
+    </div>
+  ` : '';
 
-    const cardsHtml = laneItems.length > 0 ? laneItems.map(item => {
-      const isDone = item.lane === 'done';
-      const prioClass = item.priority === 'High' ? 'is-high' : (item.priority === 'Later' ? 'is-later' : 'is-next');
-      const chkList = Array.isArray(item.checklist) ? item.checklist : [];
-      const chkDoneCount = chkList.filter(c => c && c.done).length;
-      const linksList = Array.isArray(item.links) ? item.links : [];
-      const attList = Array.isArray(item.attachments) ? item.attachments : [];
+  const cardsHtml = visibleItems.length > 0 ? visibleItems.map((item, cardIdx) => {
+    const isDone = item.lane === 'done' || Boolean(item.done);
+    const linksList = Array.isArray(item.links) ? item.links : [];
+    const attList = Array.isArray(item.attachments) ? item.attachments : [];
+    const isAddingLinkHere = (state.bnAddingLinkCardId === item.id);
+    const editingLinkObj = (state.bnEditingLink && state.bnEditingLink.cardId === item.id)
+      ? linksList[state.bnEditingLink.idx]
+      : null;
 
-      const checklistHtml = chkList.map((chk, idx) => `
-        <label class="bn-chk-row ${chk.done ? 'is-done' : ''}">
-          <input type="checkbox" data-bn-chk-id="${escapeHtml(item.id)}" data-bn-chk-idx="${idx}" ${chk.done ? 'checked' : ''}>
-          <span class="bn-chk-text" data-bn-edit-chk-id="${escapeHtml(item.id)}" data-bn-edit-chk-idx="${idx}" title="Double-click to edit step">${escapeHtml(chk.text || '')}</span>
-          <button type="button" class="bn-chk-del" data-bn-del-chk-id="${escapeHtml(item.id)}" data-bn-del-chk-idx="${idx}" title="Remove step">×</button>
-        </label>
-      `).join('');
+    const linksHtml = linksList.length > 0 ? `
+      <div class="bn-links-list">
+        ${linksList.map((lk, idx) => {
+          const rawUrl = (lk.url || '').trim();
+          const isLocal = rawUrl.startsWith('~') || rawUrl.startsWith('/');
+          const disp = (lk.label && lk.label.trim()) ? lk.label.trim() : formatBuildNoteLinkDisplay(rawUrl);
+          return `
+            <div class="bn-link-pill-wrap">
+              <button type="button" class="bn-link-pill" data-bn-open-link="${escapeHtml(rawUrl)}" title="Click to open: ${escapeHtml(rawUrl)}">
+                <span>${isLocal ? '⌘' : '↗'}</span>
+                <span class="bn-link-pill-text">${escapeHtml(disp)}</span>
+              </button>
+              <button type="button" class="bn-link-pill-edit" data-bn-edit-link-id="${escapeHtml(item.id)}" data-bn-edit-link-idx="${idx}" title="Rename or edit link">✎</button>
+              <button type="button" class="bn-link-pill-del" data-bn-del-link-id="${escapeHtml(item.id)}" data-bn-del-link-idx="${idx}" title="Remove link">×</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    ` : '';
 
-      const linksHtml = linksList.length > 0 ? `
-        <div class="bn-links-list">
-          ${linksList.map((lk, idx) => {
-            const rawUrl = (lk.url || '').trim();
-            const isLocal = rawUrl.startsWith('~') || rawUrl.startsWith('/');
-            const disp = lk.label && lk.label !== rawUrl ? lk.label : formatBuildNoteLinkDisplay(rawUrl);
+    const cardLinkFormHtml = (isAddingLinkHere || editingLinkObj) ? `
+      <div class="bn-inline-link-editor" data-bn-link-form="${escapeHtml(item.id)}">
+        <input type="text" class="inspector-input bn-card-link-label-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.label || '') : '')}" placeholder="Link name (e.g. Example / Reference)..." autocomplete="off">
+        <input type="text" class="inspector-input bn-card-link-url-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.url || '') : '')}" placeholder="URL or Mac path (https://... or ~/Desktop/...)..." autocomplete="off">
+        <button type="button" class="primary-block-btn" data-bn-commit-card-link="${escapeHtml(item.id)}" style="width:auto;padding:5px 12px;font-size:11.5px;">Save Link</button>
+        <button type="button" class="outline-btn" data-bn-cancel-card-link="${escapeHtml(item.id)}" style="padding:5px 10px;font-size:11.5px;">Cancel</button>
+      </div>
+    ` : '';
+
+    const attachmentsHtml = attList.length > 0 ? `
+      <div class="bn-card-attachments">
+        ${attList.map((att, idx) => {
+          if (att.kind === 'image') {
             return `
-              <div class="bn-link-pill-wrap">
-                <button type="button" class="bn-link-pill" data-bn-open-link="${escapeHtml(rawUrl)}" title="${escapeHtml(rawUrl)} (Click to open)">
-                  <span>${isLocal ? '⌘' : '↗'}</span>
-                  <span class="bn-link-pill-text">${escapeHtml(disp || rawUrl)}</span>
-                </button>
-                <button type="button" class="bn-link-pill-del" data-bn-del-link-id="${escapeHtml(item.id)}" data-bn-del-link-idx="${idx}" title="Remove link">×</button>
+              <div class="bn-att-media-card" data-bn-preview-att-id="${escapeHtml(item.id)}" data-bn-preview-att-idx="${idx}" title="${escapeHtml(att.name)} • Click to view full size">
+                <img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.name)}" loading="lazy">
+                <div class="bn-att-media-bar">
+                  <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
+                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+                </div>
               </div>
             `;
-          }).join('')}
-        </div>
-      ` : '';
-
-      const attachmentsHtml = attList.length > 0 ? `
-        <div class="bn-card-attachments">
-          ${attList.map((att, idx) => {
-            if (att.kind === 'image') {
-              return `
-                <div class="bn-att-media-card" data-bn-preview-att-id="${escapeHtml(item.id)}" data-bn-preview-att-idx="${idx}" title="${escapeHtml(att.name)} • Click to view full size">
-                  <img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.name)}" loading="lazy">
-                  <div class="bn-att-media-bar">
-                    <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
-                    <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
-                  </div>
-                </div>
-              `;
-            }
-            if (att.kind === 'video') {
-              return `
-                <div class="bn-att-media-card">
-                  <video src="${escapeHtml(att.url)}" controls preload="metadata"></video>
-                  <div class="bn-att-media-bar">
-                    <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
-                    <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
-                  </div>
-                </div>
-              `;
-            }
+          }
+          if (att.kind === 'video') {
             return `
-              <div class="bn-att-file-row">
-                <a href="${escapeHtml(att.url)}" target="_blank" rel="noopener" download="${escapeHtml(att.name)}" class="bn-att-file-link" title="Download / Open ${escapeHtml(att.name)}">
-                  <span class="bn-att-ext-badge">${escapeHtml(att.ext || 'FILE')}</span>
-                  <span class="bn-att-file-name">${escapeHtml(att.name)}</span>
-                </a>
-                <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+              <div class="bn-att-media-card">
+                <video src="${escapeHtml(att.url)}" controls preload="metadata"></video>
+                <div class="bn-att-media-bar">
+                  <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
+                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+                </div>
               </div>
             `;
-          }).join('')}
-        </div>
-      ` : '';
-
-      return `
-        <article class="bn-card ${isDone ? 'is-done-card' : ''}" draggable="true" data-bn-id="${escapeHtml(item.id)}">
-          <div class="bn-card-top">
-            <button type="button" class="bn-done-toggle ${isDone ? 'is-checked' : ''}" data-bn-toggle-done="${escapeHtml(item.id)}" title="${isDone ? 'Move back to To Build' : 'Mark as Done'}">${isDone ? '✓' : ''}</button>
-            <div class="bn-card-title" data-bn-title-id="${escapeHtml(item.id)}" title="Click or double-click to rename">${escapeHtml(item.title || 'Untitled Note')}</div>
-            <div class="bn-card-badges">
-              <button type="button" class="bn-prio-pill ${prioClass}" data-bn-cycle-prio="${escapeHtml(item.id)}" title="Click to cycle priority (High → Next → Later)">${escapeHtml(item.priority || 'Next')}</button>
+          }
+          return `
+            <div class="bn-att-file-row">
+              <a href="${escapeHtml(att.url)}" target="_blank" rel="noopener" download="${escapeHtml(att.name)}" class="bn-att-file-link" title="Download / Open ${escapeHtml(att.name)}">
+                <span class="bn-att-ext-badge">${escapeHtml(att.ext || 'FILE')}</span>
+                <span class="bn-att-file-name">${escapeHtml(att.name)}</span>
+              </a>
+              <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
             </div>
-          </div>
-
-          <div class="bn-card-meta-row">
-            <select class="bn-section-select-inline" data-bn-sec-select="${escapeHtml(item.id)}" title="App section / area" aria-label="App section">
-              ${BUILD_NOTES_SECTIONS.map(sec => `<option value="${escapeHtml(sec)}" ${sec === (item.targetSection || 'All / General') ? 'selected' : ''}>${escapeHtml(sec)}</option>`).join('')}
-            </select>
-            ${chkList.length > 0 ? `<span class="bn-chk-progress">${chkDoneCount}/${chkList.length} steps</span>` : ''}
-          </div>
-
-          <div class="bn-card-notes ${item.notes ? '' : 'is-empty'}" data-bn-notes-id="${escapeHtml(item.id)}" title="Click to edit notes or details">${escapeHtml(item.notes || '+ Click to add details, behavior notes, or specs…')}</div>
-
-          ${chkList.length > 0 ? `<div class="bn-chk-list">${checklistHtml}</div>` : ''}
-          ${linksHtml}
-          ${attachmentsHtml}
-
-          <div class="bn-card-footer">
-            <div class="bn-card-move-group">
-              <button type="button" class="bn-mini-btn" data-bn-add-step="${escapeHtml(item.id)}" title="Add checklist sub-step">+ Step</button>
-              <button type="button" class="bn-mini-btn" data-bn-add-link="${escapeHtml(item.id)}" title="Add web URL or local Mac path">+ Link</button>
-              <button type="button" class="bn-mini-btn" data-bn-add-file="${escapeHtml(item.id)}" title="Attach screenshot, image, video, or file">📎 File</button>
-              <select class="bn-lane-select" data-bn-move-lane="${escapeHtml(item.id)}" title="Move to column" aria-label="Move to column">
-                <option value="build" ${item.lane === 'build' ? 'selected' : ''}>→ To Build</option>
-                <option value="improve" ${item.lane === 'improve' ? 'selected' : ''}>→ Improvements</option>
-                <option value="fix" ${item.lane === 'fix' ? 'selected' : ''}>→ Fixes &amp; Polish</option>
-                <option value="done" ${item.lane === 'done' ? 'selected' : ''}>→ Done</option>
-              </select>
-            </div>
-            <button type="button" class="hover-act-btn danger" data-bn-del="${escapeHtml(item.id)}" title="Move note to trash" style="opacity:1;">×</button>
-          </div>
-        </article>
-      `;
-    }).join('') : `<div class="bn-empty-lane">No notes in this column yet — type above or drop screenshots/files onto any card.</div>`;
+          `;
+        }).join('')}
+      </div>
+    ` : '';
 
     return `
-      <div class="bn-lane-col" data-bn-lane="${escapeHtml(lane.key)}">
-        <div class="bn-lane-header">
-          <div>
-            <div class="bn-lane-title" data-bn-lane-title="${escapeHtml(lane.key)}" title="Click to rename column">${escapeHtml(lane.title)}</div>
-            <div class="kicker-mono" style="font-size:9.5px;">${escapeHtml(lane.badge)}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span class="sidebar-count-pill">${laneItems.length}</span>
-            <button type="button" class="outline-btn" data-bn-quick-lane="${escapeHtml(lane.key)}" style="padding:3px 9px;font-size:10px;">+ Add</button>
-          </div>
+      <article class="bn-simple-card ${isDone ? 'is-done-card' : ''}" data-bn-id="${escapeHtml(item.id)}">
+        <div class="bn-simple-card-header">
+          <button type="button" class="bn-done-toggle ${isDone ? 'is-checked' : ''}" data-bn-toggle-done="${escapeHtml(item.id)}" title="${isDone ? 'Mark as Open' : 'Mark as Done'}">${isDone ? '✓' : ''}</button>
+          <span class="bn-simple-num">#${String(cardIdx + 1).padStart(2, '0')}</span>
+          <input type="text" class="bn-editable-title-input" data-bn-live-title="${escapeHtml(item.id)}" value="${escapeHtml(item.title || '')}" placeholder="Note title or headline...">
+          <button type="button" class="bn-card-del-btn" data-bn-del="${escapeHtml(item.id)}" title="Delete note">×</button>
         </div>
-        <div class="bn-lane-cards">${cardsHtml}</div>
-      </div>
-    `;
-  }).join('');
 
-  const scratchCollapsed = Boolean(state.bnScratchCollapsed);
+        <textarea class="bn-editable-notes-area typewriter" data-bn-live-notes="${escapeHtml(item.id)}" rows="3" placeholder="Write your note here... (Click and type anytime — saves automatically)">${escapeHtml(item.notes || '')}</textarea>
+
+        ${linksHtml}
+        ${cardLinkFormHtml}
+        ${attachmentsHtml}
+
+        <div class="bn-simple-card-footer">
+          <button type="button" class="bn-simple-act-btn" data-bn-add-link="${escapeHtml(item.id)}">+ Add Link</button>
+          <button type="button" class="bn-simple-act-btn" data-bn-add-file="${escapeHtml(item.id)}">+ Attach File / Image</button>
+        </div>
+      </article>
+    `;
+  }).join('') : `
+    <div class="bn-empty-state">
+      No notes yet. Write a note in the box above and press <strong>Add Note</strong>.
+    </div>
+  `;
 
   ws.innerHTML = `
     <div class="build-notes-shell" id="buildNotesShell">
       <input type="file" id="bnFileInput" multiple hidden>
 
-      <!-- TOP QUICK CAPTURE & SUMMARY BAR -->
-      <section class="bn-composer-card" id="bnComposerDropZone">
-        <div class="bn-composer-top">
-          <div class="bn-composer-headline">
-            <span class="kicker-mono" style="color:var(--accent);">BUILD NOTES &bull; TEMPORARY STUDIO ROADMAP</span>
-            <span class="bn-summary-counts">${totalOpen} Open &middot; ${totalDone} Done</span>
-          </div>
-          <div class="bn-composer-right-actions">
-            ${(bn.trash && bn.trash.length > 0) ? `
-              <button type="button" class="outline-btn" id="btnBnRestoreLastTrash" title="Restore the last deleted build note (${escapeHtml(bn.trash[bn.trash.length - 1]?.title || 'Note')})" style="padding:4px 10px;font-size:11px;">
-                ↺ Undo Delete (${bn.trash.length})
-              </button>
-            ` : ''}
-            <button type="button" class="outline-btn" id="btnBnCopySummary" title="Copy all open build notes as a clean list to paste anywhere" style="padding:4px 10px;font-size:11px;">
-              📋 Copy Open List
-            </button>
-            <button type="button" class="outline-btn" id="btnBnToggleScratch" style="padding:4px 10px;font-size:11px;">
-              ${scratchCollapsed ? '▸ Show Braindump Pad' : '▾ Hide Braindump Pad'}
-            </button>
-          </div>
+      <!-- SIMPLE NEW NOTE BOX -->
+      <section class="bn-new-note-box" id="bnComposerDropZone">
+        <div class="bn-new-note-header">
+          <span class="kicker-mono" style="color:var(--accent);">WRITE A NEW BUILD NOTE</span>
+          ${(bn.trash && bn.trash.length > 0) ? `
+            <button type="button" class="bn-simple-act-btn" id="btnBnRestoreLastTrash" title="Undo last deleted note">↺ Undo Delete</button>
+          ` : ''}
         </div>
 
-        <div class="bn-quick-add-row">
-          <input type="text" id="bnQuickTitleInput" class="inspector-input bn-quick-title" value="${escapeHtml(draft.title || '')}" placeholder="What do you want to build, improve, or fix next? (Press Enter to add)..." autocomplete="off">
-          <select id="bnQuickLaneSelect" class="inspector-input bn-quick-select" aria-label="Column">
-            <option value="build" ${selectedDraftLane === 'build' ? 'selected' : ''}>01 / To Build</option>
-            <option value="improve" ${selectedDraftLane === 'improve' ? 'selected' : ''}>02 / Improvements</option>
-            <option value="fix" ${selectedDraftLane === 'fix' ? 'selected' : ''}>03 / Fixes &amp; Polish</option>
-            <option value="done" ${selectedDraftLane === 'done' ? 'selected' : ''}>04 / Done</option>
-          </select>
-          <select id="bnQuickSectionSelect" class="inspector-input bn-quick-select" aria-label="App Section">
-            ${sectionOptionsHtml}
-          </select>
-          <select id="bnQuickPrioSelect" class="inspector-input bn-quick-prio" aria-label="Priority">
-            <option value="High" ${selectedDraftPrio === 'High' ? 'selected' : ''}>High</option>
-            <option value="Next" ${selectedDraftPrio === 'Next' ? 'selected' : ''}>Next</option>
-            <option value="Later" ${selectedDraftPrio === 'Later' ? 'selected' : ''}>Later</option>
-          </select>
-          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 18px;white-space:nowrap;">+ Add Note</button>
-        </div>
+        <input type="text" id="bnQuickTitleInput" class="bn-new-title-input" value="${escapeHtml(draft.title || '')}" placeholder="Title / Headline (optional)..." autocomplete="off">
 
-        <div class="bn-quick-extra-row">
-          <input type="text" id="bnQuickNotesInput" class="inspector-input bn-quick-subnotes" value="${escapeHtml(draft.notes || '')}" placeholder="Optional details, ideas, or checklist items (separate steps with ; )..." autocomplete="off">
-          <input type="text" id="bnQuickLinkInput" class="inspector-input bn-quick-link-input" value="${escapeHtml(draft.link || '')}" placeholder="Optional URL or local Mac path (https://... or ~/Desktop/...)..." autocomplete="off">
-          <button type="button" class="outline-btn bn-attach-btn" id="btnBnAttachDraftFile" title="Attach screenshots, mockups, videos, or files (or Cmd+V / Drag &amp; Drop)">📎 Attach File</button>
-        </div>
+        <textarea id="bnQuickNotesInput" class="bn-new-notes-textarea typewriter" rows="3" placeholder="Write what you want to build, change, or fix...">${escapeHtml(draft.notes || '')}</textarea>
 
+        ${draftLinksHtml}
+        ${draftLinkAdderHtml}
         ${draftAttachmentsHtml}
 
-        <div class="bn-sec-filter-bar">
-          <span class="kicker-mono" style="margin-right:4px;">FILTER BOARD BY AREA:</span>
-          ${sectionFilterPillsHtml}
+        <div class="bn-new-note-actions">
+          <div class="bn-new-note-left-btns">
+            <button type="button" class="bn-simple-act-btn" id="btnBnOpenDraftLink">+ Add Link</button>
+            <button type="button" class="bn-simple-act-btn" id="btnBnAttachDraftFile">+ Attach File / Image</button>
+          </div>
+          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 22px;">+ Add Note</button>
         </div>
       </section>
 
-      <!-- COLLAPSIBLE FREEFORM BRAINDUMP / SCRATCHPAD -->
-      <section class="bn-scratchpad-card" ${scratchCollapsed ? 'hidden' : ''}>
-        <div class="bn-scratchpad-head">
-          <span class="kicker-mono">FREEFORM BRAINDUMP &amp; SCRATCHPAD (AUTO-SAVES AS YOU TYPE)</span>
-          <span class="bn-scratch-status" id="bnScratchSavedIndicator">Saved in Vault</span>
+      <!-- SAVED NOTES LIST -->
+      <section class="bn-saved-section">
+        <div class="bn-saved-header">
+          <span class="kicker-mono">SAVED BUILD NOTES (${visibleItems.length})</span>
+          <span class="bn-saved-hint">Click inside any note below to edit its text directly</span>
         </div>
-        <textarea id="bnScratchpadTextarea" class="bn-scratchpad-textarea typewriter" rows="4" placeholder="Jot down rough thoughts, feature braindumps, UI wishes, or anything you want to remember while using Ideal...">${escapeHtml(bn.scratchpad || '')}</textarea>
+        <div class="bn-simple-cards-list">
+          ${cardsHtml}
+        </div>
       </section>
-
-      <!-- 4-COLUMN BUILD & IMPROVEMENT BOARD -->
-      <div class="bn-lanes-grid ${visibleLanes.length === 1 ? 'is-single-lane' : ''}">
-        ${lanesHtml}
-      </div>
     </div>
   `;
 
-  // Live Draft Persistence (Never loses typed text when clicking filters, tabs, or switching pages!)
   const quickTitleIn = ws.querySelector('#bnQuickTitleInput');
   const quickNotesIn = ws.querySelector('#bnQuickNotesInput');
-  const quickLinkIn = ws.querySelector('#bnQuickLinkInput');
-  const quickLaneSel = ws.querySelector('#bnQuickLaneSelect');
-  const quickSecSel = ws.querySelector('#bnQuickSectionSelect');
-  const quickPrioSel = ws.querySelector('#bnQuickPrioSelect');
   const fileIn = ws.querySelector('#bnFileInput');
+
+  // Auto-resize textareas so all text is always clearly visible without tiny scrollbars
+  const autoResizeTextarea = (el) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.max(76, el.scrollHeight) + 'px';
+  };
+  ws.querySelectorAll('.bn-editable-notes-area, .bn-new-notes-textarea').forEach(autoResizeTextarea);
 
   const syncDraftLive = () => {
     captureBuildNotesLiveInputsToDraft();
@@ -20966,14 +20838,76 @@ function renderBuildNotesView(ws, spaceObj) {
     }, 350);
   };
 
-  [quickTitleIn, quickNotesIn, quickLinkIn].forEach(inp => {
-    inp?.addEventListener('input', syncDraftLive);
-  });
-  [quickLaneSel, quickSecSel, quickPrioSel].forEach(sel => {
-    sel?.addEventListener('change', syncDraftLive);
+  quickTitleIn?.addEventListener('input', syncDraftLive);
+  quickNotesIn?.addEventListener('input', () => {
+    autoResizeTextarea(quickNotesIn);
+    syncDraftLive();
   });
 
-  // File Attachment Picker (for Draft or specific Card)
+  // Draft Link Adder
+  ws.querySelector('#btnBnOpenDraftLink')?.addEventListener('click', () => {
+    captureBuildNotesLiveInputsToDraft();
+    state.bnDraftLinkOpen = true;
+    renderWorkspace();
+    setTimeout(() => document.getElementById('bnDraftLinkLabelIn')?.focus(), 15);
+  });
+
+  const commitDraftLink = () => {
+    captureBuildNotesLiveInputsToDraft();
+    const labelIn = document.getElementById('bnDraftLinkLabelIn');
+    const urlIn = document.getElementById('bnDraftLinkUrlIn');
+    const rawUrl = (urlIn?.value || '').trim();
+    const rawLabel = (labelIn?.value || '').trim();
+    if (!rawUrl) {
+      urlIn?.focus();
+      return;
+    }
+    bn.draft.links = Array.isArray(bn.draft.links) ? bn.draft.links : [];
+    bn.draft.links.push({
+      id: uid('bnl'),
+      url: rawUrl,
+      label: rawLabel || formatBuildNoteLinkDisplay(rawUrl)
+    });
+    state.bnDraftLinkOpen = false;
+    saveVault('ADDED DRAFT LINK');
+    renderWorkspace();
+  };
+
+  ws.querySelector('#btnBnSaveDraftLink')?.addEventListener('click', commitDraftLink);
+  ws.querySelector('#btnBnCancelDraftLink')?.addEventListener('click', () => {
+    captureBuildNotesLiveInputsToDraft();
+    state.bnDraftLinkOpen = false;
+    renderWorkspace();
+  });
+  ['bnDraftLinkLabelIn', 'bnDraftLinkUrlIn'].forEach(id => {
+    ws.querySelector('#' + id)?.addEventListener('keydown', (e) => {
+      if (e.isComposing || e.keyCode === 229) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitDraftLink();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        captureBuildNotesLiveInputsToDraft();
+        state.bnDraftLinkOpen = false;
+        renderWorkspace();
+      }
+    });
+  });
+
+  ws.querySelectorAll('[data-bn-del-draft-link]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      captureBuildNotesLiveInputsToDraft();
+      const idx = parseInt(btn.dataset.bnDelDraftLink, 10);
+      if (Array.isArray(bn.draft.links)) {
+        bn.draft.links.splice(idx, 1);
+        saveVault('REMOVED DRAFT LINK');
+        renderWorkspace();
+      }
+    });
+  });
+
+  // File Attachment Picker
   ws.querySelector('#btnBnAttachDraftFile')?.addEventListener('click', () => {
     state.bnPendingAttachCardId = null;
     fileIn?.click();
@@ -20987,7 +20921,6 @@ function renderBuildNotesView(ws, spaceObj) {
     }
   });
 
-  // Remove staged draft attachment
   ws.querySelectorAll('[data-bn-del-draft-att]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21001,93 +20934,82 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
+  // Submit New Build Note (AND cleanly wipe the top box so it never stays stuck up top!)
   const submitQuickBuildNote = () => {
     captureBuildNotesLiveInputsToDraft();
-    const titleVal = (bn.draft.title || '').trim();
-    const rawSub = (bn.draft.notes || '').trim();
-    const rawLink = (bn.draft.link || '').trim();
-    const stagedAtts = Array.isArray(bn.draft.attachments) ? [...bn.draft.attachments] : [];
+    clearTimeout(_bnDraftSaveTimer);
 
-    // Allow creating a note even if user only typed in notes/link or attached a file
-    const finalTitle = titleVal || (rawSub ? rawSub.slice(0, 72) : (rawLink ? formatBuildNoteLinkDisplay(rawLink) : (stagedAtts[0]?.name || '')));
-    if (!finalTitle) {
-      quickTitleIn?.focus();
-      showStatusToast('Type a title, note, link, or attach a file first');
-      return;
-    }
-
-    let notesVal = titleVal ? rawSub : '';
-    const checklistArr = [];
-    if (notesVal.includes(';')) {
-      const parts = notesVal.split(';').map(s => s.trim()).filter(Boolean);
-      if (parts.length > 1) {
-        parts.forEach(p => checklistArr.push({ text: p, done: false }));
-        notesVal = '';
-      }
-    }
-
-    const linksArr = [];
-    if (rawLink) {
-      linksArr.push({
+    // Also grab any link currently typed into the open draft link inputs
+    const openLinkUrl = (document.getElementById('bnDraftLinkUrlIn')?.value || '').trim();
+    const openLinkLabel = (document.getElementById('bnDraftLinkLabelIn')?.value || '').trim();
+    if (openLinkUrl) {
+      bn.draft.links = Array.isArray(bn.draft.links) ? bn.draft.links : [];
+      bn.draft.links.push({
         id: uid('bnl'),
-        url: rawLink,
-        label: formatBuildNoteLinkDisplay(rawLink)
+        url: openLinkUrl,
+        label: openLinkLabel || formatBuildNoteLinkDisplay(openLinkUrl)
       });
     }
 
-    // If user currently has an active section filter selected, make sure the note shows in it or switch filter to All if different
-    const chosenSection = bn.draft.targetSection || (activeSectionFilter !== 'All' ? activeSectionFilter : 'All / General');
-    if (activeSectionFilter !== 'All' && chosenSection !== activeSectionFilter) {
-      state.bnSectionFilter = 'All';
+    const titleVal = (bn.draft.title || '').trim();
+    const notesVal = (bn.draft.notes || '').trim();
+    const stagedLinks = Array.isArray(bn.draft.links) ? [...bn.draft.links] : [];
+    const stagedAtts = Array.isArray(bn.draft.attachments) ? [...bn.draft.attachments] : [];
+
+    if (!titleVal && !notesVal && stagedLinks.length === 0 && stagedAtts.length === 0) {
+      quickNotesIn?.focus();
+      showStatusToast('Write a note, link, or attach a file first');
+      return;
     }
 
     const newItem = {
       id: uid('bn'),
-      title: finalTitle,
-      lane: bn.draft.lane || activeLaneFilter || 'build',
-      targetSection: chosenSection,
-      priority: bn.draft.priority || 'Next',
-      notes: notesVal,
-      checklist: checklistArr,
-      links: linksArr,
+      title: titleVal || (notesVal ? notesVal.split('\n')[0].slice(0, 64) : (stagedLinks[0]?.label || stagedAtts[0]?.name || 'Build Note')),
+      notes: titleVal ? notesVal : (notesVal.includes('\n') ? notesVal.split('\n').slice(1).join('\n').trim() : notesVal),
+      lane: 'build',
+      done: false,
+      links: stagedLinks,
       attachments: stagedAtts,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
     bn.items.unshift(newItem);
 
-    // Clear draft
-    bn.draft.title = '';
-    bn.draft.notes = '';
-    bn.draft.link = '';
-    bn.draft.attachments = [];
+    // Explicitly empty both the DOM inputs and the draft object so the top box is 100% cleared!
+    bn.draft = {
+      title: '',
+      notes: '',
+      links: [],
+      attachments: []
+    };
+    if (quickTitleIn) quickTitleIn.value = '';
+    if (quickNotesIn) quickNotesIn.value = '';
+    state.bnDraftLinkOpen = false;
+    state._bnSkipDraftCaptureOnce = true;
 
     saveVault('ADDED BUILD NOTE');
     renderSidebar();
-    renderFilterActionRow();
     renderWorkspace();
-    showStatusToast('✓ Added to Build Notes');
+    showStatusToast('✓ Note added below');
   };
 
   ws.querySelector('#btnBnQuickAdd')?.addEventListener('click', submitQuickBuildNote);
-  [quickTitleIn, quickNotesIn, quickLinkIn].forEach(inp => {
-    inp?.addEventListener('keydown', (e) => {
-      if (e.isComposing || e.keyCode === 229) return;
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitQuickBuildNote();
-      }
-    });
+  quickTitleIn?.addEventListener('keydown', (e) => {
+    if (e.isComposing || e.keyCode === 229) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitQuickBuildNote();
+    }
+  });
+  quickNotesIn?.addEventListener('keydown', (e) => {
+    if (e.isComposing || e.keyCode === 229) return;
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      submitQuickBuildNote();
+    }
   });
 
-  // Toggle Scratchpad (preserve draft first!)
-  ws.querySelector('#btnBnToggleScratch')?.addEventListener('click', () => {
-    captureBuildNotesLiveInputsToDraft();
-    state.bnScratchCollapsed = !state.bnScratchCollapsed;
-    renderWorkspace();
-  });
-
-  // Restore last deleted build note from trash
+  // Undo Delete
   ws.querySelector('#btnBnRestoreLastTrash')?.addEventListener('click', () => {
     captureBuildNotesLiveInputsToDraft();
     if (!Array.isArray(bn.trash) || bn.trash.length === 0) return;
@@ -21098,107 +21020,33 @@ function renderBuildNotesView(ws, spaceObj) {
       bn.items.unshift(restored);
       saveVault('RESTORED BUILD NOTE');
       renderSidebar();
-      renderFilterActionRow();
       renderWorkspace();
-      showStatusToast(`↺ Restored: ${restored.title || 'Build Note'}`);
+      showStatusToast('↺ Restored note');
     }
   });
 
-  // Copy all open build notes as clean markdown list
-  ws.querySelector('#btnBnCopySummary')?.addEventListener('click', async () => {
-    captureBuildNotesLiveInputsToDraft();
-    const openItems = (bn.items || []).filter(n => n && !n.trashed && n.lane !== 'done');
-    if (openItems.length === 0 && !(bn.scratchpad || '').trim()) {
-      showStatusToast('No open build notes to copy yet');
-      return;
-    }
-    const lines = ['# IDEAL — Build & Improvement Notes\n'];
-    if ((bn.scratchpad || '').trim()) {
-      lines.push(`## Braindump\n${bn.scratchpad.trim()}\n`);
-    }
-    ['build', 'improve', 'fix'].forEach(lk => {
-      const colTitle = bn.laneTitles?.[lk] || lk.toUpperCase();
-      const inCol = openItems.filter(n => (n.lane || 'build') === lk);
-      if (inCol.length > 0) {
-        lines.push(`## ${colTitle}`);
-        inCol.forEach(item => {
-          lines.push(`- **[${item.priority || 'Next'} · ${item.targetSection || 'All'}]** ${item.title}`);
-          if (item.notes) lines.push(`  Notes: ${item.notes}`);
-          (item.checklist || []).forEach(c => {
-            lines.push(`  - [${c.done ? 'x' : ' '}] ${c.text}`);
-          });
-          (item.links || []).forEach(l => {
-            lines.push(`  - Link: ${l.url}`);
-          });
-        });
-        lines.push('');
-      }
-    });
-    const textOut = lines.join('\n').trim();
-    try {
-      await navigator.clipboard.writeText(textOut);
-      showStatusToast(`✓ Copied ${openItems.length} open note${openItems.length === 1 ? '' : 's'} to clipboard`);
-    } catch (e) {
-      showStatusToast('Could not access clipboard');
-    }
-  });
-
-  // Scratchpad Auto-Save
-  const scratchArea = ws.querySelector('#bnScratchpadTextarea');
-  const scratchInd = ws.querySelector('#bnScratchSavedIndicator');
-  scratchArea?.addEventListener('input', () => {
-    bn.scratchpad = scratchArea.value;
-    if (scratchInd) scratchInd.textContent = 'Saving…';
-    clearTimeout(_bnScratchSaveTimer);
-    _bnScratchSaveTimer = setTimeout(() => {
-      saveVault('UPDATED BUILD SCRATCHPAD');
-      if (scratchInd) scratchInd.textContent = '✓ Saved';
-    }, 350);
-  });
-
-  // Section Filter Chips (preserve any typed draft text AND also sync the composer's section dropdown if user wants)
-  ws.querySelectorAll('[data-bn-sec-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      captureBuildNotesLiveInputsToDraft();
-      const chosenFilter = btn.dataset.bnSecFilter || 'All';
-      state.bnSectionFilter = chosenFilter;
-      if (chosenFilter !== 'All') {
-        bn.draft.targetSection = chosenFilter;
-      }
-      renderWorkspace();
+  // Live direct editing of saved note titles & bodies (no double-click needed — just click and type!)
+  let cardEditSaveTimer = null;
+  ws.querySelectorAll('[data-bn-live-title]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const item = (bn.items || []).find(n => n.id === inp.dataset.bnLiveTitle);
+      if (!item) return;
+      item.title = inp.value;
+      item.updatedAt = Date.now();
+      clearTimeout(cardEditSaveTimer);
+      cardEditSaveTimer = setTimeout(() => saveVault('UPDATED BUILD NOTE TITLE'), 350);
     });
   });
 
-  // Rename Column Title
-  ws.querySelectorAll('[data-bn-lane-title]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const key = el.dataset.bnLaneTitle;
-      promptInlineRename(el, el.textContent.trim(), (val) => {
-        if (val.trim()) {
-          bn.laneTitles = bn.laneTitles || {};
-          bn.laneTitles[key] = val.trim();
-          saveVault('RENAMED BUILD NOTES COLUMN');
-          renderWorkspace();
-        }
-      });
-    });
-  });
-
-  // + Add button inside a specific column header: if user already typed text in the top bar, immediately create the card in that column! Otherwise focus the input.
-  ws.querySelectorAll('[data-bn-quick-lane]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      captureBuildNotesLiveInputsToDraft();
-      const targetLane = btn.dataset.bnQuickLane || 'build';
-      bn.draft.lane = targetLane;
-      if (quickLaneSel) quickLaneSel.value = targetLane;
-      if ((bn.draft.title || '').trim() || (bn.draft.notes || '').trim() || (bn.draft.link || '').trim() || (bn.draft.attachments || []).length > 0) {
-        submitQuickBuildNote();
-      } else if (quickTitleIn) {
-        quickTitleIn.focus();
-        quickTitleIn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+  ws.querySelectorAll('[data-bn-live-notes]').forEach(area => {
+    area.addEventListener('input', () => {
+      autoResizeTextarea(area);
+      const item = (bn.items || []).find(n => n.id === area.dataset.bnLiveNotes);
+      if (!item) return;
+      item.notes = area.value;
+      item.updatedAt = Date.now();
+      clearTimeout(cardEditSaveTimer);
+      cardEditSaveTimer = setTimeout(() => saveVault('UPDATED BUILD NOTE TEXT'), 350);
     });
   });
 
@@ -21209,181 +21057,120 @@ function renderBuildNotesView(ws, spaceObj) {
       captureBuildNotesLiveInputsToDraft();
       const item = (bn.items || []).find(n => n.id === btn.dataset.bnToggleDone);
       if (!item) return;
-      if (item.lane === 'done') {
-        item.lane = item.prevLane || 'build';
-      } else {
-        item.prevLane = item.lane;
-        item.lane = 'done';
-      }
+      const nowDone = !(item.lane === 'done' || item.done);
+      item.done = nowDone;
+      item.lane = nowDone ? 'done' : 'build';
       item.updatedAt = Date.now();
-      saveVault(item.lane === 'done' ? 'MARKED BUILD NOTE DONE' : 'REOPENED BUILD NOTE');
+      saveVault(nowDone ? 'MARKED BUILD NOTE DONE' : 'REOPENED BUILD NOTE');
       renderSidebar();
-      renderFilterActionRow();
       renderWorkspace();
     });
   });
 
-  // Cycle Priority Pill (High -> Next -> Later)
-  ws.querySelectorAll('[data-bn-cycle-prio]').forEach(btn => {
+  // + Add Link on saved card (opens Name + URL inputs right on the card)
+  ws.querySelectorAll('[data-bn-add-link]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === btn.dataset.bnCyclePrio);
-      if (!item) return;
-      const order = ['High', 'Next', 'Later'];
-      const curIdx = order.indexOf(item.priority || 'Next');
-      item.priority = order[(curIdx + 1) % order.length];
-      item.updatedAt = Date.now();
-      saveVault('UPDATED PRIORITY');
+      state.bnEditingLink = null;
+      state.bnAddingLinkCardId = btn.dataset.bnAddLink;
+      renderWorkspace();
+      setTimeout(() => {
+        const form = ws.querySelector(`[data-bn-link-form="${btn.dataset.bnAddLink}"]`);
+        form?.querySelector('.bn-card-link-label-in')?.focus();
+      }, 15);
+    });
+  });
+
+  // ✎ Edit existing link name or URL on saved card
+  ws.querySelectorAll('[data-bn-edit-link-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      captureBuildNotesLiveInputsToDraft();
+      state.bnAddingLinkCardId = null;
+      state.bnEditingLink = {
+        cardId: btn.dataset.bnEditLinkId,
+        idx: parseInt(btn.dataset.bnEditLinkIdx, 10)
+      };
+      renderWorkspace();
+      setTimeout(() => {
+        const form = ws.querySelector(`[data-bn-link-form="${btn.dataset.bnEditLinkId}"]`);
+        const labelIn = form?.querySelector('.bn-card-link-label-in');
+        labelIn?.focus();
+        labelIn?.select();
+      }, 15);
+    });
+  });
+
+  // Commit Save Link on card
+  const commitCardLinkForm = (cardId) => {
+    captureBuildNotesLiveInputsToDraft();
+    const item = (bn.items || []).find(n => n.id === cardId);
+    const form = ws.querySelector(`[data-bn-link-form="${cardId}"]`);
+    if (!item || !form) return;
+    const rawLabel = (form.querySelector('.bn-card-link-label-in')?.value || '').trim();
+    const rawUrl = (form.querySelector('.bn-card-link-url-in')?.value || '').trim();
+    if (!rawUrl) {
+      form.querySelector('.bn-card-link-url-in')?.focus();
+      return;
+    }
+    item.links = Array.isArray(item.links) ? item.links : [];
+    const finalLabel = rawLabel || formatBuildNoteLinkDisplay(rawUrl);
+
+    if (state.bnEditingLink && state.bnEditingLink.cardId === cardId && item.links[state.bnEditingLink.idx]) {
+      item.links[state.bnEditingLink.idx].label = finalLabel;
+      item.links[state.bnEditingLink.idx].url = rawUrl;
+    } else {
+      item.links.push({
+        id: uid('bnl'),
+        label: finalLabel,
+        url: rawUrl
+      });
+    }
+    item.updatedAt = Date.now();
+    state.bnAddingLinkCardId = null;
+    state.bnEditingLink = null;
+    saveVault('SAVED BUILD NOTE LINK');
+    renderWorkspace();
+  };
+
+  ws.querySelectorAll('[data-bn-commit-card-link]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      commitCardLinkForm(btn.dataset.bnCommitCardLink);
+    });
+  });
+
+  ws.querySelectorAll('[data-bn-cancel-card-link]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      captureBuildNotesLiveInputsToDraft();
+      state.bnAddingLinkCardId = null;
+      state.bnEditingLink = null;
       renderWorkspace();
     });
   });
 
-  // Click or Double-click Card Title to rename
-  ws.querySelectorAll('[data-bn-title-id]').forEach(el => {
-    el.addEventListener('dblclick', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === el.dataset.bnTitleId);
-      if (!item) return;
-      promptInlineRename(el, item.title, (val) => {
-        if (val.trim()) {
-          item.title = val.trim();
-          item.updatedAt = Date.now();
-          saveVault('RENAMED BUILD NOTE');
+  ws.querySelectorAll('[data-bn-link-form]').forEach(form => {
+    const cid = form.dataset.bnLinkForm;
+    form.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('keydown', (e) => {
+        if (e.isComposing || e.keyCode === 229) return;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commitCardLinkForm(cid);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          captureBuildNotesLiveInputsToDraft();
+          state.bnAddingLinkCardId = null;
+          state.bnEditingLink = null;
           renderWorkspace();
         }
       });
     });
   });
 
-  // Inline Target Section Select on Card
-  ws.querySelectorAll('[data-bn-sec-select]').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === sel.dataset.bnSecSelect);
-      if (!item) return;
-      item.targetSection = sel.value;
-      item.updatedAt = Date.now();
-      saveVault('UPDATED BUILD NOTE SECTION');
-      renderWorkspace();
-    });
-  });
-
-  // Click Notes to edit inline
-  ws.querySelectorAll('[data-bn-notes-id]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === el.dataset.bnNotesId);
-      if (!item) return;
-      promptInlineTextarea(el, item.notes || '', (val) => {
-        item.notes = val;
-        item.updatedAt = Date.now();
-        saveVault('UPDATED BUILD NOTE DETAILS');
-        renderWorkspace();
-      });
-    });
-  });
-
-  // Checklist checkbox toggle & double-click step text to edit
-  ws.querySelectorAll('[data-bn-chk-id]').forEach(chk => {
-    chk.addEventListener('change', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === chk.dataset.bnChkId);
-      const idx = parseInt(chk.dataset.bnChkIdx, 10);
-      if (item && Array.isArray(item.checklist) && item.checklist[idx]) {
-        item.checklist[idx].done = Boolean(chk.checked);
-        item.updatedAt = Date.now();
-        saveVault('UPDATED BUILD STEP');
-        renderWorkspace();
-      }
-    });
-  });
-
-  ws.querySelectorAll('[data-bn-edit-chk-id]').forEach(span => {
-    span.addEventListener('dblclick', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === span.dataset.bnEditChkId);
-      const idx = parseInt(span.dataset.bnEditChkIdx, 10);
-      if (!item || !Array.isArray(item.checklist) || !item.checklist[idx]) return;
-      promptInlineRename(span, item.checklist[idx].text || '', (val) => {
-        if (val.trim()) {
-          item.checklist[idx].text = val.trim();
-          item.updatedAt = Date.now();
-          saveVault('EDITED BUILD STEP');
-        }
-        renderWorkspace();
-      });
-    });
-  });
-
-  // Remove checklist step
-  ws.querySelectorAll('[data-bn-del-chk-id]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === btn.dataset.bnDelChkId);
-      const idx = parseInt(btn.dataset.bnDelChkIdx, 10);
-      if (item && Array.isArray(item.checklist)) {
-        item.checklist.splice(idx, 1);
-        item.updatedAt = Date.now();
-        saveVault('REMOVED BUILD STEP');
-        renderWorkspace();
-      }
-    });
-  });
-
-  // + Step button
-  ws.querySelectorAll('[data-bn-add-step]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === btn.dataset.bnAddStep);
-      if (!item) return;
-      promptInlineRename(btn, 'New step', (val) => {
-        const clean = val.trim();
-        if (clean && clean !== 'New step') {
-          item.checklist = Array.isArray(item.checklist) ? item.checklist : [];
-          item.checklist.push({ text: clean, done: false });
-          item.updatedAt = Date.now();
-          saveVault('ADDED BUILD STEP');
-        }
-        renderWorkspace();
-      });
-    });
-  });
-
-  // + Link button on card
-  ws.querySelectorAll('[data-bn-add-link]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === btn.dataset.bnAddLink);
-      if (!item) return;
-      promptInlineRename(btn, 'https://', (val) => {
-        const clean = val.trim();
-        if (clean && clean !== 'https://') {
-          item.links = Array.isArray(item.links) ? item.links : [];
-          item.links.push({
-            id: uid('bnl'),
-            url: clean,
-            label: formatBuildNoteLinkDisplay(clean)
-          });
-          item.updatedAt = Date.now();
-          saveVault('ADDED BUILD NOTE LINK');
-        }
-        renderWorkspace();
-      });
-    });
-  });
-
-  // Open Link pill on card
+  // Open Link pill
   ws.querySelectorAll('[data-bn-open-link]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21408,7 +21195,7 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // 📎 File button on card
+  // + Attach File / Image on card
   ws.querySelectorAll('[data-bn-add-file]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21418,7 +21205,7 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Preview image attachment in Spacebar Quick Look (with Left/Right arrow navigation across all card images)
+  // Preview image attachment full size
   ws.querySelectorAll('[data-bn-preview-att-id]').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('[data-bn-del-att-id]')) return;
@@ -21431,7 +21218,7 @@ function renderBuildNotesView(ws, spaceObj) {
           .map(a => ({
             id: a.id || uid('bna'),
             title: a.name || item.title || 'Attachment',
-            category: item.targetSection || 'BUILD NOTE',
+            category: 'BUILD NOTE',
             url: a.url,
             thumbSrc: a.url,
             kind: a.kind === 'video' ? 'video' : 'image'
@@ -21459,22 +21246,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Move lane dropdown
-  ws.querySelectorAll('[data-bn-move-lane]').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === sel.dataset.bnMoveLane);
-      if (!item) return;
-      item.lane = sel.value;
-      item.updatedAt = Date.now();
-      saveVault('MOVED BUILD NOTE');
-      renderSidebar();
-      renderFilterActionRow();
-      renderWorkspace();
-    });
-  });
-
   // Delete note (explicit confirmation modal -> soft-moves to vault.buildNotes.trash)
   ws.querySelectorAll('[data-bn-del]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -21486,39 +21257,13 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Drag and drop cards between columns OR drop local files onto cards/composer
-  let draggedBnId = null;
-  ws.querySelectorAll('.bn-card[data-bn-id]').forEach(card => {
-    card.addEventListener('dragstart', (e) => {
-      if (card.querySelector('input.inline-rename-field, textarea.inline-notes-textarea')) {
-        e.preventDefault();
-        return;
-      }
-      if (document.activeElement && card.contains(document.activeElement) && ['SELECT', 'INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        return;
-      }
-      draggedBnId = card.dataset.bnId;
-      card.classList.add('is-dragging');
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = 'move';
-        try { e.dataTransfer.setData('text/plain', draggedBnId); } catch (_) {}
-      }
-    });
-    card.addEventListener('dragend', () => {
-      draggedBnId = null;
-      card.classList.remove('is-dragging');
-    });
+  // Drag & drop files onto any saved note card or the top composer box
+  ws.querySelectorAll('.bn-simple-card[data-bn-id]').forEach(card => {
     card.addEventListener('dragover', (e) => {
-      const hasFiles = e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
-      if (hasFiles) {
+      if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
         e.preventDefault();
         card.classList.add('is-file-drop-target');
-        return;
       }
-      if (!draggedBnId || draggedBnId === card.dataset.bnId) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
     });
     card.addEventListener('dragleave', () => {
       card.classList.remove('is-file-drop-target');
@@ -21529,25 +21274,6 @@ function renderBuildNotesView(ws, spaceObj) {
         e.preventDefault();
         e.stopPropagation();
         uploadBuildNotesFiles(e.dataTransfer.files, card.dataset.bnId);
-        return;
-      }
-      if (!draggedBnId || draggedBnId === card.dataset.bnId) return;
-      e.preventDefault();
-      e.stopPropagation();
-      captureBuildNotesLiveInputsToDraft();
-      const fromIdx = bn.items.findIndex(n => n.id === draggedBnId);
-      const toIdx = bn.items.findIndex(n => n.id === card.dataset.bnId);
-      if (fromIdx !== -1 && toIdx !== -1) {
-        const targetLane = bn.items[toIdx].lane || 'build';
-        const [moved] = bn.items.splice(fromIdx, 1);
-        moved.lane = targetLane;
-        const newToIdx = bn.items.findIndex(n => n.id === card.dataset.bnId);
-        bn.items.splice(newToIdx >= 0 ? newToIdx : 0, 0, moved);
-        draggedBnId = null;
-        saveVault('REORDERED BUILD NOTES');
-        renderSidebar();
-        renderFilterActionRow();
-        renderWorkspace();
       }
     });
   });
@@ -21572,40 +21298,6 @@ function renderBuildNotesView(ws, spaceObj) {
       }
     });
   }
-
-  ws.querySelectorAll('.bn-lane-col[data-bn-lane]').forEach(col => {
-    col.addEventListener('dragover', (e) => {
-      const hasFiles = e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
-      if (hasFiles || draggedBnId) {
-        e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = hasFiles ? 'copy' : 'move';
-      }
-    });
-    col.addEventListener('drop', (e) => {
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0 && !e.target.closest('.bn-card')) {
-        e.preventDefault();
-        e.stopPropagation();
-        captureBuildNotesLiveInputsToDraft();
-        bn.draft.lane = col.dataset.bnLane || 'build';
-        uploadBuildNotesFiles(e.dataTransfer.files, null);
-        return;
-      }
-      if (!draggedBnId) return;
-      e.preventDefault();
-      captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === draggedBnId);
-      const targetLane = col.dataset.bnLane;
-      if (item && targetLane && item.lane !== targetLane) {
-        item.lane = targetLane;
-        item.updatedAt = Date.now();
-        draggedBnId = null;
-        saveVault('MOVED BUILD NOTE');
-        renderSidebar();
-        renderFilterActionRow();
-        renderWorkspace();
-      }
-    });
-  });
 }
 
 /* ==========================================================================
