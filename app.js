@@ -20465,13 +20465,19 @@ function renderCustomizeView(ws) {
 }
 
 /* ==========================================================================
-   BUILD NOTES (Clean, Simple Note Cards + Named Links + File Attachments)
+   BUILD NOTES (3 Sections: Build, Improvements, Fixes & Polish + Single Note Text + Named Links + Attachments)
    ========================================================================== */
+const BUILD_NOTE_LANES = [
+  { id: 'build', label: '1. Build' },
+  { id: 'improve', label: '2. Improvements' },
+  { id: 'fix', label: '3. Fixes & Polish' }
+];
+
 function createDefaultBuildNotesSeed() {
   return {
     draft: {
-      title: '',
-      notes: '',
+      text: '',
+      lane: 'build',
       links: [],
       attachments: []
     },
@@ -20487,15 +20493,15 @@ function normalizeBuildNotesData(v = vault) {
   }
   const bn = v.buildNotes;
   if (!bn.draft || typeof bn.draft !== 'object') {
-    bn.draft = {
-      title: '',
-      notes: '',
-      links: [],
-      attachments: []
-    };
+    bn.draft = { text: '', lane: 'build', links: [], attachments: [] };
   } else {
-    if (typeof bn.draft.title !== 'string') bn.draft.title = '';
-    if (typeof bn.draft.notes !== 'string') bn.draft.notes = '';
+    // Merge any old split title+notes draft into single text
+    if (typeof bn.draft.text !== 'string') {
+      const oldT = typeof bn.draft.title === 'string' ? bn.draft.title.trim() : '';
+      const oldN = typeof bn.draft.notes === 'string' ? bn.draft.notes.trim() : '';
+      bn.draft.text = [oldT, oldN].filter(Boolean).join('\n');
+    }
+    if (!['build', 'improve', 'fix'].includes(bn.draft.lane)) bn.draft.lane = 'build';
     if (!Array.isArray(bn.draft.links)) bn.draft.links = [];
     if (!Array.isArray(bn.draft.attachments)) bn.draft.attachments = [];
   }
@@ -20504,18 +20510,23 @@ function normalizeBuildNotesData(v = vault) {
   bn.items.forEach(item => {
     if (!item || typeof item !== 'object') return;
     if (!item.id) item.id = uid('bn');
-    if (typeof item.title !== 'string') item.title = '';
-    if (typeof item.notes !== 'string') item.notes = '';
-    // Migrate any old checklist steps into plain note lines so nothing is ever lost
-    if (Array.isArray(item.checklist) && item.checklist.length > 0) {
-      const migratedLines = item.checklist.map(c => `• ${c.text || ''}`).filter(s => s !== '• ').join('\n');
-      if (migratedLines) {
-        item.notes = item.notes ? `${item.notes}\n${migratedLines}` : migratedLines;
+    // Merge any separate title + notes + checklist into a single unified text field so nothing is lost
+    if (typeof item.text !== 'string') {
+      const parts = [];
+      if (typeof item.title === 'string' && item.title.trim()) parts.push(item.title.trim());
+      if (typeof item.notes === 'string' && item.notes.trim() && item.notes.trim() !== item.title?.trim()) {
+        parts.push(item.notes.trim());
       }
-      item.checklist = [];
+      if (Array.isArray(item.checklist) && item.checklist.length > 0) {
+        const steps = item.checklist.map(c => `• ${c.text || ''}`).filter(s => s !== '• ').join('\n');
+        if (steps) parts.push(steps);
+        item.checklist = [];
+      }
+      item.text = parts.join('\n');
     }
+    if (!['build', 'improve', 'fix'].includes(item.lane)) item.lane = 'build';
     if (!Array.isArray(item.links)) {
-      item.links = item.link ? [{ id: uid('bnl'), url: String(item.link).trim(), label: String(item.link).trim() }] : [];
+      item.links = item.link ? [{ id: uid('bnl'), url: String(item.link).trim(), label: formatBuildNoteLinkDisplay(item.link) }] : [];
     }
     item.links.forEach(lk => {
       if (!lk.id) lk.id = uid('bnl');
@@ -20532,10 +20543,10 @@ function captureBuildNotesLiveInputsToDraft() {
   if (!vault || !vault.buildNotes) return;
   normalizeBuildNotesData(vault);
   const d = vault.buildNotes.draft;
-  const titleEl = document.getElementById('bnQuickTitleInput');
-  const notesEl = document.getElementById('bnQuickNotesInput');
-  if (titleEl) d.title = titleEl.value;
-  if (notesEl) d.notes = notesEl.value;
+  const textEl = document.getElementById('bnQuickTextInput');
+  const laneEl = document.getElementById('bnQuickLaneSelect');
+  if (textEl) d.text = textEl.value;
+  if (laneEl) d.lane = laneEl.value;
 }
 
 let _bnDraftSaveTimer = null;
@@ -20627,7 +20638,7 @@ function renderBuildNotesView(ws, spaceObj) {
     if (searchQ) {
       const linksText = (item.links || []).map(l => `${l.label || ''} ${l.url || ''}`).join(' ');
       const attText = (item.attachments || []).map(a => a.name || '').join(' ');
-      const hay = `${item.title || ''} ${item.notes || ''} ${linksText} ${attText}`.toLowerCase();
+      const hay = `${item.text || ''} ${linksText} ${attText}`.toLowerCase();
       if (!hay.includes(searchQ)) return false;
     }
     return true;
@@ -20665,15 +20676,14 @@ function renderBuildNotesView(ws, spaceObj) {
   const draftLinkAdderOpen = Boolean(state.bnDraftLinkOpen);
   const draftLinkAdderHtml = draftLinkAdderOpen ? `
     <div class="bn-inline-link-editor">
-      <input type="text" id="bnDraftLinkLabelIn" class="inspector-input" placeholder="Link name (e.g. Reference site, Figma, Folder)..." autocomplete="off">
-      <input type="text" id="bnDraftLinkUrlIn" class="inspector-input" placeholder="URL or local path (https://... or ~/Desktop/...)..." autocomplete="off">
+      <input type="text" id="bnDraftLinkLabelIn" class="inspector-input" placeholder="Link name (e.g. Reference, Figma)..." autocomplete="off">
+      <input type="text" id="bnDraftLinkUrlIn" class="inspector-input" placeholder="URL or local path (https://... or ~/...)..." autocomplete="off">
       <button type="button" class="primary-block-btn" id="btnBnSaveDraftLink" style="width:auto;padding:6px 14px;">Add</button>
       <button type="button" class="outline-btn" id="btnBnCancelDraftLink" style="padding:6px 10px;">Cancel</button>
     </div>
   ` : '';
 
-  const cardsHtml = visibleItems.length > 0 ? visibleItems.map((item, cardIdx) => {
-    const isDone = item.lane === 'done' || Boolean(item.done);
+  const renderCardHtml = (item) => {
     const linksList = Array.isArray(item.links) ? item.links : [];
     const attList = Array.isArray(item.attachments) ? item.attachments : [];
     const isAddingLinkHere = (state.bnAddingLinkCardId === item.id);
@@ -20689,11 +20699,11 @@ function renderBuildNotesView(ws, spaceObj) {
           const disp = (lk.label && lk.label.trim()) ? lk.label.trim() : formatBuildNoteLinkDisplay(rawUrl);
           return `
             <div class="bn-link-pill-wrap">
-              <button type="button" class="bn-link-pill" data-bn-open-link="${escapeHtml(rawUrl)}" title="Click to open: ${escapeHtml(rawUrl)}">
+              <button type="button" class="bn-link-pill" data-bn-open-link="${escapeHtml(rawUrl)}" title="${escapeHtml(rawUrl)}">
                 <span>${isLocal ? '⌘' : '↗'}</span>
                 <span class="bn-link-pill-text">${escapeHtml(disp)}</span>
               </button>
-              <button type="button" class="bn-link-pill-edit" data-bn-edit-link-id="${escapeHtml(item.id)}" data-bn-edit-link-idx="${idx}" title="Rename or edit link">✎</button>
+              <button type="button" class="bn-link-pill-edit" data-bn-edit-link-id="${escapeHtml(item.id)}" data-bn-edit-link-idx="${idx}" title="Rename / edit link">✎</button>
               <button type="button" class="bn-link-pill-del" data-bn-del-link-id="${escapeHtml(item.id)}" data-bn-del-link-idx="${idx}" title="Remove link">×</button>
             </div>
           `;
@@ -20702,11 +20712,13 @@ function renderBuildNotesView(ws, spaceObj) {
     ` : '';
 
     const cardLinkFormHtml = (isAddingLinkHere || editingLinkObj) ? `
-      <div class="bn-inline-link-editor" data-bn-link-form="${escapeHtml(item.id)}">
-        <input type="text" class="inspector-input bn-card-link-label-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.label || '') : '')}" placeholder="Link name (e.g. Example / Reference)..." autocomplete="off">
-        <input type="text" class="inspector-input bn-card-link-url-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.url || '') : '')}" placeholder="URL or Mac path (https://... or ~/Desktop/...)..." autocomplete="off">
-        <button type="button" class="primary-block-btn" data-bn-commit-card-link="${escapeHtml(item.id)}" style="width:auto;padding:5px 12px;font-size:11.5px;">Save Link</button>
-        <button type="button" class="outline-btn" data-bn-cancel-card-link="${escapeHtml(item.id)}" style="padding:5px 10px;font-size:11.5px;">Cancel</button>
+      <div class="bn-inline-link-editor is-card-editor" data-bn-link-form="${escapeHtml(item.id)}">
+        <input type="text" class="inspector-input bn-card-link-label-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.label || '') : '')}" placeholder="Link name..." autocomplete="off">
+        <input type="text" class="inspector-input bn-card-link-url-in" value="${escapeHtml(editingLinkObj ? (editingLinkObj.url || '') : '')}" placeholder="URL or path..." autocomplete="off">
+        <div class="bn-card-link-btns">
+          <button type="button" class="primary-block-btn" data-bn-commit-card-link="${escapeHtml(item.id)}" style="width:auto;padding:4px 10px;font-size:11px;">Save</button>
+          <button type="button" class="outline-btn" data-bn-cancel-card-link="${escapeHtml(item.id)}" style="padding:4px 8px;font-size:11px;">Cancel</button>
+        </div>
       </div>
     ` : '';
 
@@ -20715,11 +20727,11 @@ function renderBuildNotesView(ws, spaceObj) {
         ${attList.map((att, idx) => {
           if (att.kind === 'image') {
             return `
-              <div class="bn-att-media-card" data-bn-preview-att-id="${escapeHtml(item.id)}" data-bn-preview-att-idx="${idx}" title="${escapeHtml(att.name)} • Click to view full size">
+              <div class="bn-att-media-card" data-bn-preview-att-id="${escapeHtml(item.id)}" data-bn-preview-att-idx="${idx}" title="${escapeHtml(att.name)}">
                 <img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.name)}" loading="lazy">
                 <div class="bn-att-media-bar">
                   <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
-                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove">×</button>
                 </div>
               </div>
             `;
@@ -20730,18 +20742,18 @@ function renderBuildNotesView(ws, spaceObj) {
                 <video src="${escapeHtml(att.url)}" controls preload="metadata"></video>
                 <div class="bn-att-media-bar">
                   <span class="bn-att-media-name">${escapeHtml(att.name)}</span>
-                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+                  <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove">×</button>
                 </div>
               </div>
             `;
           }
           return `
             <div class="bn-att-file-row">
-              <a href="${escapeHtml(att.url)}" target="_blank" rel="noopener" download="${escapeHtml(att.name)}" class="bn-att-file-link" title="Download / Open ${escapeHtml(att.name)}">
+              <a href="${escapeHtml(att.url)}" target="_blank" rel="noopener" download="${escapeHtml(att.name)}" class="bn-att-file-link">
                 <span class="bn-att-ext-badge">${escapeHtml(att.ext || 'FILE')}</span>
                 <span class="bn-att-file-name">${escapeHtml(att.name)}</span>
               </a>
-              <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove attachment">×</button>
+              <button type="button" class="bn-att-del-btn" data-bn-del-att-id="${escapeHtml(item.id)}" data-bn-del-att-idx="${idx}" title="Remove">×</button>
             </div>
           `;
         }).join('')}
@@ -20749,48 +20761,49 @@ function renderBuildNotesView(ws, spaceObj) {
     ` : '';
 
     return `
-      <article class="bn-simple-card ${isDone ? 'is-done-card' : ''}" data-bn-id="${escapeHtml(item.id)}">
-        <div class="bn-simple-card-header">
-          <button type="button" class="bn-done-toggle ${isDone ? 'is-checked' : ''}" data-bn-toggle-done="${escapeHtml(item.id)}" title="${isDone ? 'Mark as Open' : 'Mark as Done'}">${isDone ? '✓' : ''}</button>
-          <span class="bn-simple-num">#${String(cardIdx + 1).padStart(2, '0')}</span>
-          <input type="text" class="bn-editable-title-input" data-bn-live-title="${escapeHtml(item.id)}" value="${escapeHtml(item.title || '')}" placeholder="Note title or headline...">
-          <button type="button" class="bn-card-del-btn" data-bn-del="${escapeHtml(item.id)}" title="Delete note">×</button>
-        </div>
-
-        <textarea class="bn-editable-notes-area typewriter" data-bn-live-notes="${escapeHtml(item.id)}" rows="3" placeholder="Write your note here... (Click and type anytime — saves automatically)">${escapeHtml(item.notes || '')}</textarea>
-
+      <article class="bn-simple-card" data-bn-id="${escapeHtml(item.id)}" draggable="true">
+        <textarea class="bn-editable-notes-area typewriter" data-bn-live-text="${escapeHtml(item.id)}" rows="3" placeholder="Write note...">${escapeHtml(item.text || '')}</textarea>
         ${linksHtml}
         ${cardLinkFormHtml}
         ${attachmentsHtml}
-
         <div class="bn-simple-card-footer">
-          <button type="button" class="bn-simple-act-btn" data-bn-add-link="${escapeHtml(item.id)}">+ Add Link</button>
-          <button type="button" class="bn-simple-act-btn" data-bn-add-file="${escapeHtml(item.id)}">+ Attach File / Image</button>
+          <div class="bn-simple-card-btns">
+            <button type="button" class="bn-simple-act-btn" data-bn-add-link="${escapeHtml(item.id)}">+ Link</button>
+            <button type="button" class="bn-simple-act-btn" data-bn-add-file="${escapeHtml(item.id)}">+ File</button>
+          </div>
+          <div class="bn-simple-card-btns">
+            <select class="bn-lane-select" data-bn-move-lane="${escapeHtml(item.id)}" title="Move section">
+              ${BUILD_NOTE_LANES.map(l => `<option value="${l.id}" ${item.lane === l.id ? 'selected' : ''}>${escapeHtml(l.label)}</option>`).join('')}
+            </select>
+            <button type="button" class="bn-card-del-btn" data-bn-del="${escapeHtml(item.id)}" title="Delete note">×</button>
+          </div>
         </div>
       </article>
     `;
-  }).join('') : `
-    <div class="bn-empty-state">
-      No notes yet. Write a note in the box above and press <strong>Add Note</strong>.
-    </div>
-  `;
+  };
+
+  const lanesHtml = BUILD_NOTE_LANES.map(lane => {
+    const laneItems = visibleItems.filter(i => (i.lane || 'build') === lane.id);
+    return `
+      <section class="bn-lane-col" data-bn-lane="${lane.id}">
+        <header class="bn-lane-header">
+          <h3 class="bn-lane-title">${escapeHtml(lane.label)}</h3>
+          <span class="bn-summary-counts">${laneItems.length}</span>
+        </header>
+        <div class="bn-lane-cards" data-bn-dropzone="${lane.id}">
+          ${laneItems.length > 0 ? laneItems.map(renderCardHtml).join('') : `<div class="bn-empty-lane">No notes</div>`}
+        </div>
+      </section>
+    `;
+  }).join('');
 
   ws.innerHTML = `
     <div class="build-notes-shell" id="buildNotesShell">
       <input type="file" id="bnFileInput" multiple hidden>
 
-      <!-- SIMPLE NEW NOTE BOX -->
+      <!-- TOP INSERT NOTE BOX (SINGLE UNIFIED NOTE FIELD) -->
       <section class="bn-new-note-box" id="bnComposerDropZone">
-        <div class="bn-new-note-header">
-          <span class="kicker-mono" style="color:var(--accent);">WRITE A NEW BUILD NOTE</span>
-          ${(bn.trash && bn.trash.length > 0) ? `
-            <button type="button" class="bn-simple-act-btn" id="btnBnRestoreLastTrash" title="Undo last deleted note">↺ Undo Delete</button>
-          ` : ''}
-        </div>
-
-        <input type="text" id="bnQuickTitleInput" class="bn-new-title-input" value="${escapeHtml(draft.title || '')}" placeholder="Title / Headline (optional)..." autocomplete="off">
-
-        <textarea id="bnQuickNotesInput" class="bn-new-notes-textarea typewriter" rows="3" placeholder="Write what you want to build, change, or fix...">${escapeHtml(draft.notes || '')}</textarea>
+        <textarea id="bnQuickTextInput" class="bn-new-notes-textarea typewriter" rows="3" placeholder="Write a note...">${escapeHtml(draft.text || '')}</textarea>
 
         ${draftLinksHtml}
         ${draftLinkAdderHtml}
@@ -20798,35 +20811,34 @@ function renderBuildNotesView(ws, spaceObj) {
 
         <div class="bn-new-note-actions">
           <div class="bn-new-note-left-btns">
-            <button type="button" class="bn-simple-act-btn" id="btnBnOpenDraftLink">+ Add Link</button>
-            <button type="button" class="bn-simple-act-btn" id="btnBnAttachDraftFile">+ Attach File / Image</button>
+            <select id="bnQuickLaneSelect" class="inspector-input bn-quick-select">
+              ${BUILD_NOTE_LANES.map(l => `<option value="${l.id}" ${(draft.lane || 'build') === l.id ? 'selected' : ''}>${escapeHtml(l.label)}</option>`).join('')}
+            </select>
+            <button type="button" class="bn-simple-act-btn" id="btnBnOpenDraftLink">+ Link</button>
+            <button type="button" class="bn-simple-act-btn" id="btnBnAttachDraftFile">+ File</button>
+            ${(bn.trash && bn.trash.length > 0) ? `
+              <button type="button" class="bn-simple-act-btn" id="btnBnRestoreLastTrash">↺ Undo</button>
+            ` : ''}
           </div>
-          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 22px;">+ Add Note</button>
+          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 20px;">+ Add Note</button>
         </div>
       </section>
 
-      <!-- SAVED NOTES LIST -->
-      <section class="bn-saved-section">
-        <div class="bn-saved-header">
-          <span class="kicker-mono">SAVED BUILD NOTES (${visibleItems.length})</span>
-          <span class="bn-saved-hint">Click inside any note below to edit its text directly</span>
-        </div>
-        <div class="bn-simple-cards-list">
-          ${cardsHtml}
-        </div>
-      </section>
+      <!-- 3 SECTIONS: 1. BUILD | 2. IMPROVEMENTS | 3. FIXES & POLISH -->
+      <div class="bn-lanes-grid">
+        ${lanesHtml}
+      </div>
     </div>
   `;
 
-  const quickTitleIn = ws.querySelector('#bnQuickTitleInput');
-  const quickNotesIn = ws.querySelector('#bnQuickNotesInput');
+  const quickTextIn = ws.querySelector('#bnQuickTextInput');
+  const quickLaneSel = ws.querySelector('#bnQuickLaneSelect');
   const fileIn = ws.querySelector('#bnFileInput');
 
-  // Auto-resize textareas so all text is always clearly visible without tiny scrollbars
   const autoResizeTextarea = (el) => {
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.max(76, el.scrollHeight) + 'px';
+    el.style.height = Math.max(68, el.scrollHeight) + 'px';
   };
   ws.querySelectorAll('.bn-editable-notes-area, .bn-new-notes-textarea').forEach(autoResizeTextarea);
 
@@ -20838,11 +20850,11 @@ function renderBuildNotesView(ws, spaceObj) {
     }, 350);
   };
 
-  quickTitleIn?.addEventListener('input', syncDraftLive);
-  quickNotesIn?.addEventListener('input', () => {
-    autoResizeTextarea(quickNotesIn);
+  quickTextIn?.addEventListener('input', () => {
+    autoResizeTextarea(quickTextIn);
     syncDraftLive();
   });
+  quickLaneSel?.addEventListener('change', syncDraftLive);
 
   // Draft Link Adder
   ws.querySelector('#btnBnOpenDraftLink')?.addEventListener('click', () => {
@@ -20934,12 +20946,11 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Submit New Build Note (AND cleanly wipe the top box so it never stays stuck up top!)
+  // Submit New Build Note & immediately clear the top input box
   const submitQuickBuildNote = () => {
     captureBuildNotesLiveInputsToDraft();
     clearTimeout(_bnDraftSaveTimer);
 
-    // Also grab any link currently typed into the open draft link inputs
     const openLinkUrl = (document.getElementById('bnDraftLinkUrlIn')?.value || '').trim();
     const openLinkLabel = (document.getElementById('bnDraftLinkLabelIn')?.value || '').trim();
     if (openLinkUrl) {
@@ -20951,23 +20962,20 @@ function renderBuildNotesView(ws, spaceObj) {
       });
     }
 
-    const titleVal = (bn.draft.title || '').trim();
-    const notesVal = (bn.draft.notes || '').trim();
+    const textVal = (bn.draft.text || '').trim();
+    const chosenLane = bn.draft.lane || 'build';
     const stagedLinks = Array.isArray(bn.draft.links) ? [...bn.draft.links] : [];
     const stagedAtts = Array.isArray(bn.draft.attachments) ? [...bn.draft.attachments] : [];
 
-    if (!titleVal && !notesVal && stagedLinks.length === 0 && stagedAtts.length === 0) {
-      quickNotesIn?.focus();
-      showStatusToast('Write a note, link, or attach a file first');
+    if (!textVal && stagedLinks.length === 0 && stagedAtts.length === 0) {
+      quickTextIn?.focus();
       return;
     }
 
     const newItem = {
       id: uid('bn'),
-      title: titleVal || (notesVal ? notesVal.split('\n')[0].slice(0, 64) : (stagedLinks[0]?.label || stagedAtts[0]?.name || 'Build Note')),
-      notes: titleVal ? notesVal : (notesVal.includes('\n') ? notesVal.split('\n').slice(1).join('\n').trim() : notesVal),
-      lane: 'build',
-      done: false,
+      text: textVal,
+      lane: chosenLane,
       links: stagedLinks,
       attachments: stagedAtts,
       createdAt: Date.now(),
@@ -20975,33 +20983,24 @@ function renderBuildNotesView(ws, spaceObj) {
     };
     bn.items.unshift(newItem);
 
-    // Explicitly empty both the DOM inputs and the draft object so the top box is 100% cleared!
+    // Clear top draft box completely
     bn.draft = {
-      title: '',
-      notes: '',
+      text: '',
+      lane: chosenLane,
       links: [],
       attachments: []
     };
-    if (quickTitleIn) quickTitleIn.value = '';
-    if (quickNotesIn) quickNotesIn.value = '';
+    if (quickTextIn) quickTextIn.value = '';
     state.bnDraftLinkOpen = false;
     state._bnSkipDraftCaptureOnce = true;
 
     saveVault('ADDED BUILD NOTE');
     renderSidebar();
     renderWorkspace();
-    showStatusToast('✓ Note added below');
   };
 
   ws.querySelector('#btnBnQuickAdd')?.addEventListener('click', submitQuickBuildNote);
-  quickTitleIn?.addEventListener('keydown', (e) => {
-    if (e.isComposing || e.keyCode === 229) return;
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submitQuickBuildNote();
-    }
-  });
-  quickNotesIn?.addEventListener('keydown', (e) => {
+  quickTextIn?.addEventListener('keydown', (e) => {
     if (e.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
@@ -21021,53 +21020,38 @@ function renderBuildNotesView(ws, spaceObj) {
       saveVault('RESTORED BUILD NOTE');
       renderSidebar();
       renderWorkspace();
-      showStatusToast('↺ Restored note');
     }
   });
 
-  // Live direct editing of saved note titles & bodies (no double-click needed — just click and type!)
+  // Direct live editing of saved note text
   let cardEditSaveTimer = null;
-  ws.querySelectorAll('[data-bn-live-title]').forEach(inp => {
-    inp.addEventListener('input', () => {
-      const item = (bn.items || []).find(n => n.id === inp.dataset.bnLiveTitle);
-      if (!item) return;
-      item.title = inp.value;
-      item.updatedAt = Date.now();
-      clearTimeout(cardEditSaveTimer);
-      cardEditSaveTimer = setTimeout(() => saveVault('UPDATED BUILD NOTE TITLE'), 350);
-    });
-  });
-
-  ws.querySelectorAll('[data-bn-live-notes]').forEach(area => {
+  ws.querySelectorAll('[data-bn-live-text]').forEach(area => {
     area.addEventListener('input', () => {
       autoResizeTextarea(area);
-      const item = (bn.items || []).find(n => n.id === area.dataset.bnLiveNotes);
+      const item = (bn.items || []).find(n => n.id === area.dataset.bnLiveText);
       if (!item) return;
-      item.notes = area.value;
+      item.text = area.value;
       item.updatedAt = Date.now();
       clearTimeout(cardEditSaveTimer);
       cardEditSaveTimer = setTimeout(() => saveVault('UPDATED BUILD NOTE TEXT'), 350);
     });
   });
 
-  // Toggle Done checkmark
-  ws.querySelectorAll('[data-bn-toggle-done]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  // Move note between 1. Build, 2. Improvements, 3. Fixes & Polish via dropdown or drag-and-drop
+  ws.querySelectorAll('[data-bn-move-lane]').forEach(sel => {
+    sel.addEventListener('change', (e) => {
       e.stopPropagation();
       captureBuildNotesLiveInputsToDraft();
-      const item = (bn.items || []).find(n => n.id === btn.dataset.bnToggleDone);
+      const item = (bn.items || []).find(n => n.id === sel.dataset.bnMoveLane);
       if (!item) return;
-      const nowDone = !(item.lane === 'done' || item.done);
-      item.done = nowDone;
-      item.lane = nowDone ? 'done' : 'build';
+      item.lane = sel.value;
       item.updatedAt = Date.now();
-      saveVault(nowDone ? 'MARKED BUILD NOTE DONE' : 'REOPENED BUILD NOTE');
-      renderSidebar();
+      saveVault('MOVED BUILD NOTE');
       renderWorkspace();
     });
   });
 
-  // + Add Link on saved card (opens Name + URL inputs right on the card)
+  // + Link on saved card
   ws.querySelectorAll('[data-bn-add-link]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21102,7 +21086,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Commit Save Link on card
   const commitCardLinkForm = (cardId) => {
     captureBuildNotesLiveInputsToDraft();
     const item = (bn.items || []).find(n => n.id === cardId);
@@ -21170,7 +21153,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Open Link pill
   ws.querySelectorAll('[data-bn-open-link]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21179,7 +21161,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Delete Link on card
   ws.querySelectorAll('[data-bn-del-link-id]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21195,7 +21176,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // + Attach File / Image on card
   ws.querySelectorAll('[data-bn-add-file]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21205,7 +21185,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Preview image attachment full size
   ws.querySelectorAll('[data-bn-preview-att-id]').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('[data-bn-del-att-id]')) return;
@@ -21217,7 +21196,7 @@ function renderBuildNotesView(ws, spaceObj) {
           .filter(a => a && a.url && (a.kind === 'image' || a.kind === 'video'))
           .map(a => ({
             id: a.id || uid('bna'),
-            title: a.name || item.title || 'Attachment',
+            title: a.name || 'Attachment',
             category: 'BUILD NOTE',
             url: a.url,
             thumbSrc: a.url,
@@ -21230,7 +21209,6 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Remove attachment on card
   ws.querySelectorAll('[data-bn-del-att-id]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -21246,19 +21224,30 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Delete note (explicit confirmation modal -> soft-moves to vault.buildNotes.trash)
   ws.querySelectorAll('[data-bn-del]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       captureBuildNotesLiveInputsToDraft();
       const item = (bn.items || []).find(n => n.id === btn.dataset.bnDel);
       if (!item) return;
-      requestDelete('build_note', item.id, item.title || 'Build Note');
+      requestDelete('build_note', item.id, (item.text || '').split('\n')[0].slice(0, 48) || 'Build Note');
     });
   });
 
-  // Drag & drop files onto any saved note card or the top composer box
+  // Drag & drop cards between the 3 columns or drop files onto a card
+  let draggedNoteId = null;
   ws.querySelectorAll('.bn-simple-card[data-bn-id]').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) {
+        e.preventDefault();
+        return;
+      }
+      draggedNoteId = card.dataset.bnId;
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      draggedNoteId = null;
+    });
     card.addEventListener('dragover', (e) => {
       if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
         e.preventDefault();
@@ -21274,6 +21263,25 @@ function renderBuildNotesView(ws, spaceObj) {
         e.preventDefault();
         e.stopPropagation();
         uploadBuildNotesFiles(e.dataTransfer.files, card.dataset.bnId);
+      }
+    });
+  });
+
+  ws.querySelectorAll('.bn-lane-col[data-bn-lane]').forEach(col => {
+    col.addEventListener('dragover', (e) => {
+      if (draggedNoteId) e.preventDefault();
+    });
+    col.addEventListener('drop', (e) => {
+      if (!draggedNoteId) return;
+      e.preventDefault();
+      captureBuildNotesLiveInputsToDraft();
+      const targetLane = col.dataset.bnLane;
+      const item = (bn.items || []).find(n => n.id === draggedNoteId);
+      if (item && item.lane !== targetLane) {
+        item.lane = targetLane;
+        item.updatedAt = Date.now();
+        saveVault('MOVED BUILD NOTE');
+        renderWorkspace();
       }
     });
   });
@@ -21307,8 +21315,8 @@ function openQuickComposer(kind = 'note') {
   const { type, obj } = getActiveContainer();
   if (type === 'space' && obj && obj.id === 'gdrive_assets') return;
   if (type === 'space' && obj && obj.id === 'build_notes') {
-    const quickTitle = document.getElementById('bnQuickTitleInput');
-    if (quickTitle) quickTitle.focus();
+    const quickText = document.getElementById('bnQuickTextInput');
+    if (quickText) quickText.focus();
     return;
   }
   if (type === 'space' && obj && obj.id === 'tool_dock') {

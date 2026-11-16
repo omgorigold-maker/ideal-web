@@ -17656,16 +17656,15 @@ dialog.compare-dialog::backdrop {
 }
 
 /* ==========================================================================
-   12 BUILD NOTES — ULTRA-SIMPLE & CLEAR BUILD NOTES LIST
-   (100% Preset-Aware via CSS Custom Properties)
+   12 BUILD NOTES — 3-SECTION BOARD (1. Build | 2. Improvements | 3. Fixes & Polish)
    ========================================================================== */
 .build-notes-shell {
   padding: 68px 24px 64px;
-  max-width: 900px;
+  max-width: 1520px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .bn-new-note-box {
@@ -17674,40 +17673,15 @@ dialog.compare-dialog::backdrop {
   border-top: 3px solid var(--accent);
   border-radius: var(--card-radius, 6px);
   box-shadow: var(--stage-shadow, none);
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.bn-new-note-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 10px;
-}
-
-.bn-new-title-input {
-  width: 100%;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--card-radius, 5px);
-  padding: 10px 12px;
-  font-family: var(--font-heading);
-  font-size: calc(var(--base-font-size, 13px) * 1.08);
-  font-weight: 600;
-  outline: none;
-  transition: border-color 0.14s ease;
-}
-
-.bn-new-title-input:focus {
-  border-color: var(--accent);
 }
 
 .bn-new-notes-textarea {
   width: 100%;
-  min-height: 78px;
+  min-height: 74px;
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
@@ -17737,13 +17711,24 @@ dialog.compare-dialog::backdrop {
 
 .bn-inline-link-editor {
   display: grid;
-  grid-template-columns: minmax(150px, 0.9fr) minmax(220px, 1.5fr) auto auto;
+  grid-template-columns: minmax(140px, 0.9fr) minmax(200px, 1.5fr) auto auto;
   gap: 8px;
   align-items: center;
   padding: 10px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--card-radius, 5px);
+}
+
+.bn-inline-link-editor.is-card-editor {
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 8px;
+}
+
+.bn-card-link-btns {
+  display: flex;
+  gap: 6px;
 }
 
 @media (max-width: 720px) {
@@ -17758,7 +17743,6 @@ dialog.compare-dialog::backdrop {
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  padding-top: 4px;
 }
 
 .bn-new-note-left-btns {
@@ -17768,71 +17752,97 @@ dialog.compare-dialog::backdrop {
   flex-wrap: wrap;
 }
 
-.bn-attach-btn {
-  padding: 7px 13px;
-  font-size: 11.5px;
-  white-space: nowrap;
+.bn-quick-select {
+  width: auto;
+  min-width: 175px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
-.bn-add-submit-btn {
-  padding: 8px 18px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.bn-composer-card.is-file-drop-target,
-.bn-card.is-file-drop-target {
+.bn-new-note-box.is-file-drop-target,
+.bn-simple-card.is-file-drop-target {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
-.bn-saved-section {
+.bn-lanes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: var(--grid-gap, 18px);
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .bn-lanes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bn-lane-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, 6px);
+  box-shadow: var(--stage-shadow, none);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 280px;
+}
+
+.bn-lane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bn-lane-title {
+  font-family: var(--font-heading);
+  font-size: calc(13.5px * var(--heading-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin: 0;
+}
+
+.bn-summary-counts {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mid);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.bn-lane-cards {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.bn-saved-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 0 2px;
-}
-
-.bn-saved-hint {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--text-faint);
-}
-
-.bn-empty-state {
-  padding: 36px 20px;
+.bn-empty-lane {
+  padding: 24px 12px;
   text-align: center;
   font-family: var(--font-typewriter);
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--text-faint);
-  background: var(--surface);
   border: 1px dashed var(--border);
-  border-radius: var(--card-radius, 6px);
-}
-
-.bn-simple-cards-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  border-radius: var(--card-radius, 5px);
 }
 
 .bn-simple-card {
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: var(--card-radius, 6px);
-  box-shadow: var(--stage-shadow, none);
-  padding: 16px 18px;
+  border-radius: var(--card-radius, 5px);
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   transition: border-color 0.14s ease;
 }
 
@@ -17840,102 +17850,28 @@ dialog.compare-dialog::backdrop {
   border-color: color-mix(in srgb, var(--text) 24%, var(--border));
 }
 
-.bn-simple-card.is-done-card {
-  opacity: 0.68;
-}
-
-.bn-simple-card.is-done-card .bn-editable-title-input {
-  text-decoration: line-through;
-  color: var(--text-mid);
-}
-
-.bn-simple-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.bn-done-toggle {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1.5px solid var(--border-strong);
-  background: var(--bg);
-  color: var(--bg);
-  font-size: 11px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.bn-done-toggle.is-checked {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.bn-simple-num {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-faint);
-  padding: 2px 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.bn-editable-title-input {
-  flex: 1;
-  background: transparent;
-  color: var(--text);
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 5px 8px;
-  font-family: var(--font-heading);
-  font-size: calc(var(--base-font-size, 13px) * 1.1);
-  font-weight: 600;
-  outline: none;
-  transition: border-color 0.14s ease, background-color 0.14s ease;
-}
-
-.bn-editable-title-input:hover {
-  background: var(--bg);
-  border-color: var(--border);
-}
-
-.bn-editable-title-input:focus {
-  background: var(--bg);
-  border-color: var(--accent);
-}
-
 .bn-card-del-btn {
   appearance: none;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-faint);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
-  padding: 4px 8px;
+  padding: 3px 7px;
   border-radius: 4px;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .bn-card-del-btn:hover {
   color: var(--danger);
-  background: var(--bg);
+  background: var(--surface);
   border-color: var(--border);
 }
 
 .bn-editable-notes-area {
   width: 100%;
-  min-height: 54px;
-  background: var(--bg);
+  min-height: 64px;
+  background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--card-radius, 5px);
@@ -17961,7 +17897,7 @@ dialog.compare-dialog::backdrop {
 .bn-link-pill-wrap {
   display: inline-flex;
   align-items: center;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 5px;
   max-width: 100%;
@@ -17976,12 +17912,12 @@ dialog.compare-dialog::backdrop {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
-  padding: 4px 9px;
+  padding: 4px 8px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  max-width: 340px;
+  max-width: 240px;
 }
 
 .bn-link-pill:hover {
@@ -18001,26 +17937,19 @@ dialog.compare-dialog::backdrop {
   border-left: 1px solid var(--border);
   background: transparent;
   color: var(--text-faint);
-  font-size: 11.5px;
-  padding: 4px 7px;
+  font-size: 11px;
+  padding: 4px 6px;
   cursor: pointer;
 }
 
 .bn-link-pill-edit:hover {
   color: var(--text);
-  background: var(--surface);
+  background: var(--bg);
 }
 
 .bn-link-pill-del:hover {
   color: var(--danger);
-  background: var(--surface);
-}
-
-.bn-attachments-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+  background: var(--bg);
 }
 
 .bn-att-chip {
@@ -18031,7 +17960,7 @@ dialog.compare-dialog::backdrop {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
-  max-width: 260px;
+  max-width: 240px;
 }
 
 .bn-att-chip-thumb {
@@ -18079,11 +18008,11 @@ dialog.compare-dialog::backdrop {
 .bn-card-attachments {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .bn-att-media-card {
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--card-radius, 5px);
   overflow: hidden;
@@ -18093,7 +18022,7 @@ dialog.compare-dialog::backdrop {
 .bn-att-media-card img,
 .bn-att-media-card video {
   width: 100%;
-  max-height: 260px;
+  max-height: 220px;
   object-fit: contain;
   background: var(--surface-stage);
   display: block;
@@ -18104,13 +18033,13 @@ dialog.compare-dialog::backdrop {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-top: 1px solid var(--border);
 }
 
 .bn-att-media-name {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-mid);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -18122,8 +18051,8 @@ dialog.compare-dialog::backdrop {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 6px 10px;
-  background: var(--bg);
+  padding: 5px 8px;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 5px;
 }
@@ -18135,7 +18064,7 @@ dialog.compare-dialog::backdrop {
   color: var(--text);
   text-decoration: none;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   min-width: 0;
   flex: 1;
 }
@@ -18155,9 +18084,9 @@ dialog.compare-dialog::backdrop {
   border: none;
   background: transparent;
   color: var(--text-faint);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 3px;
 }
 
 .bn-att-del-btn:hover {
@@ -18168,7 +18097,7 @@ dialog.compare-dialog::backdrop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
 }
@@ -18176,24 +18105,35 @@ dialog.compare-dialog::backdrop {
 .bn-simple-card-btns {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .bn-simple-act-btn {
   appearance: none;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text-mid);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 4px 10px;
+  padding: 3px 9px;
   font-family: var(--font-mono);
   font-size: 10.5px;
   cursor: pointer;
-  transition: all 0.12s ease;
 }
 
 .bn-simple-act-btn:hover {
   color: var(--text);
   border-color: var(--text);
+}
+
+.bn-lane-select {
+  appearance: none;
+  background: var(--surface);
+  color: var(--text-mid);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
 }
