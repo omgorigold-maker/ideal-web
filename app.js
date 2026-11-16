@@ -20550,6 +20550,51 @@ function captureBuildNotesLiveInputsToDraft() {
 }
 
 let _bnDraftSaveTimer = null;
+const _bnUndoStack = [];
+const _bnRedoStack = [];
+
+function pushBuildNotesHistorySnapshot() {
+  if (!vault || !vault.buildNotes) return;
+  try {
+    const snap = JSON.stringify(vault.buildNotes.items || []);
+    if (_bnUndoStack.length > 0 && _bnUndoStack[_bnUndoStack.length - 1] === snap) return;
+    _bnUndoStack.push(snap);
+    if (_bnUndoStack.length > 50) _bnUndoStack.shift();
+    _bnRedoStack.length = 0;
+  } catch (_) {}
+}
+
+function undoBuildNotesAction() {
+  if (!vault || !vault.buildNotes || _bnUndoStack.length === 0) return false;
+  try {
+    captureBuildNotesLiveInputsToDraft();
+    _bnRedoStack.push(JSON.stringify(vault.buildNotes.items || []));
+    const prev = _bnUndoStack.pop();
+    vault.buildNotes.items = JSON.parse(prev);
+    saveVault('UNDO BUILD NOTE');
+    renderSidebar();
+    renderWorkspace();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function redoBuildNotesAction() {
+  if (!vault || !vault.buildNotes || _bnRedoStack.length === 0) return false;
+  try {
+    captureBuildNotesLiveInputsToDraft();
+    _bnUndoStack.push(JSON.stringify(vault.buildNotes.items || []));
+    const next = _bnRedoStack.pop();
+    vault.buildNotes.items = JSON.parse(next);
+    saveVault('REDO BUILD NOTE');
+    renderSidebar();
+    renderWorkspace();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   const files = Array.from(fileList || []).filter(Boolean);
@@ -20600,6 +20645,7 @@ async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   if (targetCardId) {
     const card = (bn.items || []).find(n => n.id === targetCardId);
     if (card) {
+      pushBuildNotesHistorySnapshot();
       card.attachments = Array.isArray(card.attachments) ? card.attachments : [];
       card.attachments.push(...uploaded);
       card.updatedAt = Date.now();
@@ -20816,11 +20862,8 @@ function renderBuildNotesView(ws, spaceObj) {
             </select>
             <button type="button" class="bn-simple-act-btn" id="btnBnOpenDraftLink">+ Link</button>
             <button type="button" class="bn-simple-act-btn" id="btnBnAttachDraftFile">+ File</button>
-            ${(bn.trash && bn.trash.length > 0) ? `
-              <button type="button" class="bn-simple-act-btn" id="btnBnRestoreLastTrash">↺ Undo</button>
-            ` : ''}
           </div>
-          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 20px;">+ Add Note</button>
+          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 20px;">Save Note</button>
         </div>
       </section>
 
@@ -20981,6 +21024,7 @@ function renderBuildNotesView(ws, spaceObj) {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
+    pushBuildNotesHistorySnapshot();
     bn.items.unshift(newItem);
 
     // Clear top draft box completely
@@ -21008,21 +21052,6 @@ function renderBuildNotesView(ws, spaceObj) {
     }
   });
 
-  // Undo Delete
-  ws.querySelector('#btnBnRestoreLastTrash')?.addEventListener('click', () => {
-    captureBuildNotesLiveInputsToDraft();
-    if (!Array.isArray(bn.trash) || bn.trash.length === 0) return;
-    const restored = bn.trash.pop();
-    if (restored) {
-      delete restored.trashed;
-      delete restored.deletedAt;
-      bn.items.unshift(restored);
-      saveVault('RESTORED BUILD NOTE');
-      renderSidebar();
-      renderWorkspace();
-    }
-  });
-
   // Direct live editing of saved note text
   let cardEditSaveTimer = null;
   ws.querySelectorAll('[data-bn-live-text]').forEach(area => {
@@ -21044,6 +21073,7 @@ function renderBuildNotesView(ws, spaceObj) {
       captureBuildNotesLiveInputsToDraft();
       const item = (bn.items || []).find(n => n.id === sel.dataset.bnMoveLane);
       if (!item) return;
+      pushBuildNotesHistorySnapshot();
       item.lane = sel.value;
       item.updatedAt = Date.now();
       saveVault('MOVED BUILD NOTE');
@@ -21097,6 +21127,7 @@ function renderBuildNotesView(ws, spaceObj) {
       form.querySelector('.bn-card-link-url-in')?.focus();
       return;
     }
+    pushBuildNotesHistorySnapshot();
     item.links = Array.isArray(item.links) ? item.links : [];
     const finalLabel = rawLabel || formatBuildNoteLinkDisplay(rawUrl);
 
@@ -21168,6 +21199,7 @@ function renderBuildNotesView(ws, spaceObj) {
       const item = (bn.items || []).find(n => n.id === btn.dataset.bnDelLinkId);
       const idx = parseInt(btn.dataset.bnDelLinkIdx, 10);
       if (item && Array.isArray(item.links)) {
+        pushBuildNotesHistorySnapshot();
         item.links.splice(idx, 1);
         item.updatedAt = Date.now();
         saveVault('REMOVED BUILD NOTE LINK');
@@ -21216,6 +21248,7 @@ function renderBuildNotesView(ws, spaceObj) {
       const item = (bn.items || []).find(n => n.id === btn.dataset.bnDelAttId);
       const idx = parseInt(btn.dataset.bnDelAttIdx, 10);
       if (item && Array.isArray(item.attachments)) {
+        pushBuildNotesHistorySnapshot();
         item.attachments.splice(idx, 1);
         item.updatedAt = Date.now();
         saveVault('REMOVED BUILD NOTE ATTACHMENT');
@@ -21278,6 +21311,7 @@ function renderBuildNotesView(ws, spaceObj) {
       const targetLane = col.dataset.bnLane;
       const item = (bn.items || []).find(n => n.id === draggedNoteId);
       if (item && item.lane !== targetLane) {
+        pushBuildNotesHistorySnapshot();
         item.lane = targetLane;
         item.updatedAt = Date.now();
         saveVault('MOVED BUILD NOTE');
@@ -22692,6 +22726,7 @@ async function executeConfirmedDelete() {
     normalizeBuildNotesData(vault);
     const target = (vault.buildNotes.items || []).find(n => n.id === pd.id);
     if (target) {
+      pushBuildNotesHistorySnapshot();
       target.trashed = true;
       target.deletedAt = new Date().toISOString();
       vault.buildNotes.trash = Array.isArray(vault.buildNotes.trash) ? vault.buildNotes.trash : [];
@@ -23119,6 +23154,19 @@ function initEvents() {
       return;
     }
     if (e.target.closest('input, textarea, [contenteditable="true"]')) return;
+    if (state.viewType === 'space' && state.activeSpaceId === 'build_notes' && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        if (undoBuildNotesAction()) {
+          e.preventDefault();
+          return;
+        }
+      } else if ((e.shiftKey && e.key.toLowerCase() === 'z') || e.key.toLowerCase() === 'y') {
+        if (redoBuildNotesAction()) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }
     const plane = document.getElementById('giantWallPlane');
     if (plane && (e.metaKey || e.ctrlKey)) {
       if (e.key === '=' || e.key === '+') {
