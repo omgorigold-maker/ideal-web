@@ -672,7 +672,8 @@ const FACTORY_DEFAULT_SPACES_CONFIG = {
   work_apps: { code: '08', title: 'Work Applications', heading: 'Work Applications', layoutMode: 'vertical', aspectRatio: '16 / 10.5' },
   dream_clients: { code: '09', title: 'Clients I Want to Work With', heading: 'Clients I Want to Work With', layoutMode: 'vertical', aspectRatio: '16 / 10.5' },
   opportunity_pool: { code: '10', title: 'Opportunity Pool', heading: 'Opportunity Pool', layoutMode: 'vertical', aspectRatio: '16 / 10.5' },
-  customize: { code: '11', title: 'Customize & Design', heading: 'Customize & Design', layoutMode: 'wall', aspectRatio: '16 / 10.5' }
+  customize: { code: '11', title: 'Customize & Design', heading: 'Customize & Design', layoutMode: 'wall', aspectRatio: '16 / 10.5' },
+  build_notes: { code: '12', title: 'Build Notes', heading: 'Build Notes', layoutMode: 'wall', aspectRatio: '16 / 10.5' }
 };
 
 const FACTORY_DEFAULT_TEMPLATE = {
@@ -996,6 +997,21 @@ function createSeedVault() {
         kicker: '08 / STUDIO INTERFACE & TYPOGRAPHY',
         heading: 'Customize Ideal — Fonts, Palette, Cards & Per-Section UI',
         categories: [],
+        ui: {
+          layoutMode: 'wall',
+          cardSize: 340,
+          aspectRatio: '16 / 10.5',
+          imageFit: 'cover',
+          sortOrder: 'manual'
+        }
+      },
+      {
+        id: 'build_notes',
+        code: '09',
+        title: 'Build Notes',
+        kicker: '09 / APP BUILD & IMPROVEMENT LOG',
+        heading: 'Build Notes — App Ideas, Fixes & Improvements',
+        categories: ['All', 'To Build', 'Improvements', 'Fixes & Polish', 'Done'],
         ui: {
           layoutMode: 'wall',
           cardSize: 340,
@@ -3208,6 +3224,25 @@ function ensureVaultSleekAndGDrive(v) {
         imageFit: 'cover',
         sortOrder: 'manual'
       }
+    },
+    {
+      id: 'build_notes',
+      code: keepCode('build_notes', '12'),
+      world: 'Customize',
+      title: keepTitle('build_notes', 'Build Notes'),
+      kicker: 'STUDIO SETTINGS / 12',
+      heading: keepHeading('build_notes', 'Build Notes'),
+      categories: (Array.isArray(oldSpacesMap.build_notes?.categories) && oldSpacesMap.build_notes.categories.length > 0)
+        ? oldSpacesMap.build_notes.categories
+        : ['All', 'To Build', 'Improvements', 'Fixes & Polish', 'Done'],
+      ui: {
+        ...(oldSpacesMap.build_notes?.ui || {}),
+        layoutMode: 'wall',
+        cardSize: 340,
+        aspectRatio: '16 / 10.5',
+        imageFit: 'cover',
+        sortOrder: 'manual'
+      }
     }
   ];
 
@@ -3279,6 +3314,7 @@ function ensureVaultSleekAndGDrive(v) {
   }
 
   normalizeToolDockData(v);
+  normalizeBuildNotesData(v);
   if (!Array.isArray(v.showcaseRollouts) || v.showcaseRollouts.length === 0) {
     v.showcaseRollouts = createDefaultShowcaseRolloutsSeed(v);
   }
@@ -4783,7 +4819,7 @@ function applyContainerScale(type, obj, isInteractive = false) {
 function extractSpacesConfig(spaces = vault?.spaces) {
   const out = {};
   (spaces || []).forEach(sp => {
-    if (!sp || !sp.id || sp.id === 'customize') return;
+    if (!sp || !sp.id || sp.id === 'customize' || sp.id === 'build_notes') return;
     out[sp.id] = {
       code: sp.code || FACTORY_DEFAULT_SPACES_CONFIG[sp.id]?.code || '',
       title: sp.title || FACTORY_DEFAULT_SPACES_CONFIG[sp.id]?.title || '',
@@ -4870,7 +4906,7 @@ function applyTemplateObjectToVault(tpl, v = vault) {
   const scMap = tpl.spacesConfig || FACTORY_DEFAULT_SPACES_CONFIG;
   if (Array.isArray(v.spaces)) {
     v.spaces.forEach(sp => {
-      if (!sp || sp.id === 'customize') return;
+      if (!sp || sp.id === 'customize' || sp.id === 'build_notes') return;
       if (v.customSpaceTitles && v.customSpaceTitles[sp.id]) {
         sp.title = v.customSpaceTitles[sp.id];
       } else if (sp.title === 'Drive & PSD Assets' || sp.title === 'Google Drive & PSD Vault') {
@@ -5375,6 +5411,10 @@ function getSpaceCount(spaceId) {
     if (!state.gmail?.connected) return '✉';
     const unread = (state.gmail.messages || []).filter(m => m.unread).length;
     return unread > 0 ? unread : (state.gmail.totalInFolder || state.gmail.messages?.length || '✓');
+  }
+  if (spaceId === 'build_notes') {
+    const bnList = Array.isArray(vault.buildNotes?.items) ? vault.buildNotes.items : [];
+    return bnList.filter(n => n && !n.trashed && n.lane !== 'done').length;
   }
   return vault.items.filter(i => i.parentType === 'space' && i.parentId === spaceId).length;
 }
@@ -6078,9 +6118,9 @@ function renderHeaderAndToolbar() {
 
   const isIncubatorSpace = (type === 'space' && obj.id === 'incubator');
 
-  // Hide view switcher group on Incubator (has its own standalone top bar), Lightbox, Drive & PSD Assets, Tool Dock, Gmail, and Customize
+  // Hide view switcher group on Incubator (has its own standalone top bar), Lightbox, Drive & PSD Assets, Tool Dock, Gmail, Customize, and Build Notes
   if (hudViewModeGroup) {
-    hudViewModeGroup.hidden = (type === 'space' && ['incubator', 'lightbox', 'gdrive_assets', 'tool_dock', 'gmail', 'customize'].includes(obj.id));
+    hudViewModeGroup.hidden = (type === 'space' && ['incubator', 'lightbox', 'gdrive_assets', 'tool_dock', 'gmail', 'customize', 'build_notes'].includes(obj.id));
   }
 
   // Show ONLY Vertical & Horizontal in Moving Forward; standard view buttons elsewhere
@@ -6132,9 +6172,10 @@ function renderHeaderAndToolbar() {
   // Sync HUD Scale / Zoom Slider (5 Snappy Steps across supported views)
   const isGiantWall = (mode === 'giant_wall');
   const isCustomizeSpace = (type === 'space' && obj.id === 'customize');
+  const isBuildNotesSpace = (type === 'space' && obj.id === 'build_notes');
   const hudDensityPill = document.getElementById('hudDensityPill');
   if (hudDensityPill) {
-    hudDensityPill.hidden = isGiantWall || isCustomizeSpace;
+    hudDensityPill.hidden = isGiantWall || isCustomizeSpace || isBuildNotesSpace;
   }
   const sizeSlider = document.getElementById('sizeSlider');
   if (sizeSlider) {
@@ -6155,7 +6196,7 @@ function renderHeaderAndToolbar() {
   document.body.classList.toggle('is-gdrive-space', isGDriveAssets);
   const hudUploadEl = document.getElementById('btnHudUpload');
   const hudActionsPill = document.querySelector('.hud-actions-pill');
-  const hideHudUpload = isGDriveAssets || isToolDockSpace || isStudioProjectsArea || isCustomizeSpace || isLightboxSpace;
+  const hideHudUpload = isGDriveAssets || isToolDockSpace || isStudioProjectsArea || isCustomizeSpace || isBuildNotesSpace || isLightboxSpace;
   if (hudUploadEl) hudUploadEl.hidden = hideHudUpload;
   if (hudActionsPill) hudActionsPill.hidden = hideHudUpload;
   const sidebarUploadEl = document.getElementById('btnSidebarUpload');
@@ -6220,6 +6261,7 @@ function renderFilterActionRow() {
   const isGDriveAssets = type === 'space' && obj.id === 'gdrive_assets';
   const isGmailSpace = type === 'space' && obj.id === 'gmail';
   const isLightboxSpace = type === 'space' && obj.id === 'lightbox';
+  const isBuildNotesSpace = type === 'space' && obj.id === 'build_notes';
   const isProjectsSpace = type === 'space' && obj.id === 'projects';
   const isProjectBoard = type === 'project';
 
@@ -6235,6 +6277,9 @@ function renderFilterActionRow() {
       state.lightboxFilter = 'Instagram Board';
     }
     state.activeCategory = state.lightboxFilter;
+  } else if (isBuildNotesSpace) {
+    list = ['All', 'To Build', 'Improvements', 'Fixes & Polish', 'Done'];
+    obj.categories = list;
   }
   if (isGDriveAssets) {
     list = list.filter(c => c !== 'All' && c !== 'All Asset Batches');
@@ -6300,7 +6345,7 @@ function renderFilterActionRow() {
     <div class="pills-scroll-row" id="pillsContainer" style="display:inline-flex;align-items:center;gap:2px;">
       ${lifecycleInlineHtml}
       ${pillsHtml}
-      ${(!isGDriveAssets && !isGmailSpace && !isLightboxSpace) ? `<button type="button" class="filter-pill" id="btnAddCategoryTab" title="Add Tab">+</button>` : ''}
+      ${(!isGDriveAssets && !isGmailSpace && !isLightboxSpace && !isBuildNotesSpace) ? `<button type="button" class="filter-pill" id="btnAddCategoryTab" title="Add Tab">+</button>` : ''}
       ${isProjectBoard ? `<span class="quiet-sep">·</span><button type="button" class="project-finish-toggle-btn ${obj.lifecycleState === 'delivered' ? 'is-finished' : ''}" id="btnDeliverActiveProjectBoard" title="${obj.lifecycleState === 'delivered' ? 'Finished — Click to move back to Open' : 'Mark project as Finished'}">${obj.lifecycleState === 'delivered' ? '✓ Finished' : 'Mark Finished'}</button>${projectCategorySelectHtml}<button type="button" class="filter-pill" id="btnDeleteActiveProjectBoard" title="Delete Project Board">×</button>` : ''}
       ${gdriveLaneControlsHtml}
     </div>
@@ -6481,7 +6526,7 @@ function renderFilterActionRow() {
       renderWorkspace();
       saveNavState();
     });
-    if (!isGDriveAssets && !isGmailSpace && !isLightboxSpace) {
+    if (!isGDriveAssets && !isGmailSpace && !isLightboxSpace && !isBuildNotesSpace) {
       btn.addEventListener('dblclick', (e) => {
         if (e.target.closest('.pill-del-btn')) return;
         e.stopPropagation();
@@ -6640,6 +6685,18 @@ function getCategoryCount(type, obj, cat, isFirstAll) {
     }
     return '';
   }
+  if (obj.id === 'build_notes') {
+    const bnList = (vault.buildNotes?.items || []).filter(n => n && !n.trashed);
+    if (isFirstAll || cat === 'All') return bnList.length;
+    const laneMap = {
+      'To Build': 'build',
+      'Improvements': 'improve',
+      'Fixes & Polish': 'fix',
+      'Done': 'done'
+    };
+    const lk = laneMap[cat] || 'build';
+    return bnList.filter(n => (n.lane || 'build') === lk).length;
+  }
   const all = vault.items.filter(i => i.parentType === 'space' && i.parentId === obj.id);
   if (isFirstAll) return all.length;
   return all.filter(i => i.section === cat).length;
@@ -6771,6 +6828,11 @@ function renderWorkspace() {
 
   if (type === 'space' && obj.id === 'customize') {
     renderCustomizeView(ws);
+    return;
+  }
+
+  if (type === 'space' && obj.id === 'build_notes') {
+    renderBuildNotesView(ws, obj);
     return;
   }
 
@@ -20394,11 +20456,592 @@ function renderCustomizeView(ws) {
 }
 
 /* ==========================================================================
+   BUILD NOTES (Temporary App Build & Improvement Command Board)
+   ========================================================================== */
+const BUILD_NOTES_SECTIONS = [
+  'All / General',
+  '01 Studio Projects',
+  '02 Incubator',
+  '03 The Lightbox',
+  '04 Assets & Vaults',
+  '05 Tool Dock & R&D',
+  '06 Mail',
+  '07–10 Moving Forward',
+  '11 Customize & Design',
+  'Global / UI & Presets'
+];
+
+function createDefaultBuildNotesSeed() {
+  return {
+    scratchpad: '',
+    laneTitles: {
+      build: '01 / TO BUILD',
+      improve: '02 / IMPROVEMENTS',
+      fix: '03 / FIXES & POLISH',
+      done: '04 / DONE'
+    },
+    items: [],
+    trash: []
+  };
+}
+
+function normalizeBuildNotesData(v = vault) {
+  if (!v) return;
+  if (!v.buildNotes || typeof v.buildNotes !== 'object') {
+    v.buildNotes = createDefaultBuildNotesSeed();
+  }
+  const bn = v.buildNotes;
+  if (typeof bn.scratchpad !== 'string') bn.scratchpad = '';
+  if (!bn.laneTitles || typeof bn.laneTitles !== 'object') {
+    bn.laneTitles = {
+      build: '01 / TO BUILD',
+      improve: '02 / IMPROVEMENTS',
+      fix: '03 / FIXES & POLISH',
+      done: '04 / DONE'
+    };
+  }
+  if (!Array.isArray(bn.items)) bn.items = [];
+  if (!Array.isArray(bn.trash)) bn.trash = [];
+  bn.items.forEach(item => {
+    if (!item || typeof item !== 'object') return;
+    if (!item.id) item.id = uid('bn');
+    if (!['build', 'improve', 'fix', 'done'].includes(item.lane)) item.lane = 'build';
+    if (!item.priority) item.priority = 'Next';
+    if (!item.targetSection) item.targetSection = 'All / General';
+    if (!Array.isArray(item.checklist)) item.checklist = [];
+    if (typeof item.notes !== 'string') item.notes = '';
+  });
+}
+
+function renderBuildNotesView(ws, spaceObj) {
+  normalizeBuildNotesData(vault);
+  const bn = vault.buildNotes;
+  const laneTitles = bn.laneTitles || {};
+
+  const allLanes = [
+    { key: 'build', title: laneTitles.build || '01 / TO BUILD', badge: 'New Features & Ideas' },
+    { key: 'improve', title: laneTitles.improve || '02 / IMPROVEMENTS', badge: 'UX & Workflow Upgrades' },
+    { key: 'fix', title: laneTitles.fix || '03 / FIXES & POLISH', badge: 'Tweaks & Refinements' },
+    { key: 'done', title: laneTitles.done || '04 / DONE', badge: 'Completed & Shipped' }
+  ];
+
+  const catToLane = {
+    'To Build': 'build',
+    'Improvements': 'improve',
+    'Fixes & Polish': 'fix',
+    'Done': 'done'
+  };
+  const activeLaneFilter = catToLane[state.activeCategory] || null;
+  const visibleLanes = activeLaneFilter
+    ? allLanes.filter(l => l.key === activeLaneFilter)
+    : allLanes;
+
+  const activeSectionFilter = state.bnSectionFilter || 'All';
+  const searchQ = (state.searchQuery || '').trim().toLowerCase();
+
+  const totalOpen = (bn.items || []).filter(n => n && !n.trashed && n.lane !== 'done').length;
+  const totalDone = (bn.items || []).filter(n => n && !n.trashed && n.lane === 'done').length;
+
+  const sectionOptionsHtml = BUILD_NOTES_SECTIONS.map(sec =>
+    `<option value="${escapeHtml(sec)}">${escapeHtml(sec)}</option>`
+  ).join('');
+
+  const sectionFilterPillsHtml = ['All', ...BUILD_NOTES_SECTIONS.filter(s => s !== 'All / General')].map(sec => {
+    const isAct = activeSectionFilter === sec;
+    return `<button type="button" class="bn-sec-filter-chip ${isAct ? 'active' : ''}" data-bn-sec-filter="${escapeHtml(sec)}">${escapeHtml(sec)}</button>`;
+  }).join('');
+
+  const lanesHtml = visibleLanes.map(lane => {
+    const laneItems = (bn.items || []).filter(item => {
+      if (!item || item.trashed) return false;
+      if ((item.lane || 'build') !== lane.key) return false;
+      if (activeSectionFilter !== 'All' && item.targetSection !== activeSectionFilter) return false;
+      if (searchQ) {
+        const chkText = (item.checklist || []).map(c => c.text || '').join(' ');
+        const hay = `${item.title || ''} ${item.notes || ''} ${item.targetSection || ''} ${item.priority || ''} ${chkText}`.toLowerCase();
+        if (!hay.includes(searchQ)) return false;
+      }
+      return true;
+    });
+
+    const cardsHtml = laneItems.length > 0 ? laneItems.map(item => {
+      const isDone = item.lane === 'done';
+      const prioClass = item.priority === 'High' ? 'is-high' : (item.priority === 'Later' ? 'is-later' : 'is-next');
+      const chkList = Array.isArray(item.checklist) ? item.checklist : [];
+      const chkDoneCount = chkList.filter(c => c && c.done).length;
+
+      const checklistHtml = chkList.map((chk, idx) => `
+        <label class="bn-chk-row ${chk.done ? 'is-done' : ''}">
+          <input type="checkbox" data-bn-chk-id="${escapeHtml(item.id)}" data-bn-chk-idx="${idx}" ${chk.done ? 'checked' : ''}>
+          <span class="bn-chk-text">${escapeHtml(chk.text || '')}</span>
+          <button type="button" class="bn-chk-del" data-bn-del-chk-id="${escapeHtml(item.id)}" data-bn-del-chk-idx="${idx}" title="Remove step">×</button>
+        </label>
+      `).join('');
+
+      return `
+        <article class="bn-card ${isDone ? 'is-done-card' : ''}" draggable="true" data-bn-id="${escapeHtml(item.id)}">
+          <div class="bn-card-top">
+            <button type="button" class="bn-done-toggle ${isDone ? 'is-checked' : ''}" data-bn-toggle-done="${escapeHtml(item.id)}" title="${isDone ? 'Move back to To Build' : 'Mark as Done'}">${isDone ? '✓' : ''}</button>
+            <div class="bn-card-title" data-bn-title-id="${escapeHtml(item.id)}" title="Double-click to rename">${escapeHtml(item.title || 'Untitled Note')}</div>
+            <div class="bn-card-badges">
+              <button type="button" class="bn-prio-pill ${prioClass}" data-bn-cycle-prio="${escapeHtml(item.id)}" title="Click to cycle priority (High → Next → Later)">${escapeHtml(item.priority || 'Next')}</button>
+            </div>
+          </div>
+
+          <div class="bn-card-meta-row">
+            <span class="bn-section-tag" data-bn-sec-id="${escapeHtml(item.id)}" title="Double-click to change target section">${escapeHtml(item.targetSection || 'All / General')}</span>
+            ${chkList.length > 0 ? `<span class="bn-chk-progress">${chkDoneCount}/${chkList.length} steps</span>` : ''}
+          </div>
+
+          <div class="bn-card-notes ${item.notes ? '' : 'is-empty'}" data-bn-notes-id="${escapeHtml(item.id)}" title="Click to edit notes or details">${escapeHtml(item.notes || '+ Click to add details, behavior notes, or specs…')}</div>
+
+          ${chkList.length > 0 ? `<div class="bn-chk-list">${checklistHtml}</div>` : ''}
+
+          <div class="bn-card-footer">
+            <div class="bn-card-move-group">
+              <button type="button" class="bn-mini-btn" data-bn-add-step="${escapeHtml(item.id)}" title="Add checklist sub-step">+ Step</button>
+              <select class="bn-lane-select" data-bn-move-lane="${escapeHtml(item.id)}" title="Move to column" aria-label="Move to column">
+                <option value="build" ${item.lane === 'build' ? 'selected' : ''}>→ To Build</option>
+                <option value="improve" ${item.lane === 'improve' ? 'selected' : ''}>→ Improvements</option>
+                <option value="fix" ${item.lane === 'fix' ? 'selected' : ''}>→ Fixes &amp; Polish</option>
+                <option value="done" ${item.lane === 'done' ? 'selected' : ''}>→ Done</option>
+              </select>
+            </div>
+            <button type="button" class="hover-act-btn danger" data-bn-del="${escapeHtml(item.id)}" title="Move note to trash" style="opacity:1;">×</button>
+          </div>
+        </article>
+      `;
+    }).join('') : `<div class="bn-empty-lane">No notes in this column yet — add one above or click <strong>+ Add</strong>.</div>`;
+
+    return `
+      <div class="bn-lane-col" data-bn-lane="${escapeHtml(lane.key)}">
+        <div class="bn-lane-header">
+          <div>
+            <div class="bn-lane-title" data-bn-lane-title="${escapeHtml(lane.key)}" title="Click to rename column">${escapeHtml(lane.title)}</div>
+            <div class="kicker-mono" style="font-size:9.5px;">${escapeHtml(lane.badge)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="sidebar-count-pill">${laneItems.length}</span>
+            <button type="button" class="outline-btn" data-bn-quick-lane="${escapeHtml(lane.key)}" style="padding:3px 9px;font-size:10px;">+ Add</button>
+          </div>
+        </div>
+        <div class="bn-lane-cards">${cardsHtml}</div>
+      </div>
+    `;
+  }).join('');
+
+  const scratchCollapsed = Boolean(state.bnScratchCollapsed);
+
+  ws.innerHTML = `
+    <div class="build-notes-shell" id="buildNotesShell">
+      <!-- TOP QUICK CAPTURE & SUMMARY BAR -->
+      <section class="bn-composer-card">
+        <div class="bn-composer-top">
+          <div class="bn-composer-headline">
+            <span class="kicker-mono" style="color:var(--accent);">BUILD NOTES &bull; TEMPORARY STUDIO ROADMAP</span>
+            <span class="bn-summary-counts">${totalOpen} Open &middot; ${totalDone} Done</span>
+          </div>
+          <div class="bn-composer-right-actions">
+            <button type="button" class="outline-btn" id="btnBnToggleScratch" style="padding:4px 10px;font-size:11px;">
+              ${scratchCollapsed ? '▸ Show Braindump Pad' : '▾ Hide Braindump Pad'}
+            </button>
+          </div>
+        </div>
+
+        <div class="bn-quick-add-row">
+          <input type="text" id="bnQuickTitleInput" class="inspector-input bn-quick-title" placeholder="What do you want to build, improve, or fix next? (Press Enter to add)..." autocomplete="off">
+          <select id="bnQuickLaneSelect" class="inspector-input bn-quick-select" aria-label="Column">
+            <option value="build" ${activeLaneFilter === 'build' ? 'selected' : ''}>01 / To Build</option>
+            <option value="improve" ${activeLaneFilter === 'improve' ? 'selected' : ''}>02 / Improvements</option>
+            <option value="fix" ${activeLaneFilter === 'fix' ? 'selected' : ''}>03 / Fixes &amp; Polish</option>
+            <option value="done" ${activeLaneFilter === 'done' ? 'selected' : ''}>04 / Done</option>
+          </select>
+          <select id="bnQuickSectionSelect" class="inspector-input bn-quick-select" aria-label="App Section">
+            ${sectionOptionsHtml}
+          </select>
+          <select id="bnQuickPrioSelect" class="inspector-input bn-quick-prio" aria-label="Priority">
+            <option value="High">High</option>
+            <option value="Next" selected>Next</option>
+            <option value="Later">Later</option>
+          </select>
+          <button type="button" class="primary-block-btn" id="btnBnQuickAdd" style="width:auto;padding:8px 18px;white-space:nowrap;">+ Add Note</button>
+        </div>
+
+        <input type="text" id="bnQuickNotesInput" class="inspector-input bn-quick-subnotes" placeholder="Optional details, ideas, or checklist items (separate steps with ; )..." autocomplete="off">
+
+        <div class="bn-sec-filter-bar">
+          <span class="kicker-mono" style="margin-right:4px;">FILTER BY AREA:</span>
+          ${sectionFilterPillsHtml}
+        </div>
+      </section>
+
+      <!-- COLLAPSIBLE FREEFORM BRAINDUMP / SCRATCHPAD -->
+      <section class="bn-scratchpad-card" ${scratchCollapsed ? 'hidden' : ''}>
+        <div class="bn-scratchpad-head">
+          <span class="kicker-mono">FREEFORM BRAINDUMP &amp; SCRATCHPAD (AUTO-SAVES)</span>
+          <span class="bn-scratch-status" id="bnScratchSavedIndicator">Saved in Vault</span>
+        </div>
+        <textarea id="bnScratchpadTextarea" class="bn-scratchpad-textarea typewriter" rows="4" placeholder="Jot down rough thoughts, feature braindumps, UI wishes, or anything you want to remember while using Ideal...">${escapeHtml(bn.scratchpad || '')}</textarea>
+      </section>
+
+      <!-- 4-COLUMN BUILD & IMPROVEMENT BOARD -->
+      <div class="bn-lanes-grid ${visibleLanes.length === 1 ? 'is-single-lane' : ''}">
+        ${lanesHtml}
+      </div>
+    </div>
+  `;
+
+  // Bind Quick Add
+  const quickTitleIn = ws.querySelector('#bnQuickTitleInput');
+  const quickNotesIn = ws.querySelector('#bnQuickNotesInput');
+  const quickLaneSel = ws.querySelector('#bnQuickLaneSelect');
+  const quickSecSel = ws.querySelector('#bnQuickSectionSelect');
+  const quickPrioSel = ws.querySelector('#bnQuickPrioSelect');
+
+  const submitQuickBuildNote = () => {
+    const titleVal = (quickTitleIn?.value || '').trim();
+    if (!titleVal) {
+      quickTitleIn?.focus();
+      return;
+    }
+    const rawSub = (quickNotesIn?.value || '').trim();
+    let notesVal = rawSub;
+    const checklistArr = [];
+    if (rawSub.includes(';')) {
+      const parts = rawSub.split(';').map(s => s.trim()).filter(Boolean);
+      if (parts.length > 1) {
+        parts.forEach(p => checklistArr.push({ text: p, done: false }));
+        notesVal = '';
+      }
+    }
+    const newItem = {
+      id: uid('bn'),
+      title: titleVal,
+      lane: quickLaneSel?.value || activeLaneFilter || 'build',
+      targetSection: quickSecSel?.value || (activeSectionFilter !== 'All' ? activeSectionFilter : 'All / General'),
+      priority: quickPrioSel?.value || 'Next',
+      notes: notesVal,
+      checklist: checklistArr,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    bn.items.unshift(newItem);
+    if (quickTitleIn) quickTitleIn.value = '';
+    if (quickNotesIn) quickNotesIn.value = '';
+    saveVault('ADDED BUILD NOTE');
+    renderSidebar();
+    renderFilterActionRow();
+    renderWorkspace();
+    showStatusToast('✓ Added to Build Notes');
+  };
+
+  ws.querySelector('#btnBnQuickAdd')?.addEventListener('click', submitQuickBuildNote);
+  [quickTitleIn, quickNotesIn].forEach(inp => {
+    inp?.addEventListener('keydown', (e) => {
+      if (e.isComposing || e.keyCode === 229) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitQuickBuildNote();
+      }
+    });
+  });
+
+  // Toggle Scratchpad
+  ws.querySelector('#btnBnToggleScratch')?.addEventListener('click', () => {
+    state.bnScratchCollapsed = !state.bnScratchCollapsed;
+    renderWorkspace();
+  });
+
+  // Scratchpad Auto-Save
+  const scratchArea = ws.querySelector('#bnScratchpadTextarea');
+  const scratchInd = ws.querySelector('#bnScratchSavedIndicator');
+  let scratchSaveTimer = null;
+  scratchArea?.addEventListener('input', () => {
+    bn.scratchpad = scratchArea.value;
+    if (scratchInd) scratchInd.textContent = 'Saving…';
+    clearTimeout(scratchSaveTimer);
+    scratchSaveTimer = setTimeout(() => {
+      saveVault('UPDATED BUILD SCRATCHPAD');
+      if (scratchInd) scratchInd.textContent = '✓ Saved';
+    }, 450);
+  });
+
+  // Section Filter Chips
+  ws.querySelectorAll('[data-bn-sec-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.bnSectionFilter = btn.dataset.bnSecFilter || 'All';
+      renderWorkspace();
+    });
+  });
+
+  // Rename Column Title
+  ws.querySelectorAll('[data-bn-lane-title]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const key = el.dataset.bnLaneTitle;
+      promptInlineRename(el, el.textContent.trim(), (val) => {
+        if (val.trim()) {
+          bn.laneTitles = bn.laneTitles || {};
+          bn.laneTitles[key] = val.trim();
+          saveVault('RENAMED BUILD NOTES COLUMN');
+          renderWorkspace();
+        }
+      });
+    });
+  });
+
+  // + Add button inside a specific column header
+  ws.querySelectorAll('[data-bn-quick-lane]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetLane = btn.dataset.bnQuickLane || 'build';
+      if (quickLaneSel) quickLaneSel.value = targetLane;
+      if (quickTitleIn) {
+        quickTitleIn.focus();
+        quickTitleIn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  });
+
+  // Toggle Done checkmark
+  ws.querySelectorAll('[data-bn-toggle-done]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === btn.dataset.bnToggleDone);
+      if (!item) return;
+      if (item.lane === 'done') {
+        item.lane = item.prevLane || 'build';
+      } else {
+        item.prevLane = item.lane;
+        item.lane = 'done';
+      }
+      item.updatedAt = Date.now();
+      saveVault(item.lane === 'done' ? 'MARKED BUILD NOTE DONE' : 'REOPENED BUILD NOTE');
+      renderSidebar();
+      renderFilterActionRow();
+      renderWorkspace();
+    });
+  });
+
+  // Cycle Priority Pill (High -> Next -> Later)
+  ws.querySelectorAll('[data-bn-cycle-prio]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === btn.dataset.bnCyclePrio);
+      if (!item) return;
+      const order = ['High', 'Next', 'Later'];
+      const curIdx = order.indexOf(item.priority || 'Next');
+      item.priority = order[(curIdx + 1) % order.length];
+      item.updatedAt = Date.now();
+      saveVault('UPDATED PRIORITY');
+      renderWorkspace();
+    });
+  });
+
+  // Double-click Card Title to rename
+  ws.querySelectorAll('[data-bn-title-id]').forEach(el => {
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === el.dataset.bnTitleId);
+      if (!item) return;
+      promptInlineRename(el, item.title, (val) => {
+        if (val.trim()) {
+          item.title = val.trim();
+          item.updatedAt = Date.now();
+          saveVault('RENAMED BUILD NOTE');
+          renderWorkspace();
+        }
+      });
+    });
+  });
+
+  // Double-click Target Section Tag to edit
+  ws.querySelectorAll('[data-bn-sec-id]').forEach(el => {
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === el.dataset.bnSecId);
+      if (!item) return;
+      promptInlineRename(el, item.targetSection || 'All / General', (val) => {
+        if (val.trim()) {
+          item.targetSection = val.trim();
+          item.updatedAt = Date.now();
+          saveVault('UPDATED BUILD NOTE SECTION');
+          renderWorkspace();
+        }
+      });
+    });
+  });
+
+  // Click or double-click Notes to edit inline
+  ws.querySelectorAll('[data-bn-notes-id]').forEach(el => {
+    const editNotes = (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === el.dataset.bnNotesId);
+      if (!item) return;
+      promptInlineTextarea(el, item.notes || '', (val) => {
+        item.notes = val;
+        item.updatedAt = Date.now();
+        saveVault('UPDATED BUILD NOTE DETAILS');
+        renderWorkspace();
+      });
+    };
+    el.addEventListener('click', editNotes);
+  });
+
+  // Checklist checkbox toggle
+  ws.querySelectorAll('[data-bn-chk-id]').forEach(chk => {
+    chk.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === chk.dataset.bnChkId);
+      const idx = parseInt(chk.dataset.bnChkIdx, 10);
+      if (item && Array.isArray(item.checklist) && item.checklist[idx]) {
+        item.checklist[idx].done = Boolean(chk.checked);
+        item.updatedAt = Date.now();
+        saveVault('UPDATED BUILD STEP');
+        renderWorkspace();
+      }
+    });
+  });
+
+  // Remove checklist step
+  ws.querySelectorAll('[data-bn-del-chk-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === btn.dataset.bnDelChkId);
+      const idx = parseInt(btn.dataset.bnDelChkIdx, 10);
+      if (item && Array.isArray(item.checklist)) {
+        item.checklist.splice(idx, 1);
+        item.updatedAt = Date.now();
+        saveVault('REMOVED BUILD STEP');
+        renderWorkspace();
+      }
+    });
+  });
+
+  // + Step button
+  ws.querySelectorAll('[data-bn-add-step]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === btn.dataset.bnAddStep);
+      if (!item) return;
+      promptInlineRename(btn, 'New step', (val) => {
+        const clean = val.trim();
+        if (clean && clean !== 'New step') {
+          item.checklist = Array.isArray(item.checklist) ? item.checklist : [];
+          item.checklist.push({ text: clean, done: false });
+          item.updatedAt = Date.now();
+          saveVault('ADDED BUILD STEP');
+        }
+        renderWorkspace();
+      });
+    });
+  });
+
+  // Move lane dropdown
+  ws.querySelectorAll('[data-bn-move-lane]').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === sel.dataset.bnMoveLane);
+      if (!item) return;
+      item.lane = sel.value;
+      item.updatedAt = Date.now();
+      saveVault('MOVED BUILD NOTE');
+      renderSidebar();
+      renderFilterActionRow();
+      renderWorkspace();
+    });
+  });
+
+  // Delete note (explicit confirmation modal -> soft-moves to vault.buildNotes.trash)
+  ws.querySelectorAll('[data-bn-del]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const item = (bn.items || []).find(n => n.id === btn.dataset.bnDel);
+      if (!item) return;
+      requestDelete('build_note', item.id, item.title || 'Build Note');
+    });
+  });
+
+  // Drag and drop cards between columns and reorder
+  let draggedBnId = null;
+  ws.querySelectorAll('.bn-card[data-bn-id]').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      if (card.querySelector('input, textarea')) {
+        e.preventDefault();
+        return;
+      }
+      draggedBnId = card.dataset.bnId;
+      card.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', draggedBnId); } catch (_) {}
+      }
+    });
+    card.addEventListener('dragend', () => {
+      draggedBnId = null;
+      card.classList.remove('is-dragging');
+    });
+    card.addEventListener('dragover', (e) => {
+      if (!draggedBnId || draggedBnId === card.dataset.bnId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    card.addEventListener('drop', (e) => {
+      if (!draggedBnId || draggedBnId === card.dataset.bnId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const fromIdx = bn.items.findIndex(n => n.id === draggedBnId);
+      const toIdx = bn.items.findIndex(n => n.id === card.dataset.bnId);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        const targetLane = bn.items[toIdx].lane || 'build';
+        const [moved] = bn.items.splice(fromIdx, 1);
+        moved.lane = targetLane;
+        const newToIdx = bn.items.findIndex(n => n.id === card.dataset.bnId);
+        bn.items.splice(newToIdx >= 0 ? newToIdx : 0, 0, moved);
+        draggedBnId = null;
+        saveVault('REORDERED BUILD NOTES');
+        renderSidebar();
+        renderFilterActionRow();
+        renderWorkspace();
+      }
+    });
+  });
+
+  ws.querySelectorAll('.bn-lane-col[data-bn-lane]').forEach(col => {
+    col.addEventListener('dragover', (e) => {
+      if (!draggedBnId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    col.addEventListener('drop', (e) => {
+      if (!draggedBnId) return;
+      e.preventDefault();
+      const item = (bn.items || []).find(n => n.id === draggedBnId);
+      const targetLane = col.dataset.bnLane;
+      if (item && targetLane && item.lane !== targetLane) {
+        item.lane = targetLane;
+        item.updatedAt = Date.now();
+        draggedBnId = null;
+        saveVault('MOVED BUILD NOTE');
+        renderSidebar();
+        renderFilterActionRow();
+        renderWorkspace();
+      }
+    });
+  });
+}
+
+/* ==========================================================================
    QUICK INLINE COMPOSER, FILE UPLOADS, MODALS & EVENT LISTENERS
    ========================================================================== */
 function openQuickComposer(kind = 'note') {
   const { type, obj } = getActiveContainer();
   if (type === 'space' && obj && obj.id === 'gdrive_assets') return;
+  if (type === 'space' && obj && obj.id === 'build_notes') {
+    const quickTitle = document.getElementById('bnQuickTitleInput');
+    if (quickTitle) quickTitle.focus();
+    return;
+  }
   if (type === 'space' && obj && obj.id === 'tool_dock') {
     openToolDockModal({ mode: kind === 'link' ? 'link' : 'rd', id: null });
     return;
@@ -20938,7 +21581,7 @@ async function handleFilesUpload(fileListOrCaptured, dropOpts = null) {
         targetFolderId = null;
       }
     }
-  } else if (type === 'space' && (obj.id === 'customize' || obj.id === 'finland')) {
+  } else if (type === 'space' && (obj.id === 'customize' || obj.id === 'build_notes' || obj.id === 'finland')) {
     targetParentType = 'project';
     targetParentId = vault.projects[0]?.id || 'proj_test_sculpt';
   }
@@ -21207,7 +21850,7 @@ function openItemInspector(itemId) {
 
   if (parentSel) {
     const projOpts = vault.projects.map(p => `<option value="project:${p.id}" ${it.parentType === 'project' && it.parentId === p.id ? 'selected' : ''}>Project: ${escapeHtml(p.title)}</option>`).join('');
-    const spaceOpts = vault.spaces.filter(s => !['finland', 'customize'].includes(s.id)).map(s => `<option value="space:${s.id}" ${it.parentType === 'space' && it.parentId === s.id ? 'selected' : ''}>Section: ${escapeHtml(s.code)} ${escapeHtml(s.title)}</option>`).join('');
+    const spaceOpts = vault.spaces.filter(s => !['finland', 'customize', 'build_notes'].includes(s.id)).map(s => `<option value="space:${s.id}" ${it.parentType === 'space' && it.parentId === s.id ? 'selected' : ''}>Section: ${escapeHtml(s.code)} ${escapeHtml(s.title)}</option>`).join('');
     parentSel.innerHTML = `<optgroup label="Project Boards">${projOpts}</optgroup><optgroup label="Sidebar Sections">${spaceOpts}</optgroup>`;
   }
 
@@ -21422,6 +22065,8 @@ function requestDelete(kind, id, title, meta = null) {
       msgEl.textContent = 'All selected items will be soft-moved to vault_trash so your original files remain recoverable. Nothing is ever deleted without your confirmation.';
     } else if (kind === 'showcase_rollout') {
       msgEl.textContent = 'This rollout post card will be moved to trash. Your staged artwork files remain safe in your vault.';
+    } else if (kind === 'build_note') {
+      msgEl.textContent = 'This build note will be soft-moved to Build Notes trash so nothing is ever lost.';
     } else {
       msgEl.textContent = 'This item will be soft-moved to vault_trash so your original files remain recoverable.';
     }
@@ -21765,6 +22410,16 @@ async function executeConfirmedDelete() {
       if (target && Array.isArray(target.requirementsList) && typeof pd.id.reqIdx === 'number') {
         target.requirementsList.splice(pd.id.reqIdx, 1);
       }
+    }
+  } else if (pd.kind === 'build_note') {
+    normalizeBuildNotesData(vault);
+    const target = (vault.buildNotes.items || []).find(n => n.id === pd.id);
+    if (target) {
+      target.trashed = true;
+      target.deletedAt = new Date().toISOString();
+      vault.buildNotes.trash = Array.isArray(vault.buildNotes.trash) ? vault.buildNotes.trash : [];
+      vault.buildNotes.trash.push({ ...target });
+      vault.buildNotes.items = vault.buildNotes.items.filter(n => n.id !== pd.id);
     }
   }
 
@@ -22530,7 +23185,7 @@ function initEvents() {
   const dropOverlay = document.getElementById('globalDropOverlay');
   let _dragWatchdogTimer = null;
   window.addEventListener('dragover', (e) => {
-    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock')) return;
+    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock' || state.activeSpaceId === 'build_notes')) return;
     if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
       e.preventDefault();
       if (dropOverlay) {
@@ -22563,7 +23218,7 @@ function initEvents() {
   window.addEventListener('drop', (e) => {
     clearTimeout(_dragWatchdogTimer);
     forceHideAllDropOverlays();
-    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock')) return;
+    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock' || state.activeSpaceId === 'build_notes')) return;
     const hasDroppedFile = Boolean(
       e.dataTransfer && (
         (e.dataTransfer.files && e.dataTransfer.files.length > 0) ||
@@ -22589,7 +23244,7 @@ function initEvents() {
     }
   });
   window.addEventListener('paste', (e) => {
-    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock')) return;
+    if (state.viewType === 'space' && (state.activeSpaceId === 'gdrive_assets' || state.activeSpaceId === 'tool_dock' || state.activeSpaceId === 'build_notes')) return;
     if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
     if (e.target && e.target.isContentEditable) return;
     const isMf = (state.viewType === 'space' && ['residencies', 'work_apps', 'dream_clients', 'opportunity_pool'].includes(state.activeSpaceId));
