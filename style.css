@@ -17854,8 +17854,16 @@ dialog.compare-dialog::backdrop {
   padding: 3px 10px;
   font-family: var(--font-mono);
   font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
   transition: all 0.14s ease;
+}
+
+.bn-sec-chip-count {
+  font-size: 9.5px;
+  opacity: 0.72;
 }
 
 .bn-sec-filter-chip:hover {

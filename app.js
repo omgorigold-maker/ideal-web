@@ -6200,10 +6200,10 @@ function renderHeaderAndToolbar() {
   if (hudUploadEl) hudUploadEl.hidden = hideHudUpload;
   if (hudActionsPill) hudActionsPill.hidden = hideHudUpload;
   const sidebarUploadEl = document.getElementById('btnSidebarUpload');
-  if (sidebarUploadEl) sidebarUploadEl.hidden = isGDriveAssets || isToolDockSpace;
+  if (sidebarUploadEl) sidebarUploadEl.hidden = isGDriveAssets || isToolDockSpace || isBuildNotesSpace;
   ['btnHudNote', 'btnHudLink', 'btnSidebarQuickNote', 'btnSidebarQuickLink'].forEach(btnId => {
     const el = document.getElementById(btnId);
-    if (el) el.hidden = isGDriveAssets || isLightboxSpace || (type === 'space' && obj.id === 'projects');
+    if (el) el.hidden = isGDriveAssets || isLightboxSpace || isBuildNotesSpace || (type === 'space' && obj.id === 'projects');
   });
   // Scope flag so Studio Projects (front page + boards) hides IG / Site status badges
   document.body.classList.toggle('in-studio-projects', isStudioProjectsArea);
@@ -6215,7 +6215,7 @@ function renderHeaderAndToolbar() {
   if (hudLinkBtn) {
     hudLinkBtn.textContent = isToolDockSpace ? '+ Add Useful Link' : '+ Web Link / Local Path';
   }
-  if (isGDriveAssets || isToolDockSpace || isLightboxSpace) {
+  if (isGDriveAssets || isToolDockSpace || isLightboxSpace || isBuildNotesSpace) {
     const compBar = document.getElementById('quickComposerBar');
     if (compBar) compBar.hidden = true;
   }
@@ -6716,6 +6716,7 @@ function renderSectionDesignDrawer() {
   const isProjectsSpace = (type === 'space' && (obj.id === 'projects' || obj.id === 'incubator'));
   const isGDrive = (type === 'space' && obj.id === 'gdrive_assets');
   const isToolDock = (type === 'space' && obj.id === 'tool_dock');
+  const isBuildNotes = (type === 'space' && obj.id === 'build_notes');
   const isMovingForward = (type === 'space' && ['residencies', 'work_apps', 'dream_clients', 'opportunity_pool'].includes(obj.id));
 
   drawer.innerHTML = `
@@ -6723,7 +6724,7 @@ function renderSectionDesignDrawer() {
       <span class="kicker-mono" style="color:var(--text);">SECTION UI (${escapeHtml(obj.title)}):</span>
       <label class="kicker-mono">LAYOUT</label>
       <select id="secUiLayout" class="toolbar-select" style="border:1px solid var(--border);padding:4px 8px;border-radius:4px;background:var(--surface-pill);">
-        ${isGDrive ? `<option value="eagle" selected>🦅 Eagle Dense Asset Browser</option>` : (isToolDock ? `<option value="wall" selected>⚡ Visual Launchpad &amp; 3-Lane Lab</option>` : (isMovingForward ? `
+        ${isGDrive ? `<option value="eagle" selected>🦅 Eagle Dense Asset Browser</option>` : (isToolDock ? `<option value="wall" selected>⚡ Visual Launchpad &amp; 3-Lane Lab</option>` : (isBuildNotes ? `<option value="wall" selected>📋 4-Column Build &amp; Improvement Board</option>` : (isMovingForward ? `
           <option value="vertical" ${ui.layoutMode !== 'horizontal' ? 'selected' : ''}>▤ Vertical Columns</option>
           <option value="horizontal" ${ui.layoutMode === 'horizontal' ? 'selected' : ''}>☰ Horizontal Rows</option>
         ` : `
@@ -6732,13 +6733,14 @@ function renderSectionDesignDrawer() {
           <option value="wall" ${ui.layoutMode === 'wall' ? 'selected' : ''}>⊞ Clear Drawers / Bento Grid</option>
           <option value="list" ${ui.layoutMode === 'list' ? 'selected' : ''}>☰ Visual List Rows</option>
           <option value="kanban" ${ui.layoutMode === 'kanban' ? 'selected' : ''}>▤ Category Columns</option>
-        `))}
+        `)))}
       </select>
 
-      ${isToolDock ? `
+      ${(isToolDock || isBuildNotes) ? `
       <label class="kicker-mono">SORT ORDER</label>
       <select id="secUiSortOrder" class="toolbar-select" style="border:1px solid var(--border);padding:4px 8px;border-radius:4px;background:var(--surface-pill);">
         <option value="manual" ${(!ui.sortOrder || ui.sortOrder === 'manual') ? 'selected' : ''}>↕ Manual (Drag to Reorder)</option>
+        ${isBuildNotes ? `<option value="priority" ${ui.sortOrder === 'priority' ? 'selected' : ''}>🔥 Priority (High → Next → Later)</option>` : ''}
         <option value="alpha" ${ui.sortOrder === 'alpha' ? 'selected' : ''}>Aa Alphabetical (A–Z)</option>
         <option value="newest" ${ui.sortOrder === 'newest' ? 'selected' : ''}>✦ Newest Added First</option>
       </select>
@@ -9952,6 +9954,8 @@ function openSpacebarPreview(asset) {
   if (!dlg || !stage) return;
 
   const isGDrivePage = state.viewType === 'space' && state.activeSpaceId === 'gdrive_assets';
+  const isBuildNotesPage = state.viewType === 'space' && state.activeSpaceId === 'build_notes';
+  const isRestrictedPreview = isGDrivePage || isBuildNotesPage;
   const thumbPreviewUrl = asset.thumbSrc || asset.url || '';
   const canAppendPreviewParam = thumbPreviewUrl && !/^(blob:|data:)/i.test(thumbPreviewUrl) && !thumbPreviewUrl.includes('/vault_media/') && !thumbPreviewUrl.includes('/api/local-media');
   const fullPreviewUrl = asset.previewUrl || (canAppendPreviewParam ? `${thumbPreviewUrl}${thumbPreviewUrl.includes('?') ? '&' : '?'}preview=1` : thumbPreviewUrl);
@@ -10002,7 +10006,7 @@ function openSpacebarPreview(asset) {
 
   if (titleEl) {
     titleEl.textContent = asset.title || 'Asset Preview';
-    if (isGDrivePage) {
+    if (isRestrictedPreview) {
       delete titleEl.dataset.editableTitle;
       titleEl.title = asset.title || 'Asset Preview';
       titleEl.onclick = null;
@@ -10030,12 +10034,12 @@ function openSpacebarPreview(asset) {
     }
   }
 
-  // On Drive & PSD Assets page, show ONLY Prev/Next + Show in Drive + Show in Finder + Close
-  if (btnQueued) btnQueued.hidden = isGDrivePage;
-  if (btnPublished) btnPublished.hidden = isGDrivePage;
-  if (btnWebsite) btnWebsite.hidden = isGDrivePage;
-  if (btnInspect) btnInspect.hidden = isGDrivePage;
-  if (btnPinToBoard) btnPinToBoard.hidden = isGDrivePage;
+  // On Drive & PSD Assets or Build Notes page, hide unrelated Studio/IG action buttons
+  if (btnQueued) btnQueued.hidden = isRestrictedPreview;
+  if (btnPublished) btnPublished.hidden = isRestrictedPreview;
+  if (btnWebsite) btnWebsite.hidden = isRestrictedPreview;
+  if (btnInspect) btnInspect.hidden = isRestrictedPreview;
+  if (btnPinToBoard) btnPinToBoard.hidden = isRestrictedPreview;
 
   const btnDownload = document.getElementById('btnQuickLookDownload');
   if (btnDownload) btnDownload.hidden = true;
@@ -10125,7 +10129,7 @@ function openSpacebarPreview(asset) {
   }
 
   const syncQuickLookStatusButtons = () => {
-    if (isGDrivePage) return;
+    if (isRestrictedPreview) return;
     const vItem = asset.vaultItemId ? vault.items.find(i => i.id === asset.vaultItemId) : null;
     const st = vItem ? (vItem.igStatus || '') : (asset.igStatus || '');
     btnQueued?.classList.toggle('active', st === 'queued');
@@ -10135,7 +10139,7 @@ function openSpacebarPreview(asset) {
   syncQuickLookStatusButtons();
 
   const toggleAssetStatus = (targetStatus) => {
-    if (isGDrivePage) return;
+    if (isRestrictedPreview) return;
     const vItem = ensureVaultItemForAsset(asset);
     if (!vItem) return;
     vItem.igStatus = vItem.igStatus === targetStatus ? '' : targetStatus;
@@ -20569,6 +20573,9 @@ function captureBuildNotesLiveInputsToDraft() {
   if (scratchEl) vault.buildNotes.scratchpad = scratchEl.value;
 }
 
+let _bnDraftSaveTimer = null;
+let _bnScratchSaveTimer = null;
+
 async function uploadBuildNotesFiles(fileList, targetCardId = null) {
   const files = Array.from(fileList || []).filter(Boolean);
   if (!files.length) return;
@@ -20676,16 +20683,22 @@ function renderBuildNotesView(ws, spaceObj) {
   const totalDone = (bn.items || []).filter(n => n && !n.trashed && n.lane === 'done').length;
 
   const selectedDraftSec = draft.targetSection || 'All / General';
-  const selectedDraftLane = draft.lane || activeLaneFilter || 'build';
+  const selectedDraftLane = activeLaneFilter || draft.lane || 'build';
   const selectedDraftPrio = draft.priority || 'Next';
+  const sortOrder = spaceObj?.ui?.sortOrder || 'manual';
+  const prioWeight = { 'High': 0, 'Next': 1, 'Later': 2 };
 
   const sectionOptionsHtml = BUILD_NOTES_SECTIONS.map(sec =>
     `<option value="${escapeHtml(sec)}" ${sec === selectedDraftSec ? 'selected' : ''}>${escapeHtml(sec)}</option>`
   ).join('');
 
+  const allNonDoneItems = (bn.items || []).filter(n => n && !n.trashed);
   const sectionFilterPillsHtml = ['All', ...BUILD_NOTES_SECTIONS.filter(s => s !== 'All / General')].map(sec => {
     const isAct = activeSectionFilter === sec;
-    return `<button type="button" class="bn-sec-filter-chip ${isAct ? 'active' : ''}" data-bn-sec-filter="${escapeHtml(sec)}">${escapeHtml(sec)}</button>`;
+    const cnt = sec === 'All'
+      ? allNonDoneItems.length
+      : allNonDoneItems.filter(n => (n.targetSection || 'All / General') === sec).length;
+    return `<button type="button" class="bn-sec-filter-chip ${isAct ? 'active' : ''}" data-bn-sec-filter="${escapeHtml(sec)}"><span>${escapeHtml(sec)}</span>${cnt > 0 ? `<span class="bn-sec-chip-count">${cnt}</span>` : ''}</button>`;
   }).join('');
 
   const draftAttachments = Array.isArray(draft.attachments) ? draft.attachments : [];
@@ -20705,7 +20718,7 @@ function renderBuildNotesView(ws, spaceObj) {
   ` : '';
 
   const lanesHtml = visibleLanes.map(lane => {
-    const laneItems = (bn.items || []).filter(item => {
+    const rawLaneItems = (bn.items || []).filter(item => {
       if (!item || item.trashed) return false;
       if ((item.lane || 'build') !== lane.key) return false;
       if (activeSectionFilter !== 'All' && item.targetSection !== activeSectionFilter) return false;
@@ -20718,6 +20731,15 @@ function renderBuildNotesView(ws, spaceObj) {
       }
       return true;
     });
+
+    const laneItems = [...rawLaneItems];
+    if (sortOrder === 'alpha') {
+      laneItems.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    } else if (sortOrder === 'newest') {
+      laneItems.sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
+    } else if (sortOrder === 'priority') {
+      laneItems.sort((a, b) => (prioWeight[a.priority || 'Next'] ?? 1) - (prioWeight[b.priority || 'Next'] ?? 1));
+    }
 
     const cardsHtml = laneItems.length > 0 ? laneItems.map(item => {
       const isDone = item.lane === 'done';
@@ -20864,6 +20886,14 @@ function renderBuildNotesView(ws, spaceObj) {
             <span class="bn-summary-counts">${totalOpen} Open &middot; ${totalDone} Done</span>
           </div>
           <div class="bn-composer-right-actions">
+            ${(bn.trash && bn.trash.length > 0) ? `
+              <button type="button" class="outline-btn" id="btnBnRestoreLastTrash" title="Restore the last deleted build note (${escapeHtml(bn.trash[bn.trash.length - 1]?.title || 'Note')})" style="padding:4px 10px;font-size:11px;">
+                ↺ Undo Delete (${bn.trash.length})
+              </button>
+            ` : ''}
+            <button type="button" class="outline-btn" id="btnBnCopySummary" title="Copy all open build notes as a clean list to paste anywhere" style="padding:4px 10px;font-size:11px;">
+              📋 Copy Open List
+            </button>
             <button type="button" class="outline-btn" id="btnBnToggleScratch" style="padding:4px 10px;font-size:11px;">
               ${scratchCollapsed ? '▸ Show Braindump Pad' : '▾ Hide Braindump Pad'}
             </button>
@@ -20928,11 +20958,10 @@ function renderBuildNotesView(ws, spaceObj) {
   const quickPrioSel = ws.querySelector('#bnQuickPrioSelect');
   const fileIn = ws.querySelector('#bnFileInput');
 
-  let draftSaveTimer = null;
   const syncDraftLive = () => {
     captureBuildNotesLiveInputsToDraft();
-    clearTimeout(draftSaveTimer);
-    draftSaveTimer = setTimeout(() => {
+    clearTimeout(_bnDraftSaveTimer);
+    _bnDraftSaveTimer = setTimeout(() => {
       saveVault('SAVED BUILD NOTE DRAFT');
     }, 350);
   };
@@ -21058,15 +21087,70 @@ function renderBuildNotesView(ws, spaceObj) {
     renderWorkspace();
   });
 
+  // Restore last deleted build note from trash
+  ws.querySelector('#btnBnRestoreLastTrash')?.addEventListener('click', () => {
+    captureBuildNotesLiveInputsToDraft();
+    if (!Array.isArray(bn.trash) || bn.trash.length === 0) return;
+    const restored = bn.trash.pop();
+    if (restored) {
+      delete restored.trashed;
+      delete restored.deletedAt;
+      bn.items.unshift(restored);
+      saveVault('RESTORED BUILD NOTE');
+      renderSidebar();
+      renderFilterActionRow();
+      renderWorkspace();
+      showStatusToast(`↺ Restored: ${restored.title || 'Build Note'}`);
+    }
+  });
+
+  // Copy all open build notes as clean markdown list
+  ws.querySelector('#btnBnCopySummary')?.addEventListener('click', async () => {
+    captureBuildNotesLiveInputsToDraft();
+    const openItems = (bn.items || []).filter(n => n && !n.trashed && n.lane !== 'done');
+    if (openItems.length === 0 && !(bn.scratchpad || '').trim()) {
+      showStatusToast('No open build notes to copy yet');
+      return;
+    }
+    const lines = ['# IDEAL — Build & Improvement Notes\n'];
+    if ((bn.scratchpad || '').trim()) {
+      lines.push(`## Braindump\n${bn.scratchpad.trim()}\n`);
+    }
+    ['build', 'improve', 'fix'].forEach(lk => {
+      const colTitle = bn.laneTitles?.[lk] || lk.toUpperCase();
+      const inCol = openItems.filter(n => (n.lane || 'build') === lk);
+      if (inCol.length > 0) {
+        lines.push(`## ${colTitle}`);
+        inCol.forEach(item => {
+          lines.push(`- **[${item.priority || 'Next'} · ${item.targetSection || 'All'}]** ${item.title}`);
+          if (item.notes) lines.push(`  Notes: ${item.notes}`);
+          (item.checklist || []).forEach(c => {
+            lines.push(`  - [${c.done ? 'x' : ' '}] ${c.text}`);
+          });
+          (item.links || []).forEach(l => {
+            lines.push(`  - Link: ${l.url}`);
+          });
+        });
+        lines.push('');
+      }
+    });
+    const textOut = lines.join('\n').trim();
+    try {
+      await navigator.clipboard.writeText(textOut);
+      showStatusToast(`✓ Copied ${openItems.length} open note${openItems.length === 1 ? '' : 's'} to clipboard`);
+    } catch (e) {
+      showStatusToast('Could not access clipboard');
+    }
+  });
+
   // Scratchpad Auto-Save
   const scratchArea = ws.querySelector('#bnScratchpadTextarea');
   const scratchInd = ws.querySelector('#bnScratchSavedIndicator');
-  let scratchSaveTimer = null;
   scratchArea?.addEventListener('input', () => {
     bn.scratchpad = scratchArea.value;
     if (scratchInd) scratchInd.textContent = 'Saving…';
-    clearTimeout(scratchSaveTimer);
-    scratchSaveTimer = setTimeout(() => {
+    clearTimeout(_bnScratchSaveTimer);
+    _bnScratchSaveTimer = setTimeout(() => {
       saveVault('UPDATED BUILD SCRATCHPAD');
       if (scratchInd) scratchInd.textContent = '✓ Saved';
     }, 350);
@@ -21334,7 +21418,7 @@ function renderBuildNotesView(ws, spaceObj) {
     });
   });
 
-  // Preview image attachment in Spacebar Quick Look
+  // Preview image attachment in Spacebar Quick Look (with Left/Right arrow navigation across all card images)
   ws.querySelectorAll('[data-bn-preview-att-id]').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('[data-bn-del-att-id]')) return;
@@ -21342,13 +21426,19 @@ function renderBuildNotesView(ws, spaceObj) {
       const idx = parseInt(el.dataset.bnPreviewAttIdx, 10);
       const att = item && Array.isArray(item.attachments) ? item.attachments[idx] : null;
       if (att && att.url) {
-        openSpacebarPreview({
-          id: att.id || uid('bna'),
-          title: att.name || item.title || 'Attachment',
-          url: att.url,
-          thumbSrc: att.url,
-          kind: att.kind === 'video' ? 'video' : 'image'
-        });
+        const cardImgList = (item.attachments || [])
+          .filter(a => a && a.url && (a.kind === 'image' || a.kind === 'video'))
+          .map(a => ({
+            id: a.id || uid('bna'),
+            title: a.name || item.title || 'Attachment',
+            category: item.targetSection || 'BUILD NOTE',
+            url: a.url,
+            thumbSrc: a.url,
+            kind: a.kind === 'video' ? 'video' : 'image'
+          }));
+        state.currentEagleAssetList = cardImgList;
+        const targetPreview = cardImgList.find(x => x.url === att.url) || cardImgList[0];
+        if (targetPreview) openSpacebarPreview(targetPreview);
       }
     });
   });
@@ -21401,6 +21491,10 @@ function renderBuildNotesView(ws, spaceObj) {
   ws.querySelectorAll('.bn-card[data-bn-id]').forEach(card => {
     card.addEventListener('dragstart', (e) => {
       if (card.querySelector('input.inline-rename-field, textarea.inline-notes-textarea')) {
+        e.preventDefault();
+        return;
+      }
+      if (document.activeElement && card.contains(document.activeElement) && ['SELECT', 'INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement.tagName)) {
         e.preventDefault();
         return;
       }
@@ -21481,11 +21575,21 @@ function renderBuildNotesView(ws, spaceObj) {
 
   ws.querySelectorAll('.bn-lane-col[data-bn-lane]').forEach(col => {
     col.addEventListener('dragover', (e) => {
-      if (!draggedBnId) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
+      const hasFiles = e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+      if (hasFiles || draggedBnId) {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = hasFiles ? 'copy' : 'move';
+      }
     });
     col.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0 && !e.target.closest('.bn-card')) {
+        e.preventDefault();
+        e.stopPropagation();
+        captureBuildNotesLiveInputsToDraft();
+        bn.draft.lane = col.dataset.bnLane || 'build';
+        uploadBuildNotesFiles(e.dataTransfer.files, null);
+        return;
+      }
       if (!draggedBnId) return;
       e.preventDefault();
       captureBuildNotesLiveInputsToDraft();
@@ -23045,7 +23149,7 @@ function escapeHtml(str) {
    BOOT & EVENT BINDINGS
    -------------------------------------------------------------------------- */
 function initEvents() {
-  // Cross-tab Tool Dock synchronization so background tabs never overwrite newly added staples/tools
+  // Cross-tab Tool Dock & Build Notes synchronization so background tabs never overwrite newly added items
   window.addEventListener('storage', (e) => {
     if (e.key === 'ideal_vault_v5' && e.newValue) {
       try {
@@ -23054,6 +23158,15 @@ function initEvents() {
           vault.toolDock = updated.toolDock;
           normalizeToolDockData(vault);
           if (state.viewType === 'space' && state.activeSpaceId === 'tool_dock') {
+            renderWorkspace();
+          }
+        }
+        if (updated && updated.buildNotes && vault) {
+          vault.buildNotes = updated.buildNotes;
+          normalizeBuildNotesData(vault);
+          if (state.viewType === 'space' && state.activeSpaceId === 'build_notes') {
+            renderSidebar();
+            renderFilterActionRow();
             renderWorkspace();
           }
         }
