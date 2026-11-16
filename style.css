@@ -17723,6 +17723,7 @@ dialog.compare-dialog::backdrop {
 
 .bn-quick-title,
 .bn-quick-subnotes,
+.bn-quick-link-input,
 .bn-quick-select,
 .bn-quick-prio {
   background: var(--bg);
@@ -17733,9 +17734,106 @@ dialog.compare-dialog::backdrop {
   font-size: var(--base-font-size, 13px);
 }
 
-.bn-quick-subnotes {
+.bn-quick-subnotes,
+.bn-quick-link-input {
   font-family: var(--font-typewriter);
   font-size: calc(var(--base-font-size, 13px) * 0.94);
+}
+
+.bn-quick-extra-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(180px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .bn-quick-extra-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bn-attach-btn {
+  padding: 7px 13px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.bn-composer-card.is-file-drop-target,
+.bn-card.is-file-drop-target {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.bn-draft-attachments-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--card-radius, 5px);
+}
+
+.bn-attachments-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.bn-att-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-width: 240px;
+}
+
+.bn-att-chip-thumb {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.bn-att-ext-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.bn-att-chip-name {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bn-att-chip-del {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.bn-att-chip-del:hover {
+  color: var(--danger);
 }
 
 .bn-sec-filter-bar {
@@ -17973,15 +18071,166 @@ dialog.compare-dialog::backdrop {
   flex-wrap: wrap;
 }
 
-.bn-section-tag {
+.bn-section-tag,
+.bn-section-select-inline {
+  appearance: none;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-mid);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 1px 6px;
+  padding: 2px 7px;
   cursor: pointer;
+}
+
+.bn-section-select-inline:hover {
+  color: var(--text);
+  border-color: var(--text-mid);
+}
+
+.bn-links-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bn-link-pill-wrap {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.bn-link-pill {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 3px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  max-width: 230px;
+}
+
+.bn-link-pill:hover {
+  text-decoration: underline;
+}
+
+.bn-link-pill-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bn-link-pill-del {
+  appearance: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.bn-link-pill-del:hover {
+  color: var(--danger);
+}
+
+.bn-card-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bn-att-media-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, 5px);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.bn-att-media-card img,
+.bn-att-media-card video {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  background: var(--surface-stage);
+  display: block;
+}
+
+.bn-att-media-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.bn-att-media-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mid);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bn-att-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.bn-att-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bn-att-file-link:hover {
+  color: var(--accent);
+}
+
+.bn-att-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bn-att-del-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 3px;
+}
+
+.bn-att-del-btn:hover {
+  color: var(--danger);
 }
 
 .bn-chk-progress {
